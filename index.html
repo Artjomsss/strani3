@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Европейские страны</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    .country-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    .country-card {
+      background-color: #2a2a2a;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+    .country-card:hover {
+      transform: scale(1.03);
+    }
+    .country-card h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #fff;
+    }
+    .status {
+      color: #ccc;
+      font-size: 14px;
+    }
+    .input-box {
+      margin: 20px auto;
+      text-align: center;
+    }
+    input {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      width: 200px;
+    }
+    button {
+      padding: 10px 15px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Список стран Европы</h1>
+  <div class="input-box">
+    <input type="text" id="codeInput" placeholder="Введите код">
+    <button id="goBtn">Перейти</button>
+  </div>
+
+  <div class="container">
+    <div class="country-list" id="countryList"></div>
+  </div>
+
+  <script>
+    // Страны
+    const countries = [
+      "Албания","Андорра","Австрия","Беларусь","Бельгия","Болгария",
+      "Хорватия","Чехия","Дания","Эстония","Финляндия","Франция",
+      "Германия","Греция","Венгрия","Исландия","Ирландия","Италия",
+      "Латвия","Литва","Люксембург","Мальта","Молдавия","Монако",
+      "Черногория","Нидерланды","Северная Македония","Норвегия",
+      "Польша","Португалия"
+    ];
+
+    // Коды
+    const codes = {
+      "ALB123": "albania.html",
+      "AND456": "andorra.html",
+      "AUT789": "austria.html",
+      "BLR321": "belarus.html",
+      "BEL654": "belgium.html",
+      "BGR987": "bulgaria.html",
+      "HRV147": "croatia.html",
+      "CZE258": "czechia.html",
+      "DNK369": "denmark.html",
+      "EST741": "estonia.html",
+      "FIN852": "finland.html",
+      "FRA963": "france.html",
+      "GER159": "germany.html",
+      "GRC357": "greece.html",
+      "HUN753": "hungary.html",
+      "ISL951": "iceland.html",
+      "IRL147": "ireland.html",
+      "ITA258": "italy.html",
+      "LVA369": "latvia.html",
+      "LTU741": "lithuania.html",
+      "LUX852": "luxembourg.html",
+      "MLT963": "malta.html",
+      "MDA159": "moldova.html",
+      "MCO357": "monaco.html",
+      "MNE753": "montenegro.html",
+      "NLD951": "netherlands.html",
+      "MKD147": "northmacedonia.html",
+      "NOR258": "norway.html",
+      "POL369": "poland.html",
+      "PRT741": "portugal.html"
+    };
+
+    // Вывод списка
+    const list = document.getElementById("countryList");
+    countries.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "country-card";
+      div.innerHTML = `<h2>${c}</h2><div class="status">– не занято</div>`;
+      list.appendChild(div);
+    });
+
+    // Переход по коду
+    document.getElementById("goBtn").onclick = () => {
+      const val = document.getElementById("codeInput").value.trim().toUpperCase();
+      if(!val){ alert("Введите код"); return; }
+      if(codes[val]){
+        window.location.href = codes[val];
+      } else {
+        alert("Код не найден");
+      }
+    };
+  </script>
+</body>
+</html>

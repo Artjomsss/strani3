@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Литва</title>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+  authDomain: "strani3.firebaseapp.com",
+  projectId: "strani3",
+  storageBucket: "strani3.firebasestorage.app",
+  messagingSenderId: "225168183800",
+  appId: "1:225168183800:web:825e782a35bccca89d460d",
+  measurementId: "G-3NKBET5R9J"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const countryCode = "LTU"; // Код страны
+
+// Создание альянса
+async function createAlliance(name) {
+  await addDoc(collection(db, "alliances"), {
+    name,
+    creator: countryCode,
+    members: [countryCode],
+    createdAt: new Date()
+  });
+  alert(`Альянс ${name} создан`);
+  loadMailbox();
+}
+
+// Запрос на вступление в альянс
+async function requestJoinAlliance(allianceName) {
+  const snapshot = await getDocs(collection(db, "alliances"));
+  let creator = null;
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if(data.name === allianceName) creator = data.creator;
+  });
+  if(!creator){ alert("Альянс не найден"); return; }
+
+  await addDoc(collection(db, "mailbox"), {
+    to: creator,
+    from: countryCode,
+    type: "invite",
+    alliance: allianceName,
+    message: `Страна ${countryCode} хочет вступить в альянс ${allianceName}`,
+    createdAt: new Date()
+  });
+  alert("Запрос отправлен");
+}
+
+// Объявление войны
+async function declareWar(targetCode) {
+  await addDoc(collection(db, "mailbox"), {
+    to: targetCode,
+    from: countryCode,
+    type: "war",
+    message: `Страна ${countryCode} объявляет вам войну! У вас есть день на подготовку.`,
+    createdAt: new Date()
+  });
+  alert("Война объявлена");
+}
+
+// Загрузка почты
+async function loadMailbox() {
+  const mailboxEl = document.getElementById("mailbox");
+  mailboxEl.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "mailbox"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if(data.to === countryCode){
+      const li = document.createElement("li");
+      li.textContent = `[${data.type.toUpperCase()}] ${data.message}`;
+      mailboxEl.appendChild(li);
+    }
+  });
+}
+
+window.onload = () => {
+  document.getElementById("createBtn").onclick = () => {
+    const name = document.getElementById("allianceName").value.trim();
+    if(name) createAlliance(name);
+  };
+  document.getElementById("joinBtn").onclick = () => {
+    const name = document.getElementById("joinName").value.trim();
+    if(name) requestJoinAlliance(name);
+  };
+  document.getElementById("warBtn").onclick = () => {
+    const target = document.getElementById("warTarget").value.trim().toUpperCase();
+    if(target) declareWar(target);
+  };
+  loadMailbox();
+};
+</script>
+<style>
+body{background:#111;color:#eee;font-family:Arial;padding:20px;}
+.container{max-width:700px;margin:auto;}
+h1{text-align:center;}
+input,button{padding:10px;margin:5px;border-radius:5px;border:none;}
+button{background:#4caf50;color:#fff;cursor:pointer;}
+button:hover{background:#45a049;}
+#mailbox{margin-top:20px;list-style:none;padding:0;}
+.stat{margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Литва</h1>
+<div class="stat">Деньги: 00 | Армия: 00 | Доход в день: 00</div>
+
+<h2>Альянсы</h2>
+<input id="allianceName" placeholder="Название альянса"><button id="createBtn">Создать альянс</button><br>
+<input id="joinName" placeholder="Вступить в альянс"><button id="joinBtn">Отправить запрос</button>
+
+<h2>Объявить войну</h2>
+<input id="warTarget" placeholder="Код страны"><button id="warBtn">Объявить войну</button>
+
+<h2>Почта</h2>
+<ul id="mailbox"></ul>
+</div>
+</body>
+</html>

@@ -23,7 +23,7 @@ const db = getFirestore(app);
 
 const countryId = "lithuania";
 
-// Загружаем статистику страны
+// Загрузка статистики
 async function loadStats() {
   const ref = doc(db, "countries", countryId);
   const snap = await getDoc(ref);
@@ -51,12 +51,28 @@ async function createAlliance() {
   loadStats();
 }
 
-// Вступить в альянс (по приглашению)
-async function joinAlliance(name) {
+// Выйти из альянса
+async function leaveAlliance() {
   const ref = doc(db, "countries", countryId);
-  await updateDoc(ref, { alliance: name });
-  alert("Вы вступили в альянс: " + name);
+  await updateDoc(ref, { alliance: "нет" });
+  alert("Вы вышли из альянса");
   loadStats();
+}
+
+// Выкинуть страну из альянса
+async function kickFromAlliance() {
+  const target = prompt("Введите страну, которую хотите выгнать:");
+  if (!target) return;
+
+  const ref = doc(db, "countries", target);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    await updateDoc(ref, { alliance: "нет" });
+    alert("Страна " + target + " исключена из альянса");
+  } else {
+    alert("Такой страны нет в базе");
+  }
 }
 
 // Объявить войну
@@ -75,7 +91,7 @@ async function declareWar() {
   alert("Война объявлена стране: " + enemy);
 }
 
-// Загрузить входящие сообщения
+// Загрузить почту
 async function loadMessages() {
   const q = query(collection(db, "messages"), where("to", "==", countryId));
   const snaps = await getDocs(q);
@@ -88,12 +104,6 @@ async function loadMessages() {
     const div = document.createElement("div");
     div.className = "mailItem";
     div.textContent = `[${data.type}] ${data.text}`;
-    if (data.type === "invite") {
-      const btn = document.createElement("button");
-      btn.textContent = "Принять";
-      btn.onclick = () => joinAlliance(data.alliance);
-      div.appendChild(btn);
-    }
     box.appendChild(div);
   });
 }
@@ -103,6 +113,8 @@ window.onload = () => {
   loadMessages();
   document.getElementById("btnAlliance").onclick = createAlliance;
   document.getElementById("btnWar").onclick = declareWar;
+  document.getElementById("btnLeave").onclick = leaveAlliance;
+  document.getElementById("btnKick").onclick = kickFromAlliance;
 };
 </script>
 <style>
@@ -127,12 +139,13 @@ button:hover { background:#45a049; }
 
 <div style="text-align:center; margin-top:15px;">
   <button id="btnAlliance">Создать альянс</button>
+  <button id="btnLeave">Выйти из альянса</button>
+  <button id="btnKick">Выкинуть из альянса</button>
   <button id="btnWar">Объявить войну</button>
 </div>
 
 <div id="mail" class="mail">
   <h3>Почта</h3>
-  <!-- Сообщения будут загружаться сюда -->
 </div>
 </body>
 </html>

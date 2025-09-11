@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -33,23 +33,32 @@ async function loadStats() {
     document.getElementById("money").textContent = data.money ?? 0;
     document.getElementById("army").textContent = data.army ?? 0;
     document.getElementById("income").textContent = data.income ?? 0;
+    document.getElementById("alliance").textContent = data.alliance ?? "нет";
   } else {
     // если страны нет в базе — создаём
-    await setDoc(ref, { money: 0, army: 0, income: 0 });
+    await setDoc(ref, { money: 0, army: 0, income: 0, alliance: "нет" });
     loadStats();
   }
 }
 
-// Пример функции изменения денег
-async function addMoney() {
+// Убрать страну из альянса (например, админ)
+async function removeFromAlliance() {
   const ref = doc(db, "countries", countryId);
-  await updateDoc(ref, { money: (parseInt(document.getElementById("money").textContent) || 0) + 10 });
+  await updateDoc(ref, { alliance: "нет" });
+  loadStats();
+}
+
+// Выйти из альянса (для игрока)
+async function leaveAlliance() {
+  const ref = doc(db, "countries", countryId);
+  await updateDoc(ref, { alliance: "нет" });
   loadStats();
 }
 
 window.onload = () => {
   loadStats();
-  document.getElementById("btnMoney").onclick = addMoney;
+  document.getElementById("btnRemove").onclick = removeFromAlliance;
+  document.getElementById("btnLeave").onclick = leaveAlliance;
 };
 </script>
 <style>
@@ -57,8 +66,9 @@ body { background:#111; color:#eee; font-family:Arial; padding:20px; }
 h1 { text-align:center; }
 .stats { background:#2a2a2a; padding:15px; border-radius:10px; max-width:400px; margin:auto; }
 .stats div { margin:5px 0; }
-button { padding:10px; border:none; border-radius:5px; background:#4caf50; color:#fff; cursor:pointer; margin-top:10px; }
+button { padding:10px; border:none; border-radius:5px; background:#4caf50; color:#fff; cursor:pointer; margin:5px; }
 button:hover { background:#45a049; }
+.buttons { text-align:center; margin-top:15px; }
 </style>
 </head>
 <body>
@@ -67,10 +77,12 @@ button:hover { background:#45a049; }
   <div>Деньги: <span id="money">00</span></div>
   <div>Армия: <span id="army">00</span></div>
   <div>Доход: <span id="income">00</span></div>
+  <div>Альянс: <span id="alliance">нет</span></div>
 </div>
 
-<div style="text-align:center;">
-  <button id="btnMoney">+10 денег</button>
+<div class="buttons">
+  <button id="btnRemove">Убрать из альянса</button>
+  <button id="btnLeave">Выйти из альянса</button>
 </div>
 </body>
 </html>

@@ -1,120 +1,158 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Албания</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
+<title>Албания</title>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+  authDomain: "strani3.firebaseapp.com",
+  projectId: "strani3",
+  storageBucket: "strani3.firebasestorage.app",
+  messagingSenderId: "225168183800",
+  appId: "1:225168183800:web:825e782a35bccca89d460d",
+  measurementId: "G-3NKBET5R9J"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const countryId = "albania";
+
+// Загрузка статистики
+async function loadStats() {
+  const ref = doc(db, "countries", countryId);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    const data = snap.data();
+    document.getElementById("money").textContent = data.money ?? 0;
+    document.getElementById("army").textContent = data.army ?? 0;
+    document.getElementById("income").textContent = data.income ?? 0;
+    document.getElementById("alliance").textContent = data.alliance ?? "нет";
+  } else {
+    await setDoc(ref, { money: 0, army: 0, income: 0, alliance: "нет" });
+    loadStats();
+  }
+}
+
+// Создать альянс
+async function createAlliance() {
+  const name = prompt("Введите название альянса:");
+  if (!name) return;
+
+  const ref = doc(db, "countries", countryId);
+  await updateDoc(ref, { alliance: name });
+  alert("Альянс создан: " + name);
+  loadStats();
+}
+
+// Выйти из альянса
+async function leaveAlliance() {
+  const ref = doc(db, "countries", countryId);
+  await updateDoc(ref, { alliance: "нет" });
+  alert("Вы вышли из альянса");
+  loadStats();
+}
+
+// Выкинуть страну из альянса
+async function kickFromAlliance() {
+  const target = prompt("Введите страну, которую хотите выгнать:");
+  if (!target) return;
+
+  const ref = doc(db, "countries", target);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    await updateDoc(ref, { alliance: "нет" });
+    alert("Страна " + target + " исключена из альянса");
+  } else {
+    alert("Такой страны нет в базе");
+  }
+}
+
+// Объявить войну
+async function declareWar() {
+  const enemy = prompt("Введите страну, которой хотите объявить войну:");
+  if (!enemy) return;
+
+  await addDoc(collection(db, "messages"), {
+    to: enemy,
+    from: countryId,
+    type: "war",
+    text: `Страна ${countryId} объявляет вам войну!`,
+    date: new Date().toISOString()
+  });
+
+  alert("Война объявлена стране: " + enemy);
+}
+
+// Загрузить почту
+async function loadMessages() {
+  const q = query(collection(db, "messages"), where("to", "==", countryId));
+  const snaps = await getDocs(q);
+
+  const box = document.getElementById("mail");
+  box.innerHTML = "<h3>Почта</h3>";
+
+  snaps.forEach(docSnap => {
+    const data = docSnap.data();
+    const div = document.createElement("div");
+    div.className = "mailItem";
+    div.textContent = `[${data.type}] ${data.text}`;
+    box.appendChild(div);
+  });
+}
+
+window.onload = () => {
+  loadStats();
+  loadMessages();
+
+  document.getElementById("btnAlliance").onclick = createAlliance;
+  document.getElementById("btnWar").onclick = declareWar;
+  document.getElementById("btnLeave").onclick = leaveAlliance;
+  document.getElementById("btnKick").onclick = kickFromAlliance;
+
+  // автообновление раз в 10 секунд
+  setInterval(() => {
+    loadStats();
+    loadMessages();
+  }, 10000);
+};
+</script>
+<style>
+body { background:#111; color:#eee; font-family:Arial; padding:20px; }
+h1 { text-align:center; }
+.stats { background:#2a2a2a; padding:15px; border-radius:10px; max-width:500px; margin:auto; }
+.stats div { margin:5px 0; }
+button { padding:8px 12px; border:none; border-radius:5px; background:#4caf50; color:#fff; cursor:pointer; margin:5px; }
+button:hover { background:#45a049; }
+.mail { background:#222; margin-top:20px; padding:10px; border-radius:8px; max-width:500px; margin:auto; }
+.mailItem { background:#333; padding:8px; border-radius:5px; margin-bottom:6px; }
+</style>
 </head>
 <body>
-  <h1>Страна: Албания</h1>
-  <div id="статистика">
-    <p>Деньги: <span id="деньги">0</span></p>
-    <p>Армия: <span id="армия">0</span></p>
-    <p>Альянс: <span id="альянс">Нет</span></p>
-  </div>
+<h1>Албания</h1>
+<div class="stats">
+  <div>Деньги: <span id="money">00</span></div>
+  <div>Армия: <span id="army">00</span></div>
+  <div>Доход: <span id="income">00</span></div>
+  <div>Альянс: <span id="alliance">нет</span></div>
+</div>
 
-  <h2>Альянсы</h2>
-  <div id="альянсы"></div>
-  <button onclick="выйтиИзАльянса()">Выйти из альянса</button>
-  <button onclick="выкинутьИзАльянса()">Выкинуть из альянса</button>
+<div style="text-align:center; margin-top:15px;">
+  <button id="btnAlliance">Создать альянс</button>
+  <button id="btnLeave">Выйти из альянса</button>
+  <button id="btnKick">Выкинуть из альянса</button>
+  <button id="btnWar">Объявить войну</button>
+</div>
 
-  <h2>Война</h2>
-  <input type="text" id="цельВойны" placeholder="Название страны">
-  <button onclick="объявитьВойну()">Объявить войну</button>
-
-  <h2>Почта</h2>
-  <div id="почта"></div>
-
-  <script>
-    // Firebase init
-    const firebaseConfig = {
-      apiKey: "твой_api_key",
-      authDomain: "твой_project_id.firebaseapp.com",
-      databaseURL: "https://твой_project_id.firebaseio.com",
-      projectId: "твой_project_id",
-      storageBucket: "твой_project_id.appspot.com",
-      messagingSenderId: "твой_sender_id",
-      appId: "твой_app_id"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const страна = "Албания";
-
-    // загрузка статистики
-    function загрузитьСтатистику() {
-      db.ref("страны/" + страна).once("value").then(snap => {
-        const данные = snap.val();
-        if (данные) {
-          document.getElementById("деньги").innerText = данные.деньги || 0;
-          document.getElementById("армия").innerText = данные.армия || 0;
-          document.getElementById("альянс").innerText = данные.альянс || "Нет";
-        }
-      });
-    }
-
-    // загрузка альянсов
-    function загрузитьАльянсы() {
-      db.ref("альянсы").once("value").then(snap => {
-        const список = snap.val() || {};
-        let html = "";
-        for (let имя in список) {
-          html += "<p>" + имя + " (" + (список[имя].участники ? Object.keys(список[имя].участники).length : 0) + " участников)</p>";
-        }
-        document.getElementById("альянсы").innerHTML = html;
-      });
-    }
-
-    // загрузка почты
-    function загрузитьПочту() {
-      db.ref("почта/" + страна).once("value").then(snap => {
-        const письма = snap.val() || {};
-        let html = "";
-        for (let id in письма) {
-          html += "<p>" + письма[id].текст + "</p>";
-        }
-        document.getElementById("почта").innerHTML = html;
-      });
-    }
-
-    // объявление войны
-    function объявитьВойну() {
-      const цель = document.getElementById("цельВойны").value;
-      if (!цель) return alert("Введите страну!");
-      db.ref("почта/" + цель).push({
-        текст: страна + " объявляет вам войну! У вас есть день на подготовку."
-      });
-      alert("Война объявлена " + цель);
-    }
-
-    // выйти из альянса
-    function выйтиИзАльянса() {
-      db.ref("страны/" + страна + "/альянс").set("Нет");
-      alert("Вы вышли из альянса!");
-      загрузитьСтатистику();
-    }
-
-    // выкинуть из альянса (для лидера альянса)
-    function выкинутьИзАльянса() {
-      const кого = prompt("Введите имя страны, которую хотите выгнать:");
-      if (!кого) return;
-      db.ref("страны/" + кого + "/альянс").set("Нет");
-      alert(кого + " выгнан из альянса!");
-    }
-
-    // первый запуск
-    загрузитьСтатистику();
-    загрузитьАльянсы();
-    загрузитьПочту();
-
-    // автообновление каждые 10 секунд
-    function обновитьДанные() {
-      загрузитьСтатистику();
-      загрузитьАльянсы();
-      загрузитьПочту();
-    }
-    setInterval(обновитьДанные, 10000);
-  </script>
+<div id="mail" class="mail">
+  <h3>Почта</h3>
+</div>
 </body>
 </html>

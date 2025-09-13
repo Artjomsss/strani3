@@ -20,78 +20,113 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 const countryId = "lithuania";
 
-// Загрузка статистики
-async function loadStats() {
+// Цены на фабрики
+const factoryPrices = {
+  food: 10,
+  steel: 20,
+  oil: 30,
+  gold: 50,
+  energy: 25,
+  wood: 15,
+  stone: 15,
+  chips: 40
+};
+
+// Начальная загрузка страны
+async function loadCountry() {
   const ref = doc(db, "countries", countryId);
   const snap = await getDoc(ref);
-
-  if (snap.exists()) {
-    const data = snap.data();
-    document.getElementById("money").textContent = data.money ?? 0;
-    document.getElementById("army").textContent = data.army ?? 0;
-    document.getElementById("income").textContent = data.income ?? 0;
-    document.getElementById("alliance").textContent = data.alliance ?? "нет";
-  } else {
-    await setDoc(ref, { money: 0, army: 0, income: 0, alliance: "нет" });
-    loadStats();
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      gold: 100,
+      money: 100,
+      food: 0,
+      steel: 0,
+      oil: 0,
+      energy: 0,
+      wood: 0,
+      stone: 0,
+      chips: 0,
+      factories: { food:0, steel:0, oil:0, gold:0, energy:0, wood:0, stone:0, chips:0 },
+      population: 2000000,
+      income:0,
+      army:0,
+      alliance:"нет"
+    });
   }
+  updateUI();
 }
 
-// Создать альянс
-async function createAlliance() {
-  const name = prompt("Введите название альянса:");
-  if (!name) return;
-
+// Обновление интерфейса
+async function updateUI() {
   const ref = doc(db, "countries", countryId);
-  await updateDoc(ref, { alliance: name });
-  alert("Альянс создан: " + name);
-  loadStats();
-}
-
-// Выйти из альянса
-async function leaveAlliance() {
-  const ref = doc(db, "countries", countryId);
-  await updateDoc(ref, { alliance: "нет" });
-  alert("Вы вышли из альянса");
-  loadStats();
-}
-
-// Выкинуть страну из альянса
-async function kickFromAlliance() {
-  const target = prompt("Введите страну, которую хотите выгнать:");
-  if (!target) return;
-
-  const ref = doc(db, "countries", target);
   const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const data = snap.data();
 
-  if (snap.exists()) {
-    await updateDoc(ref, { alliance: "нет" });
-    alert("Страна " + target + " исключена из альянса");
-  } else {
-    alert("Такой страны нет в базе");
-  }
+  document.getElementById("gold").textContent = data.gold ?? 0;
+  document.getElementById("food").textContent = data.food ?? 0;
+  document.getElementById("steel").textContent = data.steel ?? 0;
+  document.getElementById("oil").textContent = data.oil ?? 0;
+  document.getElementById("energy").textContent = data.energy ?? 0;
+  document.getElementById("wood").textContent = data.wood ?? 0;
+  document.getElementById("stone").textContent = data.stone ?? 0;
+  document.getElementById("chips").textContent = data.chips ?? 0;
+  document.getElementById("population").textContent = data.population ?? 0;
+  document.getElementById("income").textContent = data.income ?? 0;
+  document.getElementById("army").textContent = data.army ?? 0;
+  document.getElementById("alliance").textContent = data.alliance ?? "нет";
 }
 
-// Объявить войну
-async function declareWar() {
-  const enemy = prompt("Введите страну, которой хотите объявить войну:");
-  if (!enemy) return;
+// Построить фабрику
+async function buildFactory(type) {
+  const ref = doc(db, "countries", countryId);
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  const price = factoryPrices[type];
 
-  await addDoc(collection(db, "messages"), {
-    to: enemy,
-    from: countryId,
-    type: "war",
-    text: `Страна ${countryId} объявляет вам войну!`,
-    date: new Date().toISOString()
+  if ((data.gold ?? 0) < price) {
+    alert("Недостаточно золота для покупки " + type);
+    return;
+  }
+
+  const newFactories = { ...data.factories };
+  newFactories[type] = (newFactories[type] ?? 0) + 1;
+  await updateDoc(ref, {
+    gold: data.gold - price,
+    factories: newFactories
   });
-
-  alert("Война объявлена стране: " + enemy);
+  updateUI();
 }
 
-// Загрузить почту
+// Автоприрост ресурсов от фабрик
+async function generateResources() {
+  const ref = doc(db, "countries", countryId);
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  const newData = { ...data };
+
+  for (let key in data.factories) {
+    newData[key] = (data[key] ?? 0) + (data.factories[key] ?? 0);
+  }
+
+  await updateDoc(ref, newData);
+  updateUI();
+}
+
+// Доход от населения (налоги)
+async function collectTaxes() {
+  const ref = doc(db, "countries", countryId);
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  const income = Math.floor((data.population ?? 0)/1000);
+  await updateDoc(ref, { gold: (data.gold ?? 0) + income });
+  updateUI();
+}
+
+// Загрузка почты (для альянсов и войн)
 async function loadMessages() {
   const q = query(collection(db, "messages"), where("to", "==", countryId));
   const snaps = await getDocs(q);
@@ -108,46 +143,101 @@ async function loadMessages() {
   });
 }
 
-window.onload = () => {
-  loadStats();
+// Альянс
+async function createAlliance() {
+  const name = prompt("Введите название альянса:");
+  if (!name) return;
+  const ref = doc(db, "countries", countryId);
+  await updateDoc(ref, { alliance: name });
+  updateUI();
+}
+
+async function leaveAlliance() {
+  const ref = doc(db, "countries", countryId);
+  await updateDoc(ref, { alliance: "нет" });
+  updateUI();
+}
+
+// Война
+async function declareWar() {
+  const enemy = prompt("Введите страну, которой хотите объявить войну:");
+  if (!enemy) return;
+  await addDoc(collection(db, "messages"), {
+    to: enemy,
+    from: countryId,
+    type: "war",
+    text: `Страна ${countryId} объявляет вам войну!`,
+    date: new Date().toISOString()
+  });
   loadMessages();
+}
+
+// При загрузке
+window.onload = async () => {
+  await loadCountry();
+  await loadMessages();
 
   document.getElementById("btnAlliance").onclick = createAlliance;
-  document.getElementById("btnWar").onclick = declareWar;
   document.getElementById("btnLeave").onclick = leaveAlliance;
-  document.getElementById("btnKick").onclick = kickFromAlliance;
+  document.getElementById("btnWar").onclick = declareWar;
 
-  // автообновление раз в 10 секунд
-  setInterval(() => {
-    loadStats();
-    loadMessages();
-  }, 10000);
+  const factoryButtons = document.querySelectorAll(".btnFactory");
+  factoryButtons.forEach(btn => {
+    btn.onclick = () => buildFactory(btn.dataset.type);
+  });
+
+  // автогенерация ресурсов каждые 10 секунд
+  setInterval(generateResources, 10000);
+  // доход от населения каждые 30 секунд
+  setInterval(collectTaxes, 30000);
+  // автообновление почты каждые 10 секунд
+  setInterval(loadMessages, 10000);
 };
 </script>
 <style>
 body { background:#111; color:#eee; font-family:Arial; padding:20px; }
 h1 { text-align:center; }
-.stats { background:#2a2a2a; padding:15px; border-radius:10px; max-width:500px; margin:auto; }
+.stats { background:#2a2a2a; padding:15px; border-radius:10px; max-width:700px; margin:auto; }
 .stats div { margin:5px 0; }
 button { padding:8px 12px; border:none; border-radius:5px; background:#4caf50; color:#fff; cursor:pointer; margin:5px; }
 button:hover { background:#45a049; }
-.mail { background:#222; margin-top:20px; padding:10px; border-radius:8px; max-width:500px; margin:auto; }
+.mail { background:#222; margin-top:20px; padding:10px; border-radius:8px; max-width:700px; margin:auto; }
 .mailItem { background:#333; padding:8px; border-radius:5px; margin-bottom:6px; }
+.factoryButtons { text-align:center; margin-top:15px; }
 </style>
 </head>
 <body>
 <h1>Литва</h1>
+
 <div class="stats">
-  <div>Деньги: <span id="money">00</span></div>
-  <div>Армия: <span id="army">00</span></div>
-  <div>Доход: <span id="income">00</span></div>
+  <div>Золото: <span id="gold">0</span></div>
+  <div>Еда: <span id="food">0</span></div>
+  <div>Сталь: <span id="steel">0</span></div>
+  <div>Нефть: <span id="oil">0</span></div>
+  <div>Энергия: <span id="energy">0</span></div>
+  <div>Дерево: <span id="wood">0</span></div>
+  <div>Камень: <span id="stone">0</span></div>
+  <div>Микросхемы: <span id="chips">0</span></div>
+  <div>Население: <span id="population">2000000</span></div>
+  <div>Доход: <span id="income">0</span></div>
+  <div>Армия: <span id="army">0</span></div>
   <div>Альянс: <span id="alliance">нет</span></div>
+</div>
+
+<div class="factoryButtons">
+  <button class="btnFactory" data-type="food">Ферма (+еда)</button>
+  <button class="btnFactory" data-type="steel">Завод стали (+сталь)</button>
+  <button class="btnFactory" data-type="oil">Нефтяная вышка (+нефть)</button>
+  <button class="btnFactory" data-type="gold">Золотой рудник (+золото)</button>
+  <button class="btnFactory" data-type="energy">Электростанция (+энергия)</button>
+  <button class="btnFactory" data-type="wood">Лесопилка (+дерево)</button>
+  <button class="btnFactory" data-type="stone">Каменоломня (+камень)</button>
+  <button class="btnFactory" data-type="chips">Фабрика микросхем (+микросхемы)</button>
 </div>
 
 <div style="text-align:center; margin-top:15px;">
   <button id="btnAlliance">Создать альянс</button>
   <button id="btnLeave">Выйти из альянса</button>
-  <button id="btnKick">Выкинуть из альянса</button>
   <button id="btnWar">Объявить войну</button>
 </div>
 

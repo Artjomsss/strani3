@@ -97,7 +97,7 @@ async function loadMessages() {
   const snaps = await getDocs(q);
 
   const box = document.getElementById("mail");
-  box.innerHTML = "";
+  box.innerHTML = "<h3>Почта</h3>";
 
   snaps.forEach(docSnap => {
     const data = docSnap.data();
@@ -111,10 +111,17 @@ async function loadMessages() {
 window.onload = () => {
   loadStats();
   loadMessages();
+
   document.getElementById("btnAlliance").onclick = createAlliance;
   document.getElementById("btnWar").onclick = declareWar;
   document.getElementById("btnLeave").onclick = leaveAlliance;
   document.getElementById("btnKick").onclick = kickFromAlliance;
+
+  // автообновление раз в 10 секунд
+  setInterval(() => {
+    loadStats();
+    loadMessages();
+  }, 10000);
 };
 </script>
 <style>

@@ -20,118 +20,36 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 const countryId = "lithuania";
 
-// Цены на фабрики
-const factoryPrices = {
-  food: 10,
-  steel: 20,
-  oil: 30,
-  gold: 50,
-  energy: 25,
-  wood: 15,
-  stone: 15,
-  chips: 40
-};
-
-// Начальная загрузка страны
-async function loadCountry() {
+// Загружаем статистику ресурсов
+async function loadStats() {
   const ref = doc(db, "countries", countryId);
   const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, {
-      gold: 100,
-      money: 100,
-      food: 0,
-      steel: 0,
-      oil: 0,
-      energy: 0,
-      wood: 0,
-      stone: 0,
-      chips: 0,
-      factories: { food:0, steel:0, oil:0, gold:0, energy:0, wood:0, stone:0, chips:0 },
-      population: 2000000,
-      income:0,
-      army:0,
-      alliance:"нет"
-    });
+
+  if (snap.exists()) {
+    const data = snap.data();
+    document.getElementById("gold").textContent = data.gold ?? 0;
+    document.getElementById("food").textContent = data.food ?? 0;
+    document.getElementById("steel").textContent = data.steel ?? 0;
+    document.getElementById("oil").textContent = data.oil ?? 0;
+    document.getElementById("wood").textContent = data.wood ?? 0;
+    document.getElementById("stone").textContent = data.stone ?? 0;
+    document.getElementById("energy").textContent = data.energy ?? 0;
+    document.getElementById("chips").textContent = data.chips ?? 0;
+  } else {
+    await setDoc(ref, { gold: 0, food: 0, steel: 0, oil: 0, wood: 0, stone: 0, energy: 0, chips: 0 });
+    loadStats();
   }
-  updateUI();
 }
 
-// Обновление интерфейса
-async function updateUI() {
-  const ref = doc(db, "countries", countryId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  const data = snap.data();
-
-  document.getElementById("gold").textContent = data.gold ?? 0;
-  document.getElementById("food").textContent = data.food ?? 0;
-  document.getElementById("steel").textContent = data.steel ?? 0;
-  document.getElementById("oil").textContent = data.oil ?? 0;
-  document.getElementById("energy").textContent = data.energy ?? 0;
-  document.getElementById("wood").textContent = data.wood ?? 0;
-  document.getElementById("stone").textContent = data.stone ?? 0;
-  document.getElementById("chips").textContent = data.chips ?? 0;
-  document.getElementById("population").textContent = data.population ?? 0;
-  document.getElementById("income").textContent = data.income ?? 0;
-  document.getElementById("army").textContent = data.army ?? 0;
-  document.getElementById("alliance").textContent = data.alliance ?? "нет";
-}
-
-// Построить фабрику
-async function buildFactory(type) {
-  const ref = doc(db, "countries", countryId);
-  const snap = await getDoc(ref);
-  const data = snap.data();
-  const price = factoryPrices[type];
-
-  if ((data.gold ?? 0) < price) {
-    alert("Недостаточно золота для покупки " + type);
-    return;
-  }
-
-  const newFactories = { ...data.factories };
-  newFactories[type] = (newFactories[type] ?? 0) + 1;
-  await updateDoc(ref, {
-    gold: data.gold - price,
-    factories: newFactories
-  });
-  updateUI();
-}
-
-// Автоприрост ресурсов от фабрик
-async function generateResources() {
-  const ref = doc(db, "countries", countryId);
-  const snap = await getDoc(ref);
-  const data = snap.data();
-  const newData = { ...data };
-
-  for (let key in data.factories) {
-    newData[key] = (data[key] ?? 0) + (data.factories[key] ?? 0);
-  }
-
-  await updateDoc(ref, newData);
-  updateUI();
-}
-
-// Доход от населения (налоги)
-async function collectTaxes() {
-  const ref = doc(db, "countries", countryId);
-  const snap = await getDoc(ref);
-  const data = snap.data();
-  const income = Math.floor((data.population ?? 0)/1000);
-  await updateDoc(ref, { gold: (data.gold ?? 0) + income });
-  updateUI();
-}
-
-// Загрузка почты (для альянсов и войн)
+// Загружаем почту
 async function loadMessages() {
   const q = query(collection(db, "messages"), where("to", "==", countryId));
   const snaps = await getDocs(q);
 
-  const box = document.getElementById("mail");
+  const box = document.getElementById("mailBox");
   box.innerHTML = "<h3>Почта</h3>";
 
   snaps.forEach(docSnap => {
@@ -143,106 +61,159 @@ async function loadMessages() {
   });
 }
 
-// Альянс
-async function createAlliance() {
-  const name = prompt("Введите название альянса:");
-  if (!name) return;
-  const ref = doc(db, "countries", countryId);
-  await updateDoc(ref, { alliance: name });
-  updateUI();
-}
-
-async function leaveAlliance() {
-  const ref = doc(db, "countries", countryId);
-  await updateDoc(ref, { alliance: "нет" });
-  updateUI();
-}
-
-// Война
-async function declareWar() {
-  const enemy = prompt("Введите страну, которой хотите объявить войну:");
-  if (!enemy) return;
-  await addDoc(collection(db, "messages"), {
-    to: enemy,
-    from: countryId,
-    type: "war",
-    text: `Страна ${countryId} объявляет вам войну!`,
-    date: new Date().toISOString()
-  });
+window.onload = () => {
+  loadStats();
   loadMessages();
-}
-
-// При загрузке
-window.onload = async () => {
-  await loadCountry();
-  await loadMessages();
-
-  document.getElementById("btnAlliance").onclick = createAlliance;
-  document.getElementById("btnLeave").onclick = leaveAlliance;
-  document.getElementById("btnWar").onclick = declareWar;
-
-  const factoryButtons = document.querySelectorAll(".btnFactory");
-  factoryButtons.forEach(btn => {
-    btn.onclick = () => buildFactory(btn.dataset.type);
-  });
-
-  // автогенерация ресурсов каждые 10 секунд
-  setInterval(generateResources, 10000);
-  // доход от населения каждые 30 секунд
-  setInterval(collectTaxes, 30000);
-  // автообновление почты каждые 10 секунд
-  setInterval(loadMessages, 10000);
+  setInterval(() => {
+    loadStats();
+    loadMessages();
+  }, 10000);
 };
 </script>
 <style>
-body { background:#111; color:#eee; font-family:Arial; padding:20px; }
-h1 { text-align:center; }
-.stats { background:#2a2a2a; padding:15px; border-radius:10px; max-width:700px; margin:auto; }
-.stats div { margin:5px 0; }
-button { padding:8px 12px; border:none; border-radius:5px; background:#4caf50; color:#fff; cursor:pointer; margin:5px; }
-button:hover { background:#45a049; }
-.mail { background:#222; margin-top:20px; padding:10px; border-radius:8px; max-width:700px; margin:auto; }
-.mailItem { background:#333; padding:8px; border-radius:5px; margin-bottom:6px; }
-.factoryButtons { text-align:center; margin-top:15px; }
+body {
+  background:#111;
+  color:#eee;
+  font-family:Arial;
+  margin:0;
+  display:grid;
+  grid-template-areas:
+    "mail resources ids"
+    "mail actions ids";
+  grid-template-columns: 250px 1fr 250px;
+  grid-template-rows: 150px 1fr;
+  height:100vh;
+}
+
+#resources {
+  grid-area: resources;
+  background:#2a2a2a;
+  border-radius:10px;
+  padding:10px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-around;
+  align-items:center;
+}
+
+#resources div {
+  margin:5px;
+}
+
+#mailBox {
+  grid-area: mail;
+  background:#222;
+  padding:10px;
+  border-radius:10px;
+  overflow-y:auto;
+}
+
+.mailItem {
+  background:#333;
+  padding:6px;
+  border-radius:6px;
+  margin:4px 0;
+}
+
+#ids {
+  grid-area: ids;
+  background:#222;
+  padding:10px;
+  border-radius:10px;
+  overflow-y:auto;
+}
+
+#actions {
+  grid-area: actions;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+}
+
+button {
+  padding:10px 14px;
+  border:none;
+  border-radius:6px;
+  background:#4caf50;
+  color:#fff;
+  cursor:pointer;
+}
+
+button:hover {
+  background:#45a049;
+}
+
+/* модалки */
+.modal {
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+}
+.modal-content {
+  background:#222;
+  padding:20px;
+  border-radius:10px;
+  max-width:400px;
+  width:90%;
+}
 </style>
 </head>
 <body>
-<h1>Литва</h1>
-
-<div class="stats">
+<div id="resources">
   <div>Золото: <span id="gold">0</span></div>
   <div>Еда: <span id="food">0</span></div>
   <div>Сталь: <span id="steel">0</span></div>
   <div>Нефть: <span id="oil">0</span></div>
-  <div>Энергия: <span id="energy">0</span></div>
-  <div>Дерево: <span id="wood">0</span></div>
+  <div>Древесина: <span id="wood">0</span></div>
   <div>Камень: <span id="stone">0</span></div>
+  <div>Энергия: <span id="energy">0</span></div>
   <div>Микросхемы: <span id="chips">0</span></div>
-  <div>Население: <span id="population">2000000</span></div>
-  <div>Доход: <span id="income">0</span></div>
-  <div>Армия: <span id="army">0</span></div>
-  <div>Альянс: <span id="alliance">нет</span></div>
 </div>
 
-<div class="factoryButtons">
-  <button class="btnFactory" data-type="food">Ферма (+еда)</button>
-  <button class="btnFactory" data-type="steel">Завод стали (+сталь)</button>
-  <button class="btnFactory" data-type="oil">Нефтяная вышка (+нефть)</button>
-  <button class="btnFactory" data-type="gold">Золотой рудник (+золото)</button>
-  <button class="btnFactory" data-type="energy">Электростанция (+энергия)</button>
-  <button class="btnFactory" data-type="wood">Лесопилка (+дерево)</button>
-  <button class="btnFactory" data-type="stone">Каменоломня (+камень)</button>
-  <button class="btnFactory" data-type="chips">Фабрика микросхем (+микросхемы)</button>
-</div>
-
-<div style="text-align:center; margin-top:15px;">
-  <button id="btnAlliance">Создать альянс</button>
-  <button id="btnLeave">Выйти из альянса</button>
-  <button id="btnWar">Объявить войну</button>
-</div>
-
-<div id="mail" class="mail">
+<div id="mailBox">
   <h3>Почта</h3>
+</div>
+
+<div id="ids">
+  <h3>ID стран</h3>
+  <p>lithuania</p>
+  <p>latvia</p>
+  <p>estonia</p>
+  <p>germany</p>
+  <p>poland</p>
+</div>
+
+<div id="actions">
+  <button onclick="document.getElementById('modalPolitics').style.display='flex'">Полит. действия</button>
+  <button onclick="document.getElementById('modalBuild').style.display='flex'">Стройка</button>
+</div>
+
+<!-- модалка для политики -->
+<div class="modal" id="modalPolitics">
+  <div class="modal-content">
+    <h3>Политические действия</h3>
+    <button onclick="alert('создать альянс')">Создать альянс</button>
+    <button onclick="alert('выйти из альянса')">Выйти из альянса</button>
+    <button onclick="alert('объявить войну')">Объявить войну</button>
+    <br><br>
+    <button onclick="document.getElementById('modalPolitics').style.display='none'">Закрыть</button>
+  </div>
+</div>
+
+<!-- модалка для стройки -->
+<div class="modal" id="modalBuild">
+  <div class="modal-content">
+    <h3>Стройка</h3>
+    <button onclick="alert('Построена ферма')">Ферма</button>
+    <button onclick="alert('Построен сталелитейный завод')">Сталелитейный завод</button>
+    <button onclick="alert('Построена нефтяная вышка')">Нефтяная вышка</button>
+    <br><br>
+    <button onclick="document.getElementById('modalBuild').style.display='none'">Закрыть</button>
+  </div>
 </div>
 </body>
 </html>

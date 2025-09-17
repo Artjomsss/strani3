@@ -3,217 +3,228 @@
 <head>
 <meta charset="UTF-8">
 <title>Литва</title>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
-  authDomain: "strani3.firebaseapp.com",
-  projectId: "strani3",
-  storageBucket: "strani3.firebasestorage.app",
-  messagingSenderId: "225168183800",
-  appId: "1:225168183800:web:825e782a35bccca89d460d",
-  measurementId: "G-3NKBET5R9J"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const countryId = "lithuania";
-
-// Загружаем статистику ресурсов
-async function loadStats() {
-  const ref = doc(db, "countries", countryId);
-  const snap = await getDoc(ref);
-
-  if (snap.exists()) {
-    const data = snap.data();
-    document.getElementById("gold").textContent = data.gold ?? 0;
-    document.getElementById("food").textContent = data.food ?? 0;
-    document.getElementById("steel").textContent = data.steel ?? 0;
-    document.getElementById("oil").textContent = data.oil ?? 0;
-    document.getElementById("wood").textContent = data.wood ?? 0;
-    document.getElementById("stone").textContent = data.stone ?? 0;
-    document.getElementById("energy").textContent = data.energy ?? 0;
-    document.getElementById("chips").textContent = data.chips ?? 0;
-  } else {
-    await setDoc(ref, { gold: 0, food: 0, steel: 0, oil: 0, wood: 0, stone: 0, energy: 0, chips: 0 });
-    loadStats();
-  }
-}
-
-// Загружаем почту
-async function loadMessages() {
-  const q = query(collection(db, "messages"), where("to", "==", countryId));
-  const snaps = await getDocs(q);
-
-  const box = document.getElementById("mailBox");
-  box.innerHTML = "<h3>Почта</h3>";
-
-  snaps.forEach(docSnap => {
-    const data = docSnap.data();
-    const div = document.createElement("div");
-    div.className = "mailItem";
-    div.textContent = `[${data.type}] ${data.text}`;
-    box.appendChild(div);
-  });
-}
-
-window.onload = () => {
-  loadStats();
-  loadMessages();
-  setInterval(() => {
-    loadStats();
-    loadMessages();
-  }, 10000);
-};
-</script>
 <style>
-body {
-  background:#111;
-  color:#eee;
-  font-family:Arial;
-  margin:0;
+body { 
+  background:#111; 
+  color:#eee; 
+  font-family:Arial; 
+  margin:0; 
+  padding:0;
+}
+header {
+  background:#222;
+  padding:10px;
+  text-align:center;
+}
+.container {
   display:grid;
-  grid-template-areas:
-    "mail resources ids"
-    "mail actions ids";
-  grid-template-columns: 250px 1fr 250px;
-  grid-template-rows: 150px 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: auto 1fr auto;
   height:100vh;
 }
-
-#resources {
-  grid-area: resources;
-  background:#2a2a2a;
-  border-radius:10px;
+.resources {
+  grid-column:1 / span 3;
+  background:#1b1b1b;
   padding:10px;
   display:flex;
-  flex-wrap:wrap;
   justify-content:space-around;
-  align-items:center;
 }
-
-#resources div {
-  margin:5px;
-}
-
-#mailBox {
-  grid-area: mail;
-  background:#222;
+.panel {
   padding:10px;
-  border-radius:10px;
+  background:#1e1e1e;
   overflow-y:auto;
 }
-
-.mailItem {
-  background:#333;
-  padding:6px;
-  border-radius:6px;
-  margin:4px 0;
-}
-
-#ids {
-  grid-area: ids;
+.mail { border-right:2px solid #333; }
+.country-list { border-left:2px solid #333; }
+.bottom {
+  grid-column:1 / span 3;
   background:#222;
   padding:10px;
-  border-radius:10px;
-  overflow-y:auto;
-}
-
-#actions {
-  grid-area: actions;
   display:flex;
   justify-content:center;
-  align-items:center;
-  gap:20px;
+  gap:15px;
 }
-
 button {
-  padding:10px 14px;
-  border:none;
-  border-radius:6px;
   background:#4caf50;
   color:#fff;
+  border:none;
+  border-radius:5px;
+  padding:10px 15px;
   cursor:pointer;
 }
-
-button:hover {
-  background:#45a049;
-}
-
-/* модалки */
-.modal {
-  display:none;
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.6);
-  justify-content:center;
-  align-items:center;
-}
-.modal-content {
-  background:#222;
-  padding:20px;
-  border-radius:10px;
-  max-width:400px;
-  width:90%;
+button:hover { background:#45a049; }
+.hidden { display:none; }
+h3 { margin-top:0; }
+.alliance-box {
+  background:#2a2a2a;
+  padding:10px;
+  border-radius:5px;
+  margin-top:10px;
 }
 </style>
 </head>
 <body>
-<div id="resources">
-  <div>Золото: <span id="gold">0</span></div>
-  <div>Еда: <span id="food">0</span></div>
-  <div>Сталь: <span id="steel">0</span></div>
-  <div>Нефть: <span id="oil">0</span></div>
-  <div>Древесина: <span id="wood">0</span></div>
-  <div>Камень: <span id="stone">0</span></div>
-  <div>Энергия: <span id="energy">0</span></div>
-  <div>Микросхемы: <span id="chips">0</span></div>
-</div>
+<header>
+  <h1>Литва</h1>
+</header>
 
-<div id="mailBox">
-  <h3>Почта</h3>
-</div>
+<div class="container">
+  <div class="resources">
+    <div>💰 Золото: <span id="gold">100</span></div>
+    <div>👥 Население: <span id="population">2000000</span></div>
+    <div>📈 Доход: <span id="income">0</span>/сек</div>
+    <div>⚔ Армия: <span id="army">0</span></div>
+  </div>
 
-<div id="ids">
-  <h3>ID стран</h3>
-  <p>lithuania</p>
-  <p>latvia</p>
-  <p>estonia</p>
-  <p>germany</p>
-  <p>poland</p>
-</div>
+  <div class="panel mail">
+    <h3>Почта</h3>
+    <div id="mailBox"></div>
+  </div>
 
-<div id="actions">
-  <button onclick="document.getElementById('modalPolitics').style.display='flex'">Полит. действия</button>
-  <button onclick="document.getElementById('modalBuild').style.display='flex'">Стройка</button>
-</div>
+  <div class="panel center">
+    <h3 id="panelTitle">Выберите действие</h3>
+    <div id="actions"></div>
+  </div>
 
-<!-- модалка для политики -->
-<div class="modal" id="modalPolitics">
-  <div class="modal-content">
-    <h3>Политические действия</h3>
-    <button onclick="alert('создать альянс')">Создать альянс</button>
-    <button onclick="alert('выйти из альянса')">Выйти из альянса</button>
-    <button onclick="alert('объявить войну')">Объявить войну</button>
-    <br><br>
-    <button onclick="document.getElementById('modalPolitics').style.display='none'">Закрыть</button>
+  <div class="panel country-list">
+    <h3>Страны</h3>
+    <ul>
+      <li>🇱🇹 Литва</li>
+      <li>🇱🇻 Латвия</li>
+      <li>🇪🇪 Эстония</li>
+      <li>🇵🇱 Польша</li>
+    </ul>
+  </div>
+
+  <div class="bottom">
+    <button onclick="openPolitics()">Полит. действия</button>
+    <button onclick="openBuildings()">Стройка</button>
   </div>
 </div>
 
-<!-- модалка для стройки -->
-<div class="modal" id="modalBuild">
-  <div class="modal-content">
-    <h3>Стройка</h3>
-    <button onclick="alert('Построена ферма')">Ферма</button>
-    <button onclick="alert('Построен сталелитейный завод')">Сталелитейный завод</button>
-    <button onclick="alert('Построена нефтяная вышка')">Нефтяная вышка</button>
-    <br><br>
-    <button onclick="document.getElementById('modalBuild').style.display='none'">Закрыть</button>
-  </div>
-</div>
+<script>
+let player = {
+  gold: 100,
+  population: 2000000,
+  income: 0,
+  army: 0,
+  alliance: null,
+  isLeader: false
+};
+
+let alliance = { name: null, members: [] };
+let factories = { food: 0, steel: 0 };
+
+function updateUI() {
+  document.getElementById("gold").textContent = player.gold;
+  document.getElementById("population").textContent = player.population.toLocaleString();
+  document.getElementById("income").textContent = player.income;
+  document.getElementById("army").textContent = player.army;
+}
+
+// === Политика ===
+function openPolitics() {
+  document.getElementById("panelTitle").textContent = "Политические действия";
+  let html = "";
+
+  if (!player.alliance) {
+    html += `<button onclick="createAlliance()">Создать альянс</button>`;
+  } else {
+    html += `<div class="alliance-box">
+               Альянс: ${alliance.name}<br>
+               Участники: ${alliance.members.join(", ")}
+             </div>`;
+    html += `<button onclick="leaveAlliance()">Выйти из альянса</button>`;
+    if (player.isLeader) {
+      html += `<button onclick="kickMember()">Выгнать страну</button>`;
+    }
+  }
+
+  html += `<button onclick="declareWar()">Объявить войну</button>`;
+  document.getElementById("actions").innerHTML = html;
+}
+
+function createAlliance() {
+  if (alliance.name) {
+    alert("Вы уже в альянсе!");
+    return;
+  }
+  const name = prompt("Введите название альянса:");
+  if (!name) return;
+
+  alliance.name = name;
+  alliance.members = ["Литва"];
+  player.alliance = alliance.name;
+  player.isLeader = true;
+  openPolitics();
+  alert("Альянс создан: " + name);
+}
+
+function leaveAlliance() {
+  player.alliance = null;
+  player.isLeader = false;
+  alliance = { name: null, members: [] };
+  openPolitics();
+}
+
+function kickMember() {
+  const target = prompt("Введите страну для исключения:");
+  if (!target) return;
+  if (alliance.members.includes(target)) {
+    alliance.members = alliance.members.filter(m => m !== target);
+    alert("Страна " + target + " исключена из альянса");
+    openPolitics();
+  } else {
+    alert("Такой страны нет в альянсе");
+  }
+}
+
+function declareWar() {
+  const enemy = prompt("Введите страну, которой хотите объявить войну:");
+  if (!enemy) return;
+  const box = document.getElementById("mailBox");
+  box.innerHTML += `<div>📩 Война объявлена стране ${enemy}</div>`;
+}
+
+// === Стройки ===
+function openBuildings() {
+  document.getElementById("panelTitle").textContent = "Стройки";
+  document.getElementById("actions").innerHTML = `
+    <button onclick="buildFactory('food')">Фабрика еды (+1 доход)</button>
+    <button onclick="buildFactory('steel')">Фабрика стали (+1 доход)</button>
+    <button onclick="trainArmy()">Казарма (+10 армии)</button>
+  `;
+}
+
+function buildFactory(type) {
+  if (player.gold < 50) {
+    alert("Недостаточно золота!");
+    return;
+  }
+  player.gold -= 50;
+  factories[type]++;
+  player.income++;
+  updateUI();
+}
+
+function trainArmy() {
+  if (player.gold < 30) {
+    alert("Недостаточно золота!");
+    return;
+  }
+  player.gold -= 30;
+  player.army += 10;
+  updateUI();
+}
+
+// === Доход от населения ===
+setInterval(() => {
+  player.gold += Math.floor(player.population / 100000); // 1 золото за 100к населения
+  player.gold += player.income; // доход от фабрик
+  updateUI();
+}, 1000);
+
+updateUI();
+</script>
 </body>
 </html>

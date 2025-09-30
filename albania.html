@@ -1,159 +1,569 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Албания</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-    .country { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-    button { margin: 5px; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { opacity: 0.8; }
-    #messages { margin-top: 20px; padding: 10px; background: #eee; border-radius: 8px; }
-  </style>
+<meta charset="utf-8" />
+<title>Албания — управление</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script type="module">
+/* Firebase + Firestore (v11) */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, addDoc, query, where, getDocs
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+/* === Вставь сюда свой firebaseConfig (твой проект) === */
+const firebaseConfig = {
+  apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+  authDomain: "strani3.firebaseapp.com",
+  projectId: "strani3",
+  storageBucket: "strani3.firebasestorage.app",
+  messagingSenderId: "225168183800",
+  appId: "1:225168183800:web:825e782a35bccca89d460d",
+  measurementId: "G-3NKBET5R9J"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* Настройки */
+const countryId = "albania"; // id документа в коллекции countries
+const RESOURCE_TYPES = ["gold","food","steel","oil","energy","wood","stone","chips"];
+const FACTORY_BASE_PRICE = { food:10, steel:20, oil:30, gold:50, energy:25, wood:15, stone:15, chips:40 };
+
+/* Инициализация документа страны, если нет */
+async function ensureCountryDoc(){
+  const ref = doc(db, "countries", countryId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref, {
+      // ресурсы
+      gold: 100,
+      food: 0,
+      steel: 0,
+      oil: 0,
+      energy: 0,
+      wood: 0,
+      stone: 0,
+      chips: 0,
+      // фабрики: количество и уровни
+      factories: {
+        food: 0, steel: 0, oil: 0, gold: 0, energy: 0, wood: 0, stone: 0, chips: 0
+      },
+      factoryLevel: {
+        food:1, steel:1, oil:1, gold:1, energy:1, wood:1, stone:1, chips:1
+      },
+      // прочее
+      population: 2000000,
+      income: 0,
+      army: 0,
+      alliance: "нет",
+      allianceLeader: false,
+      createdAt: new Date()
+    });
+  }
+}
+
+/* Загрузка и отрисовка UI */
+async function updateUI(){
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return;
+  const data = snap.data();
+
+  // ресурсы
+  RESOURCE_TYPES.forEach(k=>{
+    const el = document.getElementById(k);
+    if(el) el.textContent = (data[k] ?? 0);
+  });
+
+  // население/доход/армия/альянс
+  document.getElementById("population").textContent = (data.population ?? 0).toLocaleString();
+  document.getElementById("income").textContent = (data.income ?? 0);
+  document.getElementById("army").textContent = (data.army ?? 0);
+  document.getElementById("allianceName").textContent = (data.alliance ?? "нет");
+
+  // фабрики и уровни в стройке
+  const factories = data.factories ?? {};
+  const levels = data.factoryLevel ?? {};
+  for(const t in factories){
+    const countEl = document.getElementById("fcount-"+t);
+    const lvlEl = document.getElementById("flvl-"+t);
+    if(countEl) countEl.textContent = factories[t] ?? 0;
+    if(lvlEl) lvlEl.textContent = "ур. "+(levels[t] ?? 1);
+  }
+}
+
+/* Загрузить почту (сообщения для этой страны) */
+async function loadMessages(){
+  const q = query(collection(db,"messages"), where("to","==",countryId));
+  const snaps = await getDocs(q);
+  const box = document.getElementById("mailBox");
+  box.innerHTML = "<h3>Почта</h3>";
+  snaps.forEach(s=>{
+    const d = s.data();
+    const div = document.createElement("div");
+    div.className = "mailItem";
+    div.textContent = `[${d.type ?? "info"}] ${d.text}`;
+    box.appendChild(div);
+  });
+}
+
+/* Построить фабрику (проверка золота) */
+async function buildFactory(type){
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return;
+  const data = snap.data();
+  const price = FACTORY_BASE_PRICE[type] ?? 10;
+  if((data.gold ?? 0) < price){
+    alert("Недостаточно золота");
+    return;
+  }
+  const newFactories = {...(data.factories||{})};
+  newFactories[type] = (newFactories[type]||0) + 1;
+  await updateDoc(ref, { gold: (data.gold||0) - price, factories: newFactories });
+  await updateUI();
+}
+
+/* Апгрейд фабрики: цена растёт с уровнем (золото + chips) */
+async function upgradeFactory(type){
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return;
+  const data = snap.data();
+  const lvl = (data.factoryLevel && data.factoryLevel[type]) ? data.factoryLevel[type] : 1;
+  const goldCost = Math.floor((FACTORY_BASE_PRICE[type]||10) * (1.5 * lvl));
+  const chipsCost = Math.floor(5 * lvl);
+  if((data.gold||0) < goldCost || (data.chips||0) < chipsCost){
+    alert(`Нужно ${goldCost} золота и ${chipsCost} микросхем`);
+    return;
+  }
+  const newLevels = {...(data.factoryLevel||{})};
+  newLevels[type] = lvl + 1;
+  await updateDoc(ref, { gold: (data.gold||0) - goldCost, chips: (data.chips||0) - chipsCost, factoryLevel: newLevels });
+  await updateUI();
+}
+
+/* Генерация ресурсов: каждые 10 сек производство = количество фабрик * уровень */
+async function generateResources(){
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return;
+  const data = snap.data();
+  const factories = data.factories || {};
+  const levels = data.factoryLevel || {};
+  const delta = {};
+  // для каждого типа: добавляем factories[type] * level[type]
+  for(const t in factories){
+    const cnt = factories[t] || 0;
+    const lvl = levels[t] || 1;
+    const gain = cnt * lvl; // 1 единица * level * count каждую 10s
+    if(gain>0) delta[t] = (data[t]||0) + gain;
+  }
+  // применяем изменение (сохраняя остальные поля)
+  const newData = {};
+  for(const k in delta) newData[k] = delta[k];
+  if(Object.keys(newData).length) await updateDoc(ref,newData);
+  await updateUI();
+}
+
+/* Налоги от населения: каждые 30 сек */
+async function collectTaxes(){
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  if(!snap.exists()) return;
+  const data = snap.data();
+  const tax = Math.floor((data.population || 0) / 1000); // 1 золото за 1000 чел
+  await updateDoc(ref, { gold: (data.gold||0) + tax });
+  await updateUI();
+}
+
+/* Создать альянс (в document страны записывается alliance и allianceLeader=true) */
+async function createAlliance(){
+  const name = prompt("Название альянса:");
+  if(!name) return;
+  const ref = doc(db,"countries",countryId);
+  await updateDoc(ref, { alliance: name, allianceLeader: true });
+  // уведомление в своей почте
+  await addDoc(collection(db,"messages"), { to: countryId, from: countryId, type:"info", text:`Вы создали альянс "${name}"`, date: new Date().toISOString() });
+  await updateUI();
+  await loadMessages();
+}
+
+/* Выйти из альянса */
+async function leaveAlliance(){
+  const ref = doc(db,"countries",countryId);
+  await updateDoc(ref, { alliance: "нет", allianceLeader: false });
+  await addDoc(collection(db,"messages"), { to: countryId, from: countryId, type:"info", text:`Вы вышли из альянса`, date: new Date().toISOString() });
+  await updateUI();
+  await loadMessages();
+}
+
+/* Отправить приглашение в альянс другой стране */
+async function sendInvite(){
+  const target = prompt("Кому отправить приглашение? (id страны)");
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  if(!target) return;
+  if(!data.alliance || data.alliance==="нет"){ alert("Сначала создайте альянс"); return; }
+  await addDoc(collection(db,"messages"), { to: target, from: countryId, type:"invite", alliance: data.alliance, text: `Приглашение вступить в альянс ${data.alliance}`, date: new Date().toISOString() });
+  alert("Приглашение отправлено");
+}
+
+/* Объявить войну — письмо придёт на почту цели */
+async function declareWar(){
+  const target = prompt("Кому объявить войну? (id страны)");
+  if(!target) return;
+  await addDoc(collection(db,"messages"), { to: target, from: countryId, type:"war", text: `${countryId} объявляет вам войну! У вас есть день на подготовку.`, date: new Date().toISOString() });
+  await addDoc(collection(db,"messages"), { to: countryId, from: countryId, type:"info", text: `Вы объявили войну ${target}`, date: new Date().toISOString() });
+  await loadMessages();
+}
+
+/* Выкинуть страну из альянса (только если ты лидер) */
+async function kickFromAlliance(){
+  const target = prompt("ID страны, которую вы хотите исключить из альянса");
+  if(!target) return;
+  // упростим: поменяем поле alliance у цели на "нет" если текущая страна — лидер
+  const myRef = doc(db,"countries",countryId);
+  const mySnap = await getDoc(myRef);
+  const myData = mySnap.data();
+  if(!myData.alliance || myData.alliance==="нет" || !myData.allianceLeader){
+    alert("Вы не лидер альянса");
+    return;
+  }
+  const targetRef = doc(db,"countries",target);
+  const targetSnap = await getDoc(targetRef);
+  if(!targetSnap.exists()){ alert("Цель не найдена"); return; }
+  const targetData = targetSnap.data();
+  if(targetData.alliance !== myData.alliance){ alert("Эта страна не в вашем альянсе"); return; }
+  await updateDoc(targetRef, { alliance: "нет", allianceLeader: false });
+  await addDoc(collection(db,"messages"), { to: target, from: countryId, type:"info", text: `Вы исключены из альянса ${myData.alliance}`, date: new Date().toISOString() });
+  alert("Страна исключена");
+}
+
+/* Инициализация UI: подписки и интервалы */
+async function init(){
+  await ensureCountryDoc();
+  await updateUI();
+  await loadMessages();
+
+  // автогенерация (каждые 10s) и обновление UI
+  setInterval(async ()=>{
+    await generateResources();
+    await updateUI();
+  }, 10000);
+
+  // налоги (каждые 30s)
+  setInterval(async ()=>{
+    await collectTaxes();
+    await updateUI();
+  }, 30000);
+
+  // обновлять почту и UI каждые 10s
+  setInterval(async ()=>{
+    await loadMessages();
+    await updateUI();
+  }, 10000);
+}
+
+window.onload = init;
+
+</script>
+
+<style>
+/* Стили — дизайн как на твоём рисунке */
+:root{
+  --bg:#0f0f12;
+  --panel:#18181b;
+  --panel-2:#1f1f24;
+  --accent:#2dd4bf;
+  --card:#232428;
+  --muted:#9ca3af;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background:var(--bg); color:#e6eef6;
+  height:100vh;
+  display:grid;
+  grid-template-columns:250px 1fr 260px;
+  grid-template-rows:150px 1fr 80px;
+  gap:16px;
+  padding:16px;
+}
+
+/* resources top (spans columns) */
+#resources{
+  grid-column:1 / span 3;
+  background:linear-gradient(180deg,#151516,#1b1b1f);
+  border-radius:12px;
+  padding:14px;
+  display:flex;
+  gap:18px;
+  align-items:center;
+  justify-content:space-around;
+  box-shadow:0 6px 20px rgba(0,0,0,.6);
+}
+
+/* left mail */
+#mailBox{
+  grid-column:1;
+  grid-row:2;
+  background:var(--panel);
+  border-radius:10px;
+  padding:12px;
+  overflow:auto;
+}
+
+/* center main (actions content) */
+#centerPanel{
+  grid-column:2;
+  grid-row:2;
+  background:var(--panel-2);
+  border-radius:10px;
+  padding:14px;
+  overflow:auto;
+}
+
+/* right ids */
+#ids{
+  grid-column:3;
+  grid-row:2;
+  background:var(--panel);
+  border-radius:10px;
+  padding:12px;
+  overflow:auto;
+}
+
+/* bottom actions */
+#bottom{
+  grid-column:1 / span 3;
+  background:transparent;
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  align-items:center;
+}
+
+/* cards */
+.card{
+  background:linear-gradient(180deg,#101012,#151518);
+  border-radius:10px;
+  padding:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,.6);
+}
+
+/* mail item */
+.mailItem{
+  background:#121214;
+  padding:8px;
+  border-radius:8px;
+  margin-bottom:8px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* factory grid */
+.factoryGrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:8px; }
+.factoryItem{ background:#141417; padding:10px; border-radius:8px; display:flex;justify-content:space-between;align-items:center; }
+.small{ font-size:13px; color:var(--muted); }
+
+/* buttons */
+.btn{
+  background:linear-gradient(180deg,var(--accent),#10b981);
+  border:0; color:#041014; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700;
+}
+.btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,.06); color:var(--muted); }
+
+/* responsive */
+@media (max-width:900px){
+  body{ grid-template-columns:1fr; grid-template-rows:auto auto auto auto; padding:10px;}
+  #resources{ order:0}
+  #mailBox, #centerPanel, #ids{ grid-column:auto; grid-row:auto;}
+  #bottom{ order:4; margin-top:10px;}
+}
+</style>
 </head>
 <body>
-  <div class="country">
-    <h2>Албания</h2>
-    <p>Население: <span id="population">0</span></p>
-    <p>Армия: <span id="army">0</span></p>
-    <p>Золото: <span id="gold">0</span></p>
-    <p>Доход: <span id="income">0</span></p>
-    <p>Альянс: <span id="alliance">нет</span></p>
 
-    <button onclick="createAlliance()">Создать альянс</button>
-    <button onclick="leaveAlliance()">Выйти из альянса</button>
-    <button onclick="declareWar()">Объявить войну</button>
+  <!-- RESOURCES -->
+  <div id="resources" class="card">
+    <div>💰 <strong>Золото</strong>: <span id="gold">0</span></div>
+    <div>🍞 <strong>Еда</strong>: <span id="food">0</span></div>
+    <div>⚙️ <strong>Сталь</strong>: <span id="steel">0</span></div>
+    <div>🛢 <strong>Нефть</strong>: <span id="oil">0</span></div>
+    <div>🔋 <strong>Энергия</strong>: <span id="energy">0</span></div>
+    <div>🪵 <strong>Дерево</strong>: <span id="wood">0</span></div>
+    <div>🪨 <strong>Камень</strong>: <span id="stone">0</span></div>
+    <div>💠 <strong>Микросхемы</strong>: <span id="chips">0</span></div>
+    <div class="small">👥 Население: <span id="population">0</span></div>
+    <div class="small">📈 Доход: <span id="income">0</span></div>
+    <div class="small">⚔️ Армия: <span id="army">0</span></div>
+    <div class="small">🛡 Альянс: <span id="allianceName">нет</span></div>
   </div>
 
-  <div id="messages">
-    <h3>Сообщения</h3>
-    <ul id="messageList"></ul>
+  <!-- MAIL (left) -->
+  <div id="mailBox" class="card">
+    <h3>Почта</h3>
+    <!-- сообщения подгружаются сюда -->
   </div>
 
-<script type="module">
-  // 🔹 Подключение Firebase
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-  import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+  <!-- CENTER (building/politics modals content rendered here) -->
+  <div id="centerPanel" class="card">
+    <h2 id="centerTitle">Добро пожаловать, Албания</h2>
+    <div id="centerContent">
+      <p class="small">Выберите действие внизу: «Полит. действия» или «Стройка»</p>
+    </div>
+  </div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
-    authDomain: "strani3.firebaseapp.com",
-    projectId: "strani3",
-    storageBucket: "strani3.firebasestorage.app",
-    messagingSenderId: "225168183800",
-    appId: "1:225168183800:web:825e782a35bccca89d460d",
-    measurementId: "G-3NKBET5R9J",
-    databaseURL: "https://strani3-default-rtdb.firebaseio.com/"
-  };
+  <!-- IDS (right) -->
+  <div id="ids" class="card">
+    <h3>ID стран</h3>
+    <div class="small">
+      <p>albania</p>
+      <p>lithuania</p>
+      <p>latvia</p>
+      <p>estonia</p>
+      <p>poland</p>
+      <p>germany</p>
+    </div>
+  </div>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  <!-- bottom buttons -->
+  <div id="bottom">
+    <button class="btn" onclick="openPolitics()">Полит. действия</button>
+    <button class="btn" onclick="openBuild()">Стройка</button>
+  </div>
 
-  const countryName = "Албания";
+  <!-- Hidden modals are rendered into centerPanel (simple, no separate overlay) -->
 
-  // 🔹 Первичная инициализация (если страны ещё нет в базе)
-  async function initCountry() {
-    const countryRef = ref(db, 'countries/' + countryName);
-    const snap = await get(countryRef);
-    if (!snap.exists()) {
-      set(countryRef, {
-        population: 2000000,
-        army: 10,
-        gold: 10,
-        income: 0,
-        alliance: "нет",
-        isLeader: false
-      });
+<script>
+/* --- UI helpers и логика для модалок (centers) --- */
+
+function setCenter(title, html){
+  document.getElementById("centerTitle").textContent = title;
+  document.getElementById("centerContent").innerHTML = html;
+}
+
+/* Политика: показать управление альянсом, приглашения, война */
+async function openPolitics(){
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : {};
+  const alliance = data.alliance || "нет";
+  const isLeader = data.allianceLeader || false;
+
+  let html = `<div>
+    <p>Альянс: <strong>${alliance}</strong></p>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" onclick="createAlliance()">Создать альянс</button>
+      <button class="btn ghost" onclick="leaveAlliance()">Выйти из альянса</button>
+      <button class="btn ghost" onclick="sendInvite()">Отправить приглашение</button>
+      <button class="btn ghost" onclick="declareWar()">Объявить войну</button>
+    </div>
+    <div style="margin-top:12px"><strong>Входящие приглашения / события</strong></div>
+    <div id="invitesArea" class="small" style="margin-top:8px"></div>
+  </div>`;
+  setCenter("Политические действия", html);
+  await loadMessages(); // заполнит почту слева
+  // загрузим только invites для центра (сообщения типа invite)
+  const q = query(collection(db,"messages"), where("to","==",countryId));
+  const snaps = await getDocs(q);
+  const invitesArea = document.getElementById("invitesArea");
+  invitesArea.innerHTML = "";
+  snaps.forEach(s=>{
+    const d = s.data();
+    if(d.type === "invite"){
+      const div = document.createElement("div");
+      div.className = "mailItem";
+      div.innerHTML = `<div>${d.text}</div><div style="margin-top:6px"><button class="btn" onclick='acceptInvite("${d.from}","${d.alliance}")'>Принять</button></div>`;
+      invitesArea.appendChild(div);
     }
-  }
-
-  // 🔹 Обновление интерфейса
-  function updateUI(data) {
-    document.getElementById("population").innerText = data.population;
-    document.getElementById("army").innerText = data.army;
-    document.getElementById("gold").innerText = data.gold;
-    document.getElementById("income").innerText = data.income;
-    document.getElementById("alliance").innerText = data.alliance || "нет";
-  }
-
-  // 🔹 Подписка на обновления страны
-  function listenCountry() {
-    const countryRef = ref(db, 'countries/' + countryName);
-    onValue(countryRef, (snapshot) => {
-      if (snapshot.exists()) {
-        updateUI(snapshot.val());
-      }
-    });
-  }
-
-  // 🔹 Создать альянс
-  function createAlliance() {
-    let name = prompt("Введите название альянса:");
-    if (name) {
-      update(ref(db, 'countries/' + countryName), {
-        alliance: name,
-        isLeader: true
-      });
-      addMessage(countryName + " создала альянс '" + name + "'");
+    if(d.type === "war"){
+      const div = document.createElement("div");
+      div.className = "mailItem";
+      div.textContent = d.text;
+      invitesArea.appendChild(div);
     }
-  }
-
-  // 🔹 Выйти из альянса
-  function leaveAlliance() {
-    update(ref(db, 'countries/' + countryName), {
-      alliance: "нет",
-      isLeader: false
-    });
-    addMessage(countryName + " вышла из альянса");
-  }
-
-  // 🔹 Объявить войну
-  function declareWar() {
-    let enemy = prompt("Кому вы хотите объявить войну?");
-    if (enemy) {
-      addMessage(countryName + " объявила войну " + enemy);
-      // 📩 Отправляем письмо врагу
-      push(ref(db, 'messages/' + enemy), {
-        text: countryName + " объявляет вам войну! У вас есть день на подготовку.",
-        time: Date.now()
-      });
-    }
-  }
-
-  // 🔹 Добавить сообщение
-  function addMessage(text) {
-    const msgList = document.getElementById("messageList");
-    let li = document.createElement("li");
-    li.textContent = text;
-    msgList.appendChild(li);
-
-    push(ref(db, 'messages/' + countryName), {
-      text: text,
-      time: Date.now()
-    });
-  }
-
-  // 🔹 Слушаем входящие письма
-  function listenMessages() {
-    const msgRef = ref(db, 'messages/' + countryName);
-    onValue(msgRef, (snapshot) => {
-      const msgList = document.getElementById("messageList");
-      msgList.innerHTML = "";
-      snapshot.forEach(child => {
-        let li = document.createElement("li");
-        li.textContent = child.val().text;
-        msgList.appendChild(li);
-      });
-    });
-  }
-
-  // 🔹 Запуск
-  initCountry().then(() => {
-    listenCountry();
-    listenMessages();
   });
+}
+
+/* Принять приглашение (from — кто отправил, alliance — имя альянса) */
+async function acceptInvite(from, allianceName){
+  if(!confirm(`Принять приглашение в альянс "${allianceName}" от ${from}?`)) return;
+  await updateDoc(doc(db,"countries",countryId), { alliance: allianceName });
+  // уведомление отправителю
+  await addDoc(collection(db,"messages"), { to: from, from: countryId, type:"info", text:`${countryId} принял приглашение в ${allianceName}` , date:new Date().toISOString() });
+  await updateUI();
+  await loadMessages();
+  openPolitics();
+}
+
+/* Стройка: постройка и апгрейды */
+async function openBuild(){
+  // загрузим уровни и количество
+  const ref = doc(db,"countries",countryId);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : {};
+  const factories = data.factories || {};
+  const levels = data.factoryLevel || {};
+  let html = `<h4>Фабрики</h4><div class="factoryGrid">`;
+  const types = ["food","steel","oil","gold","energy","wood","stone","chips"];
+  types.forEach(t=>{
+    const cnt = factories[t] || 0;
+    const lvl = levels[t] || 1;
+    const price = FACTORY_BASE_PRICE[t] || 10;
+    html += `<div class="factoryItem">
+      <div>
+        <strong>${t}</strong><div class="small">шт: <span id="fcount-${t}">${cnt}</span> <span id="flvl-${t}">ур. ${lvl}</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn" onclick='buildFactory("${t}")'>Построить (${price}💰)</button>
+        <button class="btn ghost" onclick='upgradeFactory("${t}")'>Апгрейд</button>
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  setCenter("Стройки", html);
+  await updateUI(); // чтобы числа были свежие
+}
+
+/* == Нативные вызовы Firebase — вынесены выше: buildFactory, upgradeFactory, createAlliance, leaveAlliance, sendInvite, declareWar == */
+/* Добавим экспортируемые для кнопок (они уже созданы выше). */
+
+/* --- Доп: показать почту в центре (удобство) --- */
+async function openMailCenter(){
+  setCenter("Почта", `<div id="centerMailArea" class="small"></div>`);
+  await loadMessages();
+  // продублируем кратко в центр
+  const q = query(collection(db,"messages"), where("to","==",countryId));
+  const snaps = await getDocs(q);
+  const area = document.getElementById("centerMailArea");
+  area.innerHTML = "";
+  snaps.forEach(s=>{
+    const d = s.data();
+    const div = document.createElement("div");
+    div.className = "mailItem";
+    div.textContent = `[${d.type}] ${d.text}`;
+    area.appendChild(div);
+  });
+}
+
+/* expose helper functions to buttons in HTML */
+window.openPolitics = openPolitics;
+window.openBuild = openBuild;
+window.createAlliance = createAlliance;
+window.leaveAlliance = leaveAlliance;
+window.sendInvite = sendInvite;
+window.declareWar = declareWar;
+window.kickFromAlliance = kickFromAlliance;
+window.buildFactory = buildFactory;
+window.upgradeFactory = upgradeFactory;
+window.openMailCenter = openMailCenter;
+
 </script>
 </body>
 </html>

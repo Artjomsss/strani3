@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Албания</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -166,11 +166,20 @@
       margin-bottom: 15px;
       text-align: center;
     }
+    .debug-info {
+      background: #34495e;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 12px;
+      color: #ecf0f1;
+    }
   </style>
 </head>
 <body>
   <h1>Албания</h1>
 
+  <div id="debug-container"></div>
   <div id="alliance-container"></div>
   <div id="war-container"></div>
 
@@ -189,6 +198,7 @@
     <button onclick="declareWar()">Объявить войну</button>
     <button onclick="leaveAlliance()">Выйти из альянса</button>
     <button onclick="kickFromAlliance()">Выкинуть из альянса</button>
+    <button onclick="forceInitialize()">Принудительная инициализация</button>
   </div>
 
   <div class="info-panels">
@@ -199,7 +209,6 @@
     <div class="panel">
       <h2>ID Стран</h2>
       <div id="countries-container">
-        <!-- Список стран -->
         <div class="id-item"><span>albania</span><button class="invite-btn" onclick="inviteToAlliance('albania')" disabled>Пригласить</button></div>
         <div class="id-item"><span>andorra</span><button class="invite-btn" onclick="inviteToAlliance('andorra')">Пригласить</button></div>
         <div class="id-item"><span>austria</span><button class="invite-btn" onclick="inviteToAlliance('austria')">Пригласить</button></div>
@@ -235,52 +244,80 @@
   </div>
 
   <script>
-    // Firebase config - ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ
+    // Firebase configuration с вашим databaseURL
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+      authDomain: "strani3.firebaseapp.com",
+      databaseURL: "https://strani3-default-rtdb.europe-west1.firebasedatabase.app/",
+      projectId: "strani3",
+      storageBucket: "strani3.firebasestorage.app",
+      messagingSenderId: "225168183800",
+      appId: "1:225168183800:web:825e782a35bccca89d460d",
+      measurementId: "G-3NKBET5R9J"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // Отладочная информация
+    function debugLog(message) {
+      console.log(message);
+      const debugContainer = document.getElementById('debug-container');
+      if (debugContainer) {
+        debugContainer.innerHTML = `<div class="debug-info">${message}</div>`;
+      }
+    }
+
+    try {
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+      debugLog("✅ Firebase инициализирован успешно");
+    } catch (error) {
+      debugLog("❌ Ошибка инициализации Firebase: " + error.message);
+    }
 
     const country = "albania";
 
+    // Принудительная инициализация данных
+    async function forceInitialize() {
+      debugLog("Запуск принудительной инициализации...");
+      await initializeCountryData();
+      debugLog("Инициализация завершена");
+    }
+
     // Функция инициализации данных страны
     async function initializeCountryData() {
+      debugLog("Проверяем данные страны...");
       const countryRef = db.ref("countries/" + country);
       
-      const snapshot = await countryRef.once("value");
-      
-      if (!snapshot.exists()) {
-        const initialData = {
-          gold: 1000,
-          army: 100,
-          population: 1000000,
-          income: 100,
-          chips: 50,
-          oil: 200,
-          food: 500,
-          createdAt: new Date().toISOString(),
-          lastUpdated: new Date().toISOString()
-        };
+      try {
+        const snapshot = await countryRef.once("value");
+        debugLog("Данные получены: " + (snapshot.exists() ? "существуют" : "не существуют"));
         
-        try {
+        if (!snapshot.exists()) {
+          debugLog("Создаем начальные данные...");
+          const initialData = {
+            gold: 1000,
+            army: 100,
+            population: 1000000,
+            income: 100,
+            chips: 50,
+            oil: 200,
+            food: 500,
+            createdAt: new Date().toISOString(),
+            lastUpdated: new Date().toISOString()
+          };
+          
           await countryRef.set(initialData);
-          console.log("Данные страны инициализированы");
-        } catch (error) {
-          console.error("Ошибка инициализации данных страны:", error);
+          debugLog("✅ Данные страны успешно созданы!");
+        } else {
+          debugLog("✅ Данные страны уже существуют");
         }
+      } catch (error) {
+        debugLog("❌ Ошибка при инициализации: " + error.message);
       }
     }
 
     // Загружаем данные страны
     function loadData() {
+      debugLog("Загрузка данных страны...");
       db.ref("countries/" + country).on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -291,7 +328,12 @@
           document.getElementById("chips").innerText = data.chips || 0;
           document.getElementById("oil").innerText = data.oil || 0;
           document.getElementById("food").innerText = data.food || 0;
+          debugLog("✅ Данные страны загружены");
+        } else {
+          debugLog("❌ Данные страны не найдены");
         }
+      }, (error) => {
+        debugLog("❌ Ошибка загрузки данных: " + error.message);
       });
     }
 
@@ -314,38 +356,13 @@
             Участники: ${Object.keys(alliance.members || {}).join(', ')}
           `;
           allianceContainer.appendChild(allianceInfo);
+          debugLog("✅ Информация об альянсе загружена");
         }
       });
     }
 
-    // Загружаем информацию о войнах
-    function loadWarInfo() {
-      db.ref("wars").orderByChild("participants/" + country).equalTo(true).on("value", (snapshot) => {
-        const warContainer = document.getElementById("war-container");
-        warContainer.innerHTML = '';
-        
-        const wars = snapshot.val();
-        if (wars) {
-          Object.keys(wars).forEach(warId => {
-            const war = wars[warId];
-            const warInfo = document.createElement('div');
-            warInfo.className = 'war-info';
-            
-            const enemies = Object.keys(war.participants || {}).filter(p => p !== country);
-            warInfo.innerHTML = `
-              <strong>⚔️ ВОЙНА</strong><br>
-              Против: ${enemies.join(', ')}<br>
-              Объявлена: ${formatDate(war.declaredAt)}
-            `;
-            warContainer.appendChild(warInfo);
-          });
-        }
-      });
-    }
-
-    // Загружаем почту из отдельной коллекции
+    // Загружаем почту
     function loadMail() {
-      // Загружаем письма, где текущая страна является получателем
       db.ref("mail").orderByChild("to").equalTo(country).on("value", (snapshot) => {
         const mailData = snapshot.val();
         const mailContainer = document.getElementById("mail-container");
@@ -375,13 +392,58 @@
             mailElement.onclick = () => showMailContent(mail);
             mailContainer.appendChild(mailElement);
           });
+          debugLog(`✅ Загружено писем: ${mailArray.length}`);
         } else {
           mailContainer.innerHTML = '<div class="mail-item">Нет сообщений</div>';
+          debugLog("✅ Почта загружена (нет сообщений)");
         }
       });
     }
 
-    // Получаем CSS класс для типа письма
+    // Создание альянса
+    async function createAlliance() {
+      debugLog("Попытка создания альянса...");
+      
+      try {
+        const existingAlliance = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+        if (existingAlliance.exists()) {
+          alert("Вы уже состоите в альянсе!");
+          return;
+        }
+
+        const name = prompt("Введите название альянса:");
+        if (!name) return;
+
+        if (name.length < 3) {
+          alert("Название альянса должно быть не менее 3 символов");
+          return;
+        }
+
+        const allianceExists = await db.ref("alliances").orderByChild("name").equalTo(name).once("value");
+        if (allianceExists.exists()) {
+          alert("Альянс с таким названием уже существует!");
+          return;
+        }
+
+        const newAlliance = {
+          name: name,
+          creator: country,
+          createdAt: new Date().toISOString(),
+          members: {
+            [country]: true
+          }
+        };
+
+        const result = await db.ref("alliances").push(newAlliance);
+        debugLog("✅ Альянс создан с ID: " + result.key);
+        alert("Альянс '" + name + "' успешно создан!");
+      } catch (error) {
+        debugLog("❌ Ошибка создания альянса: " + error.message);
+        alert("Ошибка при создании альянса: " + error.message);
+      }
+    }
+
+    // Вспомогательные функции
     function getMailTypeClass(type) {
       const typeMap = {
         'alliance': 'alliance',
@@ -392,7 +454,6 @@
       return typeMap[type] || 'system';
     }
 
-    // Получаем русскую метку для типа письма
     function getMailTypeLabel(type) {
       const labelMap = {
         'alliance': 'Союз',
@@ -403,214 +464,6 @@
       return labelMap[type] || 'Система';
     }
 
-    // Создание альянса
-    async function createAlliance() {
-      const existingAlliance = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
-      if (existingAlliance.exists()) {
-        alert("Вы уже состоите в альянсе!");
-        return;
-      }
-
-      const name = prompt("Введите название альянса:");
-      if (!name) return;
-
-      if (name.length < 3) {
-        alert("Название альянса должно быть не менее 3 символов");
-        return;
-      }
-
-      const allianceExists = await db.ref("alliances").orderByChild("name").equalTo(name).once("value");
-      if (allianceExists.exists()) {
-        alert("Альянс с таким названием уже существует!");
-        return;
-      }
-
-      const newAlliance = {
-        name: name,
-        creator: country,
-        createdAt: new Date().toISOString(),
-        members: {
-          [country]: true
-        }
-      };
-
-      try {
-        await db.ref("alliances").push(newAlliance);
-        alert("Альянс '" + name + "' успешно создан!");
-      } catch (error) {
-        alert("Ошибка при создании альянса: " + error.message);
-      }
-    }
-
-    // Объявление войны
-    async function declareWar() {
-      const enemy = prompt("Введите страну для объявления войны:");
-      if (!enemy) return;
-
-      if (enemy === country) {
-        alert("Нельзя объявить войну самому себе!");
-        return;
-      }
-
-      const enemyExists = await db.ref("countries/" + enemy).once("value");
-      if (!enemyExists.exists()) {
-        alert("Страна " + enemy + " не существует!");
-        return;
-      }
-
-      const existingWar = await db.ref("wars").orderByChild("participants/" + country).equalTo(true).once("value");
-      if (existingWar.exists()) {
-        const wars = existingWar.val();
-        for (let warId in wars) {
-          if (wars[warId].participants[enemy]) {
-            alert("Вы уже воюете с " + enemy + "!");
-            return;
-          }
-        }
-      }
-
-      const newWar = {
-        declaredBy: country,
-        declaredAt: new Date().toISOString(),
-        participants: {
-          [country]: true,
-          [enemy]: true
-        },
-        status: "active"
-      };
-
-      try {
-        await db.ref("wars").push(newWar);
-        
-        // Создаём письмо о войне
-        const warMessage = {
-          from: country,
-          to: enemy,
-          subject: "Объявление войны",
-          message: `Страна ${country} объявила вам войну! Будьте готовы к сражениям.`,
-          type: "war",
-          timestamp: new Date().toISOString(),
-          read: false
-        };
-        
-        await db.ref("mail").push(warMessage);
-        alert("Война объявлена стране " + enemy + "!");
-      } catch (error) {
-        alert("Ошибка при объявлении войны: " + error.message);
-      }
-    }
-
-    // Функция приглашения в альянс
-    async function inviteToAlliance(targetCountry) {
-      if (targetCountry === country) {
-        alert("Нельзя пригласить самого себя!");
-        return;
-      }
-
-      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
-      if (!allianceSnapshot.exists()) {
-        alert("Вы не состоите в альянсе! Создайте альянс сначала.");
-        return;
-      }
-
-      const alliances = allianceSnapshot.val();
-      const allianceId = Object.keys(alliances)[0];
-      const alliance = alliances[allianceId];
-
-      if (alliance.members && alliance.members[targetCountry]) {
-        alert("Эта страна уже состоит в вашем альянсе!");
-        return;
-      }
-
-      // Создаём письмо-приглашение
-      const invitationData = {
-        from: country,
-        to: targetCountry,
-        subject: `Приглашение в альянс ${alliance.name}`,
-        message: `Страна ${country} приглашает вас присоединиться к альянсу "${alliance.name}". Примите приглашение чтобы стать частью нашего союза.`,
-        type: "alliance",
-        timestamp: new Date().toISOString(),
-        allianceId: allianceId,
-        allianceName: alliance.name,
-        read: false
-      };
-
-      try {
-        await db.ref("mail").push(invitationData);
-        alert(`Приглашение отправлено стране ${targetCountry}`);
-      } catch (error) {
-        alert("Ошибка при отправке приглашения: " + error.message);
-      }
-    }
-
-    // Выход из альянса
-    async function leaveAlliance() {
-      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
-      if (!allianceSnapshot.exists()) {
-        alert("Вы не состоите в альянсе!");
-        return;
-      }
-
-      const alliances = allianceSnapshot.val();
-      const allianceId = Object.keys(alliances)[0];
-      const alliance = alliances[allianceId];
-
-      if (alliance.creator === country) {
-        alert("Вы основатель альянса! Сначала передайте права основателя или распустите альянс.");
-        return;
-      }
-
-      if (confirm("Вы уверены, что хотите покинуть альянс?")) {
-        try {
-          await db.ref(`alliances/${allianceId}/members/${country}`).remove();
-          alert("Вы вышли из альянса");
-        } catch (error) {
-          alert("Ошибка при выходе из альянса: " + error.message);
-        }
-      }
-    }
-
-    // Исключение из альянса
-    async function kickFromAlliance() {
-      const target = prompt("Введите страну для исключения:");
-      if (!target) return;
-
-      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
-      if (!allianceSnapshot.exists()) {
-        alert("Вы не состоите в альянсе!");
-        return;
-      }
-
-      const alliances = allianceSnapshot.val();
-      const allianceId = Object.keys(alliances)[0];
-      const alliance = alliances[allianceId];
-
-      if (alliance.creator !== country) {
-        alert("Только основатель альянса может исключать участников!");
-        return;
-      }
-
-      if (target === country) {
-        alert("Нельзя исключить самого себя!");
-        return;
-      }
-
-      if (!alliance.members || !alliance.members[target]) {
-        alert("Эта страна не состоит в вашем альянсе!");
-        return;
-      }
-
-      if (confirm(`Вы уверены, что хотите исключить ${target} из альянса?`)) {
-        try {
-          await db.ref(`alliances/${allianceId}/members/${target}`).remove();
-          alert(`Страна ${target} исключена из альянса`);
-        } catch (error) {
-          alert("Ошибка при исключении: " + error.message);
-        }
-      }
-    }
-
-    // Форматируем дату для отображения
     function formatDate(timestamp) {
       if (!timestamp) return '';
       const date = new Date(timestamp);
@@ -620,7 +473,6 @@
       });
     }
 
-    // Показываем содержимое письма
     function showMailContent(mail) {
       const fullMessage = `
 От: ${mail.from || 'Неизвестный отправитель'}
@@ -635,22 +487,44 @@ ${formatDate(mail.timestamp)}
 
       alert(fullMessage);
 
-      // Помечаем письмо как прочитанное
       if (mail.id && !mail.read) {
         db.ref("mail/" + mail.id + "/read").set(true);
       }
     }
 
+    // Временные функции для тестирования
+    async function declareWar() {
+      const enemy = prompt("Введите страну для объявления войны:");
+      if (enemy) alert("Функция войны в разработке");
+    }
+
+    async function inviteToAlliance(targetCountry) {
+      if (targetCountry === country) {
+        alert("Нельзя пригласить самого себя!");
+        return;
+      }
+      alert("Функция приглашения в разработке");
+    }
+
+    async function leaveAlliance() {
+      alert("Функция выхода из альянса в разработке");
+    }
+
+    async function kickFromAlliance() {
+      alert("Функция исключения из альянса в разработке");
+    }
+
     // Инициализация
     async function initialize() {
+      debugLog("Начало инициализации...");
       await initializeCountryData();
       loadData();
       loadAllianceInfo();
-      loadWarInfo();
       loadMail();
+      debugLog("Инициализация завершена");
     }
 
-    // Запускаем инициализацию при загрузке страницы
+    // Запускаем инициализацию
     initialize();
   </script>
 </body>

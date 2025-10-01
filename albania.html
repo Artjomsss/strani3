@@ -8,63 +8,73 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f9;
+      background: #1e1e2f;
+      color: #fff;
       margin: 0;
       padding: 20px;
     }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
     h1 {
       text-align: center;
-    }
-    .resources, .actions {
       margin-bottom: 20px;
     }
-    .resources p {
-      margin: 6px 0;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
     }
-    button {
+    .card {
+      background: #2a2a40;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: #ccc;
+    }
+    .card span {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .actions {
+      text-align: center;
+    }
+    .actions button {
       background: #3498db;
       color: #fff;
       border: none;
       padding: 10px 15px;
+      margin: 6px;
       border-radius: 6px;
       cursor: pointer;
-      margin: 5px;
+      font-size: 14px;
     }
-    button:hover {
+    .actions button:hover {
       background: #2980b9;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Албания</h1>
+  <h1>Албания</h1>
 
-    <div class="resources">
-      <h2>Ресурсы</h2>
-      <p>💰 Золото: <span id="gold">0</span></p>
-      <p>⚔️ Армия: <span id="army">0</span></p>
-      <p>👥 Население: <span id="population">0</span></p>
-      <p>📈 Доход: <span id="income">0</span></p>
-      <p>🔌 Микросхемы: <span id="chips">0</span></p>
-      <p>🛢️ Нефть: <span id="oil">0</span></p>
-      <p>🍞 Еда: <span id="food">0</span></p>
-    </div>
+  <div class="grid">
+    <div class="card"><h3>💰 Золото</h3><span id="gold">0</span></div>
+    <div class="card"><h3>⚔️ Армия</h3><span id="army">0</span></div>
+    <div class="card"><h3>👥 Население</h3><span id="population">0</span></div>
+    <div class="card"><h3>📈 Доход</h3><span id="income">0</span></div>
+    <div class="card"><h3>🔌 Микросхемы</h3><span id="chips">0</span></div>
+    <div class="card"><h3>🛢️ Нефть</h3><span id="oil">0</span></div>
+    <div class="card"><h3>🍞 Еда</h3><span id="food">0</span></div>
+  </div>
 
-    <div class="actions">
-      <h2>Действия</h2>
-      <button onclick="createAlliance()">Создать альянс</button>
-      <button onclick="declareWar()">Объявить войну</button>
-      <button onclick="leaveAlliance()">Выйти из альянса</button>
-      <button onclick="kickFromAlliance()">Выкинуть из альянса</button>
-    </div>
+  <div class="actions">
+    <button onclick="createAlliance()">Создать альянс</button>
+    <button onclick="declareWar()">Объявить войну</button>
+    <button onclick="leaveAlliance()">Выйти из альянса</button>
+    <button onclick="kickFromAlliance()">Выкинуть из альянса</button>
   </div>
 
   <script>
@@ -84,7 +94,7 @@
 
     const country = "Albania";
 
-    // Загружаем данные из Firebase и сразу обновляем на странице
+    // Загружаем данные и обновляем на странице
     function loadData() {
       firebase.database().ref("countries/" + country).on("value", (snapshot) => {
         const data = snapshot.val();
@@ -100,18 +110,21 @@
       });
     }
 
-    // Функции действий (пока только уведомления)
+    // Действия (пока только уведомления)
     function createAlliance() {
-      alert("Создать альянс");
+      const name = prompt("Введите название альянса:");
+      if (name) alert("Альянс создан: " + name);
     }
     function declareWar() {
-      alert("Объявить войну");
+      const enemy = prompt("Введите страну для объявления войны:");
+      if (enemy) alert("Война объявлена стране: " + enemy);
     }
     function leaveAlliance() {
-      alert("Выйти из альянса");
+      alert("Вы вышли из альянса");
     }
     function kickFromAlliance() {
-      alert("Выкинуть из альянса");
+      const target = prompt("Введите страну для исключения:");
+      if (target) alert("Страна " + target + " исключена");
     }
 
     loadData();

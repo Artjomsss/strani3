@@ -16,6 +16,7 @@
     h1 {
       text-align: center;
       margin-bottom: 20px;
+      color: #fff;
     }
     .grid {
       display: grid;
@@ -24,11 +25,12 @@
       margin-bottom: 25px;
     }
     .card {
-      background: #2a2a40;
+      background: linear-gradient(145deg, #2a2a40, #1f1f30);
       padding: 15px;
       border-radius: 10px;
       text-align: center;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: 1px solid #3a3a5a;
     }
     .card h3 {
       margin: 0 0 10px;
@@ -38,22 +40,97 @@
     .card span {
       font-size: 20px;
       font-weight: bold;
+      color: #fff;
     }
     .actions {
-      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 25px;
     }
     .actions button {
-      background: #3498db;
+      background: linear-gradient(145deg, #3498db, #2980b9);
       color: #fff;
       border: none;
-      padding: 10px 15px;
-      margin: 6px;
-      border-radius: 6px;
+      padding: 12px 20px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
     }
     .actions button:hover {
-      background: #2980b9;
+      background: linear-gradient(145deg, #2980b9, #21618c);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+    }
+    .info-panels {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .panel {
+      background: linear-gradient(145deg, #2a2a40, #1f1f30);
+      padding: 15px;
+      border-radius: 10px;
+      flex: 1;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: 1px solid #3a3a5a;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .panel h2 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #ccc;
+      border-bottom: 1px solid #3a3a5a;
+      padding-bottom: 10px;
+      position: sticky;
+      top: 0;
+      background: #2a2a40;
+    }
+    .mail-item, .id-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #3a3a5a;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mail-item:last-child, .id-item:last-child {
+      border-bottom: none;
+    }
+    .mail-sender {
+      color: #3498db;
+      font-weight: bold;
+    }
+    .mail-subject {
+      color: #fff;
+      flex-grow: 1;
+      margin: 0 10px;
+    }
+    .mail-date {
+      color: #888;
+      font-size: 12px;
+    }
+    .invite-btn {
+      background: linear-gradient(145deg, #27ae60, #219653);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .invite-btn:hover {
+      background: linear-gradient(145deg, #219653, #1e8749);
+    }
+    .invite-btn:disabled {
+      background: #7f8c8d;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -77,6 +154,138 @@
     <button onclick="kickFromAlliance()">Выкинуть из альянса</button>
   </div>
 
+  <div class="info-panels">
+    <div class="panel">
+      <h2>Почта</h2>
+      <div id="mail-container"></div>
+    </div>
+    <div class="panel">
+      <h2>ID Стран</h2>
+      <div id="countries-container">
+        <div class="id-item">
+          <span>albania</span>
+          <button class="invite-btn" onclick="inviteToAlliance('albania')" disabled>Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>andorra</span>
+          <button class="invite-btn" onclick="inviteToAlliance('andorra')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>austria</span>
+          <button class="invite-btn" onclick="inviteToAlliance('austria')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>belarus</span>
+          <button class="invite-btn" onclick="inviteToAlliance('belarus')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>belgium</span>
+          <button class="invite-btn" onclick="inviteToAlliance('belgium')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>bulgaria</span>
+          <button class="invite-btn" onclick="inviteToAlliance('bulgaria')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>croatia</span>
+          <button class="invite-btn" onclick="inviteToAlliance('croatia')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>czechia</span>
+          <button class="invite-btn" onclick="inviteToAlliance('czechia')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>denmark</span>
+          <button class="invite-btn" onclick="inviteToAlliance('denmark')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>estonia</span>
+          <button class="invite-btn" onclick="inviteToAlliance('estonia')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>finland</span>
+          <button class="invite-btn" onclick="inviteToAlliance('finland')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>france</span>
+          <button class="invite-btn" onclick="inviteToAlliance('france')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>germany</span>
+          <button class="invite-btn" onclick="inviteToAlliance('germany')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>greece</span>
+          <button class="invite-btn" onclick="inviteToAlliance('greece')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>hungary</span>
+          <button class="invite-btn" onclick="inviteToAlliance('hungary')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>iceland</span>
+          <button class="invite-btn" onclick="inviteToAlliance('iceland')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>ireland</span>
+          <button class="invite-btn" onclick="inviteToAlliance('ireland')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>italy</span>
+          <button class="invite-btn" onclick="inviteToAlliance('italy')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>latvia</span>
+          <button class="invite-btn" onclick="inviteToAlliance('latvia')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>lithuania</span>
+          <button class="invite-btn" onclick="inviteToAlliance('lithuania')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>luxembourg</span>
+          <button class="invite-btn" onclick="inviteToAlliance('luxembourg')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>malta</span>
+          <button class="invite-btn" onclick="inviteToAlliance('malta')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>moldova</span>
+          <button class="invite-btn" onclick="inviteToAlliance('moldova')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>monaco</span>
+          <button class="invite-btn" onclick="inviteToAlliance('monaco')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>montenegro</span>
+          <button class="invite-btn" onclick="inviteToAlliance('montenegro')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>netherlands</span>
+          <button class="invite-btn" onclick="inviteToAlliance('netherlands')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>north_macedonia</span>
+          <button class="invite-btn" onclick="inviteToAlliance('north_macedonia')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>norway</span>
+          <button class="invite-btn" onclick="inviteToAlliance('norway')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>poland</span>
+          <button class="invite-btn" onclick="inviteToAlliance('poland')">Пригласить</button>
+        </div>
+        <div class="id-item">
+          <span>portugal</span>
+          <button class="invite-btn" onclick="inviteToAlliance('portugal')">Пригласить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Firebase config
     const firebaseConfig = {
@@ -92,9 +301,9 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const country = "Albania";
+    const country = "albania";
 
-    // Загружаем данные и обновляем на странице
+    // Загружаем данные страны и обновляем на странице
     function loadData() {
       firebase.database().ref("countries/" + country).on("value", (snapshot) => {
         const data = snapshot.val();
@@ -110,24 +319,112 @@
       });
     }
 
-    // Действия (пока только уведомления)
+    // Загружаем почту из базы данных
+    function loadMail() {
+      firebase.database().ref("mail/" + country).on("value", (snapshot) => {
+        const mailData = snapshot.val();
+        const mailContainer = document.getElementById("mail-container");
+        mailContainer.innerHTML = '';
+
+        if (mailData) {
+          const mailArray = Object.entries(mailData).map(([key, value]) => ({
+            id: key,
+            ...value
+          })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+          mailArray.forEach(mail => {
+            const mailElement = document.createElement('div');
+            mailElement.className = 'mail-item';
+            mailElement.innerHTML = `
+              <div class="mail-sender">${mail.sender || 'Неизвестный отправитель'}</div>
+              <div class="mail-subject">${mail.subject || 'Без темы'}</div>
+              <div class="mail-date">${formatDate(mail.timestamp)}</div>
+            `;
+            mailElement.onclick = () => showMailContent(mail);
+            mailContainer.appendChild(mailElement);
+          });
+        } else {
+          mailContainer.innerHTML = '<div class="mail-item">Нет сообщений</div>';
+        }
+      });
+    }
+
+    // Функция приглашения в альянс
+    function inviteToAlliance(targetCountry) {
+      if (targetCountry === country) {
+        alert("Нельзя пригласить самого себя!");
+        return;
+      }
+
+      const allianceName = prompt("Введите название вашего альянса для приглашения:");
+      if (!allianceName) return;
+
+      // Отправляем приглашение в базу данных
+      const invitationData = {
+        sender: country,
+        subject: `Приглашение в альянс ${allianceName}`,
+        message: `Страна ${country} приглашает вас присоединиться к альянсу "${allianceName}"`,
+        timestamp: new Date().toISOString(),
+        type: 'alliance_invitation',
+        allianceName: allianceName
+      };
+
+      // Записываем приглашение в почту целевой страны
+      firebase.database().ref(`mail/${targetCountry}`).push(invitationData)
+        .then(() => {
+          alert(`Приглашение отправлено стране ${targetCountry}`);
+        })
+        .catch((error) => {
+          alert("Ошибка при отправке приглашения: " + error.message);
+        });
+    }
+
+    // Форматируем дату для отображения
+    function formatDate(timestamp) {
+      if (!timestamp) return '';
+      const date = new Date(timestamp);
+      return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Показываем содержимое письма
+    function showMailContent(mail) {
+      alert(`От: ${mail.sender || 'Неизвестный отправитель'}\nТема: ${mail.subject || 'Без темы'}\n\n${mail.message || 'Сообщение отсутствует'}`);
+    }
+
+    // Действия
     function createAlliance() {
       const name = prompt("Введите название альянса:");
-      if (name) alert("Альянс создан: " + name);
+      if (name) {
+        // Здесь можно добавить запись в базу данных
+        alert("Альянс создан: " + name);
+      }
     }
+    
     function declareWar() {
       const enemy = prompt("Введите страну для объявления войны:");
-      if (enemy) alert("Война объявлена стране: " + enemy);
+      if (enemy) {
+        // Здесь можно добавить запись в базу данных
+        alert("Война объявлена стране: " + enemy);
+      }
     }
+    
     function leaveAlliance() {
       alert("Вы вышли из альянса");
     }
+    
     function kickFromAlliance() {
       const target = prompt("Введите страну для исключения:");
-      if (target) alert("Страна " + target + " исключена");
+      if (target) {
+        alert("Страна " + target + " исключена");
+      }
     }
 
+    // Инициализация
     loadData();
+    loadMail();
   </script>
 </body>
 </html>

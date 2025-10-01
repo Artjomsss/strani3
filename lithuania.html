@@ -152,6 +152,32 @@
       background: #7f8c8d;
       cursor: not-allowed;
     }
+    .accept-btn {
+      background: linear-gradient(145deg, #27ae60, #219653);
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      margin-left: 5px;
+    }
+    .accept-btn:hover {
+      background: linear-gradient(145deg, #219653, #1e8749);
+    }
+    .decline-btn {
+      background: linear-gradient(145deg, #e74c3c, #c0392b);
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      margin-left: 5px;
+    }
+    .decline-btn:hover {
+      background: linear-gradient(145deg, #c0392b, #a93226);
+    }
     .kick-btn {
       background: linear-gradient(145deg, #e74c3c, #c0392b);
       color: #fff;
@@ -203,6 +229,10 @@
     }
     .member-item:last-child {
       border-bottom: none;
+    }
+    .mail-actions {
+      display: flex;
+      gap: 5px;
     }
   </style>
 </head>
@@ -457,6 +487,17 @@
             const typeClass = getMailTypeClass(mail.type);
             const typeLabel = getMailTypeLabel(mail.type);
             
+            // Добавляем кнопки для приглашений в альянс
+            let actionButtons = '';
+            if (mail.type === 'alliance' && !mail.responded) {
+              actionButtons = `
+                <div class="mail-actions">
+                  <button class="accept-btn" onclick="acceptAllianceInvitation('${mail.id}', '${mail.allianceId}', '${mail.allianceName}')">Принять</button>
+                  <button class="decline-btn" onclick="declineAllianceInvitation('${mail.id}')">Отклонить</button>
+                </div>
+              `;
+            }
+            
             mailElement.innerHTML = `
               <div class="mail-sender">От: ${mail.from || 'Неизвестный'}</div>
               <div class="mail-subject">
@@ -464,6 +505,7 @@
                 <span class="mail-type ${typeClass}">${typeLabel}</span>
               </div>
               <div class="mail-date">${formatDate(mail.timestamp)}</div>
+              ${actionButtons}
             `;
             mailElement.onclick = () => showMailContent(mail);
             mailContainer.appendChild(mailElement);
@@ -474,6 +516,81 @@
           debugLog("✅ Почта загружена (нет сообщений)");
         }
       });
+    }
+
+    // Принять приглашение в альянс
+    async function acceptAllianceInvitation(mailId, allianceId, allianceName) {
+      if (!checkDB()) {
+        alert("База данных не инициализирована. Попробуйте обновить страницу.");
+        return;
+      }
+
+      // Проверяем, не состоит ли уже страна в альянсе
+      const existingAlliance = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (existingAlliance.exists()) {
+        alert("Вы уже состоите в альянсе! Сначала выйдите из текущего альянса.");
+        return;
+      }
+
+      if (confirm(`Принять приглашение в альянс "${allianceName}"?`)) {
+        try {
+          // Добавляем страну в альянс
+          await db.ref(`alliances/${allianceId}/members/${country}`).set(true);
+          
+          // Помечаем письмо как отвеченное
+          await db.ref(`mail/${mailId}/responded`).set(true);
+          await db.ref(`mail/${mailId}/response`).set('accepted');
+          await db.ref(`mail/${mailId}/responseDate`).set(new Date().toISOString());
+          
+          // Отправляем уведомление основателю
+          const notificationData = {
+            from: country,
+            to: await getAllianceCreator(allianceId),
+            subject: `Принято приглашение в альянс ${allianceName}`,
+            message: `Страна ${country} приняла ваше приглашение и присоединилась к альянсу "${allianceName}".`,
+            type: "system",
+            timestamp: new Date().toISOString(),
+            read: false
+          };
+          
+          await db.ref("mail").push(notificationData);
+          
+          debugLog("✅ Приглашение принято, страна добавлена в альянс");
+          alert(`Вы присоединились к альянсу "${allianceName}"!`);
+        } catch (error) {
+          debugLog("❌ Ошибка при принятии приглашения: " + error.message);
+          alert("Ошибка при принятии приглашения: " + error.message);
+        }
+      }
+    }
+
+    // Отклонить приглашение в альянс
+    async function declineAllianceInvitation(mailId) {
+      if (!checkDB()) {
+        alert("База данных не инициализирована. Попробуйте обновить страницу.");
+        return;
+      }
+
+      if (confirm("Отклонить приглашение в альянс?")) {
+        try {
+          // Помечаем письмо как отвеченное
+          await db.ref(`mail/${mailId}/responded`).set(true);
+          await db.ref(`mail/${mailId}/response`).set('declined');
+          await db.ref(`mail/${mailId}/responseDate`).set(new Date().toISOString());
+          
+          debugLog("✅ Приглашение отклонено");
+          alert("Приглашение в альянс отклонено.");
+        } catch (error) {
+          debugLog("❌ Ошибка при отклонении приглашения: " + error.message);
+          alert("Ошибка при отклонении приглашения: " + error.message);
+        }
+      }
+    }
+
+    // Получить основателя альянса
+    async function getAllianceCreator(allianceId) {
+      const snapshot = await db.ref(`alliances/${allianceId}/creator`).once("value");
+      return snapshot.val();
     }
 
     // Создание альянса
@@ -569,7 +686,8 @@
         timestamp: new Date().toISOString(),
         allianceId: allianceId,
         allianceName: alliance.name,
-        read: false
+        read: false,
+        responded: false
       };
 
       try {

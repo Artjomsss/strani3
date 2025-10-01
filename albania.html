@@ -115,6 +115,26 @@
       color: #888;
       font-size: 12px;
     }
+    .mail-type {
+      background: #e74c3c;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-left: 5px;
+    }
+    .mail-type.alliance {
+      background: #27ae60;
+    }
+    .mail-type.war {
+      background: #e74c3c;
+    }
+    .mail-type.trade {
+      background: #f39c12;
+    }
+    .mail-type.system {
+      background: #95a5a6;
+    }
     .invite-btn {
       background: linear-gradient(145deg, #27ae60, #219653);
       color: #fff;
@@ -179,7 +199,7 @@
     <div class="panel">
       <h2>ID Стран</h2>
       <div id="countries-container">
-        <!-- Список стран остаётся таким же -->
+        <!-- Список стран -->
         <div class="id-item"><span>albania</span><button class="invite-btn" onclick="inviteToAlliance('albania')" disabled>Пригласить</button></div>
         <div class="id-item"><span>andorra</span><button class="invite-btn" onclick="inviteToAlliance('andorra')">Пригласить</button></div>
         <div class="id-item"><span>austria</span><button class="invite-btn" onclick="inviteToAlliance('austria')">Пригласить</button></div>
@@ -235,11 +255,9 @@
     async function initializeCountryData() {
       const countryRef = db.ref("countries/" + country);
       
-      // Проверяем, существуют ли данные страны
       const snapshot = await countryRef.once("value");
       
       if (!snapshot.exists()) {
-        // Создаём начальные данные для страны
         const initialData = {
           gold: 1000,
           army: 100,
@@ -261,7 +279,7 @@
       }
     }
 
-    // Загружаем данные страны и обновляем на странице
+    // Загружаем данные страны
     function loadData() {
       db.ref("countries/" + country).on("value", (snapshot) => {
         const data = snapshot.val();
@@ -325,9 +343,10 @@
       });
     }
 
-    // Загружаем почту из базы данных
+    // Загружаем почту из отдельной коллекции
     function loadMail() {
-      db.ref("mail/" + country).on("value", (snapshot) => {
+      // Загружаем письма, где текущая страна является получателем
+      db.ref("mail").orderByChild("to").equalTo(country).on("value", (snapshot) => {
         const mailData = snapshot.val();
         const mailContainer = document.getElementById("mail-container");
         mailContainer.innerHTML = '';
@@ -341,9 +360,16 @@
           mailArray.forEach(mail => {
             const mailElement = document.createElement('div');
             mailElement.className = 'mail-item';
+            
+            const typeClass = getMailTypeClass(mail.type);
+            const typeLabel = getMailTypeLabel(mail.type);
+            
             mailElement.innerHTML = `
-              <div class="mail-sender">${mail.sender || 'Неизвестный отправитель'}</div>
-              <div class="mail-subject">${mail.subject || 'Без темы'}</div>
+              <div class="mail-sender">От: ${mail.from || 'Неизвестный'}</div>
+              <div class="mail-subject">
+                ${mail.subject || 'Без темы'}
+                <span class="mail-type ${typeClass}">${typeLabel}</span>
+              </div>
               <div class="mail-date">${formatDate(mail.timestamp)}</div>
             `;
             mailElement.onclick = () => showMailContent(mail);
@@ -355,9 +381,30 @@
       });
     }
 
+    // Получаем CSS класс для типа письма
+    function getMailTypeClass(type) {
+      const typeMap = {
+        'alliance': 'alliance',
+        'war': 'war',
+        'trade': 'trade',
+        'system': 'system'
+      };
+      return typeMap[type] || 'system';
+    }
+
+    // Получаем русскую метку для типа письма
+    function getMailTypeLabel(type) {
+      const labelMap = {
+        'alliance': 'Союз',
+        'war': 'Война',
+        'trade': 'Торговля',
+        'system': 'Система'
+      };
+      return labelMap[type] || 'Система';
+    }
+
     // Создание альянса
     async function createAlliance() {
-      // Проверяем, не состоит ли страна уже в альянсе
       const existingAlliance = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
       if (existingAlliance.exists()) {
         alert("Вы уже состоите в альянсе!");
@@ -372,7 +419,6 @@
         return;
       }
 
-      // Проверяем, существует ли альянс с таким названием
       const allianceExists = await db.ref("alliances").orderByChild("name").equalTo(name).once("value");
       if (allianceExists.exists()) {
         alert("Альянс с таким названием уже существует!");
@@ -406,14 +452,12 @@
         return;
       }
 
-      // Проверяем, существует ли вражеская страна
       const enemyExists = await db.ref("countries/" + enemy).once("value");
       if (!enemyExists.exists()) {
         alert("Страна " + enemy + " не существует!");
         return;
       }
 
-      // Проверяем, не воюем ли мы уже с этой страной
       const existingWar = await db.ref("wars").orderByChild("participants/" + country).equalTo(true).once("value");
       if (existingWar.exists()) {
         const wars = existingWar.val();
@@ -438,16 +482,18 @@
       try {
         await db.ref("wars").push(newWar);
         
-        // Отправляем уведомление о войне
+        // Создаём письмо о войне
         const warMessage = {
-          sender: "system",
+          from: country,
+          to: enemy,
           subject: "Объявление войны",
-          message: `Страна ${country} объявила вам войну!`,
+          message: `Страна ${country} объявила вам войну! Будьте готовы к сражениям.`,
+          type: "war",
           timestamp: new Date().toISOString(),
-          type: 'war_declaration'
+          read: false
         };
         
-        await db.ref(`mail/${enemy}`).push(warMessage);
+        await db.ref("mail").push(warMessage);
         alert("Война объявлена стране " + enemy + "!");
       } catch (error) {
         alert("Ошибка при объявлении войны: " + error.message);
@@ -461,7 +507,6 @@
         return;
       }
 
-      // Проверяем, состоит ли приглашающая страна в альянсе
       const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
       if (!allianceSnapshot.exists()) {
         alert("Вы не состоите в альянсе! Создайте альянс сначала.");
@@ -472,25 +517,26 @@
       const allianceId = Object.keys(alliances)[0];
       const alliance = alliances[allianceId];
 
-      // Проверяем, не состоит ли целевая страна уже в альянсе
       if (alliance.members && alliance.members[targetCountry]) {
         alert("Эта страна уже состоит в вашем альянсе!");
         return;
       }
 
-      // Отправляем приглашение
+      // Создаём письмо-приглашение
       const invitationData = {
-        sender: country,
+        from: country,
+        to: targetCountry,
         subject: `Приглашение в альянс ${alliance.name}`,
-        message: `Страна ${country} приглашает вас присоединиться к альянсу "${alliance.name}"`,
+        message: `Страна ${country} приглашает вас присоединиться к альянсу "${alliance.name}". Примите приглашение чтобы стать частью нашего союза.`,
+        type: "alliance",
         timestamp: new Date().toISOString(),
-        type: 'alliance_invitation',
         allianceId: allianceId,
-        allianceName: alliance.name
+        allianceName: alliance.name,
+        read: false
       };
 
       try {
-        await db.ref(`mail/${targetCountry}`).push(invitationData);
+        await db.ref("mail").push(invitationData);
         alert(`Приглашение отправлено стране ${targetCountry}`);
       } catch (error) {
         alert("Ошибка при отправке приглашения: " + error.message);
@@ -576,7 +622,23 @@
 
     // Показываем содержимое письма
     function showMailContent(mail) {
-      alert(`От: ${mail.sender || 'Неизвестный отправитель'}\nТема: ${mail.subject || 'Без темы'}\n\n${mail.message || 'Сообщение отсутствует'}`);
+      const fullMessage = `
+От: ${mail.from || 'Неизвестный отправитель'}
+Для: ${mail.to || 'Неизвестный получатель'}
+Тема: ${mail.subject || 'Без темы'}
+Тип: ${getMailTypeLabel(mail.type)}
+
+${mail.message || 'Сообщение отсутствует'}
+
+${formatDate(mail.timestamp)}
+      `.trim();
+
+      alert(fullMessage);
+
+      // Помечаем письмо как прочитанное
+      if (mail.id && !mail.read) {
+        db.ref("mail/" + mail.id + "/read").set(true);
+      }
     }
 
     // Инициализация

@@ -132,10 +132,19 @@
       background: #7f8c8d;
       cursor: not-allowed;
     }
+    .alliance-info {
+      background: linear-gradient(145deg, #27ae60, #219653);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <h1>Албания</h1>
+
+  <div id="alliance-container"></div>
 
   <div class="grid">
     <div class="card"><h3>💰 Золото</h3><span id="gold">0</span></div>
@@ -180,7 +189,7 @@
         </div>
         <div class="id-item">
           <span>belgium</span>
-          <button class="invite-btn" onclick="inviteToAlliance('belgium')">Пригласить</button>
+          <button class="invite-btn" onclick="inviteToAlliance('belgium')">Приглашить</button>
         </div>
         <div class="id-item">
           <span>bulgaria</span>
@@ -287,7 +296,7 @@
   </div>
 
   <script>
-    // Firebase config
+    // Firebase config - ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -305,7 +314,7 @@
 
     // Загружаем данные страны и обновляем на странице
     function loadData() {
-      firebase.database().ref("countries/" + country).on("value", (snapshot) => {
+      db.ref("countries/" + country).on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
           document.getElementById("gold").innerText = data.gold || 0;
@@ -319,9 +328,32 @@
       });
     }
 
+    // Загружаем информацию об альянсе
+    function loadAllianceInfo() {
+      db.ref("alliances").orderByChild("members/" + country).equalTo(true).on("value", (snapshot) => {
+        const allianceContainer = document.getElementById("alliance-container");
+        allianceContainer.innerHTML = '';
+        
+        const alliances = snapshot.val();
+        if (alliances) {
+          const allianceId = Object.keys(alliances)[0];
+          const alliance = alliances[allianceId];
+          
+          const allianceInfo = document.createElement('div');
+          allianceInfo.className = 'alliance-info';
+          allianceInfo.innerHTML = `
+            <strong>Альянс: ${alliance.name}</strong><br>
+            Основатель: ${alliance.creator}<br>
+            Участники: ${Object.keys(alliance.members || {}).join(', ')}
+          `;
+          allianceContainer.appendChild(allianceInfo);
+        }
+      });
+    }
+
     // Загружаем почту из базы данных
     function loadMail() {
-      firebase.database().ref("mail/" + country).on("value", (snapshot) => {
+      db.ref("mail/" + country).on("value", (snapshot) => {
         const mailData = snapshot.val();
         const mailContainer = document.getElementById("mail-container");
         mailContainer.innerHTML = '';
@@ -349,34 +381,155 @@
       });
     }
 
+    // Создание альянса
+    async function createAlliance() {
+      // Проверяем, не состоит ли страна уже в альянсе
+      const existingAlliance = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (existingAlliance.exists()) {
+        alert("Вы уже состоите в альянсе!");
+        return;
+      }
+
+      const name = prompt("Введите название альянса:");
+      if (!name) return;
+
+      if (name.length < 3) {
+        alert("Название альянса должно быть не менее 3 символов");
+        return;
+      }
+
+      // Проверяем, существует ли альянс с таким названием
+      const allianceExists = await db.ref("alliances").orderByChild("name").equalTo(name).once("value");
+      if (allianceExists.exists()) {
+        alert("Альянс с таким названием уже существует!");
+        return;
+      }
+
+      const newAlliance = {
+        name: name,
+        creator: country,
+        createdAt: new Date().toISOString(),
+        members: {
+          [country]: true
+        }
+      };
+
+      try {
+        await db.ref("alliances").push(newAlliance);
+        alert("Альянс '" + name + "' успешно создан!");
+      } catch (error) {
+        alert("Ошибка при создании альянса: " + error.message);
+      }
+    }
+
     // Функция приглашения в альянс
-    function inviteToAlliance(targetCountry) {
+    async function inviteToAlliance(targetCountry) {
       if (targetCountry === country) {
         alert("Нельзя пригласить самого себя!");
         return;
       }
 
-      const allianceName = prompt("Введите название вашего альянса для приглашения:");
-      if (!allianceName) return;
+      // Проверяем, состоит ли приглашающая страна в альянсе
+      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (!allianceSnapshot.exists()) {
+        alert("Вы не состоите в альянсе! Создайте альянс сначала.");
+        return;
+      }
 
-      // Отправляем приглашение в базу данных
+      const alliances = allianceSnapshot.val();
+      const allianceId = Object.keys(alliances)[0];
+      const alliance = alliances[allianceId];
+
+      // Проверяем, не состоит ли целевая страна уже в альянсе
+      if (alliance.members && alliance.members[targetCountry]) {
+        alert("Эта страна уже состоит в вашем альянсе!");
+        return;
+      }
+
+      // Отправляем приглашение
       const invitationData = {
         sender: country,
-        subject: `Приглашение в альянс ${allianceName}`,
-        message: `Страна ${country} приглашает вас присоединиться к альянсу "${allianceName}"`,
+        subject: `Приглашение в альянс ${alliance.name}`,
+        message: `Страна ${country} приглашает вас присоединиться к альянсу "${alliance.name}"`,
         timestamp: new Date().toISOString(),
         type: 'alliance_invitation',
-        allianceName: allianceName
+        allianceId: allianceId,
+        allianceName: alliance.name
       };
 
-      // Записываем приглашение в почту целевой страны
-      firebase.database().ref(`mail/${targetCountry}`).push(invitationData)
-        .then(() => {
-          alert(`Приглашение отправлено стране ${targetCountry}`);
-        })
-        .catch((error) => {
-          alert("Ошибка при отправке приглашения: " + error.message);
-        });
+      try {
+        await db.ref(`mail/${targetCountry}`).push(invitationData);
+        alert(`Приглашение отправлено стране ${targetCountry}`);
+      } catch (error) {
+        alert("Ошибка при отправке приглашения: " + error.message);
+      }
+    }
+
+    // Выход из альянса
+    async function leaveAlliance() {
+      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (!allianceSnapshot.exists()) {
+        alert("Вы не состоите в альянсе!");
+        return;
+      }
+
+      const alliances = allianceSnapshot.val();
+      const allianceId = Object.keys(alliances)[0];
+      const alliance = alliances[allianceId];
+
+      if (alliance.creator === country) {
+        alert("Вы основатель альянса! Сначала передайте права основателя или распустите альянс.");
+        return;
+      }
+
+      if (confirm("Вы уверены, что хотите покинуть альянс?")) {
+        try {
+          await db.ref(`alliances/${allianceId}/members/${country}`).remove();
+          alert("Вы вышли из альянса");
+        } catch (error) {
+          alert("Ошибка при выходе из альянса: " + error.message);
+        }
+      }
+    }
+
+    // Исключение из альянса
+    async function kickFromAlliance() {
+      const target = prompt("Введите страну для исключения:");
+      if (!target) return;
+
+      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (!allianceSnapshot.exists()) {
+        alert("Вы не состоите в альянсе!");
+        return;
+      }
+
+      const alliances = allianceSnapshot.val();
+      const allianceId = Object.keys(alliances)[0];
+      const alliance = alliances[allianceId];
+
+      if (alliance.creator !== country) {
+        alert("Только основатель альянса может исключать участников!");
+        return;
+      }
+
+      if (target === country) {
+        alert("Нельзя исключить самого себя!");
+        return;
+      }
+
+      if (!alliance.members || !alliance.members[target]) {
+        alert("Эта страна не состоит в вашем альянсе!");
+        return;
+      }
+
+      if (confirm(`Вы уверены, что хотите исключить ${target} из альянса?`)) {
+        try {
+          await db.ref(`alliances/${allianceId}/members/${target}`).remove();
+          alert(`Страна ${target} исключена из альянса`);
+        } catch (error) {
+          alert("Ошибка при исключении: " + error.message);
+        }
+      }
     }
 
     // Форматируем дату для отображения
@@ -394,36 +547,16 @@
       alert(`От: ${mail.sender || 'Неизвестный отправитель'}\nТема: ${mail.subject || 'Без темы'}\n\n${mail.message || 'Сообщение отсутствует'}`);
     }
 
-    // Действия
-    function createAlliance() {
-      const name = prompt("Введите название альянса:");
-      if (name) {
-        // Здесь можно добавить запись в базу данных
-        alert("Альянс создан: " + name);
-      }
-    }
-    
     function declareWar() {
       const enemy = prompt("Введите страну для объявления войны:");
       if (enemy) {
-        // Здесь можно добавить запись в базу данных
         alert("Война объявлена стране: " + enemy);
-      }
-    }
-    
-    function leaveAlliance() {
-      alert("Вы вышли из альянса");
-    }
-    
-    function kickFromAlliance() {
-      const target = prompt("Введите страну для исключения:");
-      if (target) {
-        alert("Страна " + target + " исключена");
       }
     }
 
     // Инициализация
     loadData();
+    loadAllianceInfo();
     loadMail();
   </script>
 </body>

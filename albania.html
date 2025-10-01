@@ -6,6 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <style>
+    /* Все стили остаются такими же */
     body {
       font-family: Arial, sans-serif;
       background: #1e1e2f;
@@ -244,7 +245,7 @@
   </div>
 
   <script>
-    // Firebase configuration с вашим databaseURL
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
       authDomain: "strani3.firebaseapp.com",
@@ -256,6 +257,9 @@
       measurementId: "G-3NKBET5R9J"
     };
 
+    // Глобальные переменные
+    let db;
+
     // Отладочная информация
     function debugLog(message) {
       console.log(message);
@@ -265,18 +269,34 @@
       }
     }
 
-    try {
-      const app = firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
-      debugLog("✅ Firebase инициализирован успешно");
-    } catch (error) {
-      debugLog("❌ Ошибка инициализации Firebase: " + error.message);
+    // Инициализация Firebase
+    function initializeFirebase() {
+      try {
+        const app = firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        debugLog("✅ Firebase инициализирован успешно");
+        return true;
+      } catch (error) {
+        debugLog("❌ Ошибка инициализации Firebase: " + error.message);
+        return false;
+      }
+    }
+
+    // Проверяем инициализацию перед выполнением операций с базой
+    function checkDB() {
+      if (!db) {
+        debugLog("❌ База данных не инициализирована. Пытаемся инициализировать...");
+        return initializeFirebase();
+      }
+      return true;
     }
 
     const country = "albania";
 
     // Принудительная инициализация данных
     async function forceInitialize() {
+      if (!checkDB()) return;
+      
       debugLog("Запуск принудительной инициализации...");
       await initializeCountryData();
       debugLog("Инициализация завершена");
@@ -284,6 +304,8 @@
 
     // Функция инициализации данных страны
     async function initializeCountryData() {
+      if (!checkDB()) return;
+      
       debugLog("Проверяем данные страны...");
       const countryRef = db.ref("countries/" + country);
       
@@ -317,6 +339,8 @@
 
     // Загружаем данные страны
     function loadData() {
+      if (!checkDB()) return;
+      
       debugLog("Загрузка данных страны...");
       db.ref("countries/" + country).on("value", (snapshot) => {
         const data = snapshot.val();
@@ -339,6 +363,8 @@
 
     // Загружаем информацию об альянсе
     function loadAllianceInfo() {
+      if (!checkDB()) return;
+      
       db.ref("alliances").orderByChild("members/" + country).equalTo(true).on("value", (snapshot) => {
         const allianceContainer = document.getElementById("alliance-container");
         allianceContainer.innerHTML = '';
@@ -363,6 +389,8 @@
 
     // Загружаем почту
     function loadMail() {
+      if (!checkDB()) return;
+      
       db.ref("mail").orderByChild("to").equalTo(country).on("value", (snapshot) => {
         const mailData = snapshot.val();
         const mailContainer = document.getElementById("mail-container");
@@ -402,6 +430,11 @@
 
     // Создание альянса
     async function createAlliance() {
+      if (!checkDB()) {
+        alert("База данных не инициализирована. Попробуйте обновить страницу.");
+        return;
+      }
+      
       debugLog("Попытка создания альянса...");
       
       try {
@@ -474,6 +507,8 @@
     }
 
     function showMailContent(mail) {
+      if (!checkDB()) return;
+      
       const fullMessage = `
 От: ${mail.from || 'Неизвестный отправитель'}
 Для: ${mail.to || 'Неизвестный получатель'}
@@ -494,11 +529,13 @@ ${formatDate(mail.timestamp)}
 
     // Временные функции для тестирования
     async function declareWar() {
+      if (!checkDB()) return;
       const enemy = prompt("Введите страну для объявления войны:");
       if (enemy) alert("Функция войны в разработке");
     }
 
     async function inviteToAlliance(targetCountry) {
+      if (!checkDB()) return;
       if (targetCountry === country) {
         alert("Нельзя пригласить самого себя!");
         return;
@@ -507,25 +544,31 @@ ${formatDate(mail.timestamp)}
     }
 
     async function leaveAlliance() {
+      if (!checkDB()) return;
       alert("Функция выхода из альянса в разработке");
     }
 
     async function kickFromAlliance() {
+      if (!checkDB()) return;
       alert("Функция исключения из альянса в разработке");
     }
 
     // Инициализация
     async function initialize() {
       debugLog("Начало инициализации...");
-      await initializeCountryData();
-      loadData();
-      loadAllianceInfo();
-      loadMail();
-      debugLog("Инициализация завершена");
+      if (initializeFirebase()) {
+        await initializeCountryData();
+        loadData();
+        loadAllianceInfo();
+        loadMail();
+        debugLog("Инициализация завершена");
+      } else {
+        debugLog("❌ Не удалось инициализировать приложение");
+      }
     }
 
-    // Запускаем инициализацию
-    initialize();
+    // Запускаем инициализацию при загрузке страницы
+    document.addEventListener('DOMContentLoaded', initialize);
   </script>
 </body>
 </html>

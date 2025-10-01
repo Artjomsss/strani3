@@ -139,12 +139,20 @@
       margin-bottom: 15px;
       text-align: center;
     }
+    .war-info {
+      background: linear-gradient(145deg, #e74c3c, #c0392b);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <h1>Албания</h1>
 
   <div id="alliance-container"></div>
+  <div id="war-container"></div>
 
   <div class="grid">
     <div class="card"><h3>💰 Золото</h3><span id="gold">0</span></div>
@@ -171,126 +179,37 @@
     <div class="panel">
       <h2>ID Стран</h2>
       <div id="countries-container">
-        <div class="id-item">
-          <span>albania</span>
-          <button class="invite-btn" onclick="inviteToAlliance('albania')" disabled>Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>andorra</span>
-          <button class="invite-btn" onclick="inviteToAlliance('andorra')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>austria</span>
-          <button class="invite-btn" onclick="inviteToAlliance('austria')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>belarus</span>
-          <button class="invite-btn" onclick="inviteToAlliance('belarus')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>belgium</span>
-          <button class="invite-btn" onclick="inviteToAlliance('belgium')">Приглашить</button>
-        </div>
-        <div class="id-item">
-          <span>bulgaria</span>
-          <button class="invite-btn" onclick="inviteToAlliance('bulgaria')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>croatia</span>
-          <button class="invite-btn" onclick="inviteToAlliance('croatia')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>czechia</span>
-          <button class="invite-btn" onclick="inviteToAlliance('czechia')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>denmark</span>
-          <button class="invite-btn" onclick="inviteToAlliance('denmark')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>estonia</span>
-          <button class="invite-btn" onclick="inviteToAlliance('estonia')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>finland</span>
-          <button class="invite-btn" onclick="inviteToAlliance('finland')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>france</span>
-          <button class="invite-btn" onclick="inviteToAlliance('france')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>germany</span>
-          <button class="invite-btn" onclick="inviteToAlliance('germany')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>greece</span>
-          <button class="invite-btn" onclick="inviteToAlliance('greece')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>hungary</span>
-          <button class="invite-btn" onclick="inviteToAlliance('hungary')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>iceland</span>
-          <button class="invite-btn" onclick="inviteToAlliance('iceland')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>ireland</span>
-          <button class="invite-btn" onclick="inviteToAlliance('ireland')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>italy</span>
-          <button class="invite-btn" onclick="inviteToAlliance('italy')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>latvia</span>
-          <button class="invite-btn" onclick="inviteToAlliance('latvia')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>lithuania</span>
-          <button class="invite-btn" onclick="inviteToAlliance('lithuania')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>luxembourg</span>
-          <button class="invite-btn" onclick="inviteToAlliance('luxembourg')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>malta</span>
-          <button class="invite-btn" onclick="inviteToAlliance('malta')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>moldova</span>
-          <button class="invite-btn" onclick="inviteToAlliance('moldova')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>monaco</span>
-          <button class="invite-btn" onclick="inviteToAlliance('monaco')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>montenegro</span>
-          <button class="invite-btn" onclick="inviteToAlliance('montenegro')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>netherlands</span>
-          <button class="invite-btn" onclick="inviteToAlliance('netherlands')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>north_macedonia</span>
-          <button class="invite-btn" onclick="inviteToAlliance('north_macedonia')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>norway</span>
-          <button class="invite-btn" onclick="inviteToAlliance('norway')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>poland</span>
-          <button class="invite-btn" onclick="inviteToAlliance('poland')">Пригласить</button>
-        </div>
-        <div class="id-item">
-          <span>portugal</span>
-          <button class="invite-btn" onclick="inviteToAlliance('portugal')">Пригласить</button>
-        </div>
+        <!-- Список стран остаётся таким же -->
+        <div class="id-item"><span>albania</span><button class="invite-btn" onclick="inviteToAlliance('albania')" disabled>Пригласить</button></div>
+        <div class="id-item"><span>andorra</span><button class="invite-btn" onclick="inviteToAlliance('andorra')">Пригласить</button></div>
+        <div class="id-item"><span>austria</span><button class="invite-btn" onclick="inviteToAlliance('austria')">Пригласить</button></div>
+        <div class="id-item"><span>belarus</span><button class="invite-btn" onclick="inviteToAlliance('belarus')">Пригласить</button></div>
+        <div class="id-item"><span>belgium</span><button class="invite-btn" onclick="inviteToAlliance('belgium')">Пригласить</button></div>
+        <div class="id-item"><span>bulgaria</span><button class="invite-btn" onclick="inviteToAlliance('bulgaria')">Пригласить</button></div>
+        <div class="id-item"><span>croatia</span><button class="invite-btn" onclick="inviteToAlliance('croatia')">Пригласить</button></div>
+        <div class="id-item"><span>czechia</span><button class="invite-btn" onclick="inviteToAlliance('czechia')">Пригласить</button></div>
+        <div class="id-item"><span>denmark</span><button class="invite-btn" onclick="inviteToAlliance('denmark')">Пригласить</button></div>
+        <div class="id-item"><span>estonia</span><button class="invite-btn" onclick="inviteToAlliance('estonia')">Пригласить</button></div>
+        <div class="id-item"><span>finland</span><button class="invite-btn" onclick="inviteToAlliance('finland')">Пригласить</button></div>
+        <div class="id-item"><span>france</span><button class="invite-btn" onclick="inviteToAlliance('france')">Пригласить</button></div>
+        <div class="id-item"><span>germany</span><button class="invite-btn" onclick="inviteToAlliance('germany')">Пригласить</button></div>
+        <div class="id-item"><span>greece</span><button class="invite-btn" onclick="inviteToAlliance('greece')">Пригласить</button></div>
+        <div class="id-item"><span>hungary</span><button class="invite-btn" onclick="inviteToAlliance('hungary')">Пригласить</button></div>
+        <div class="id-item"><span>iceland</span><button class="invite-btn" onclick="inviteToAlliance('iceland')">Пригласить</button></div>
+        <div class="id-item"><span>ireland</span><button class="invite-btn" onclick="inviteToAlliance('ireland')">Пригласить</button></div>
+        <div class="id-item"><span>italy</span><button class="invite-btn" onclick="inviteToAlliance('italy')">Пригласить</button></div>
+        <div class="id-item"><span>latvia</span><button class="invite-btn" onclick="inviteToAlliance('latvia')">Пригласить</button></div>
+        <div class="id-item"><span>lithuania</span><button class="invite-btn" onclick="inviteToAlliance('lithuania')">Пригласить</button></div>
+        <div class="id-item"><span>luxembourg</span><button class="invite-btn" onclick="inviteToAlliance('luxembourg')">Пригласить</button></div>
+        <div class="id-item"><span>malta</span><button class="invite-btn" onclick="inviteToAlliance('malta')">Пригласить</button></div>
+        <div class="id-item"><span>moldova</span><button class="invite-btn" onclick="inviteToAlliance('moldova')">Пригласить</button></div>
+        <div class="id-item"><span>monaco</span><button class="invite-btn" onclick="inviteToAlliance('monaco')">Пригласить</button></div>
+        <div class="id-item"><span>montenegro</span><button class="invite-btn" onclick="inviteToAlliance('montenegro')">Пригласить</button></div>
+        <div class="id-item"><span>netherlands</span><button class="invite-btn" onclick="inviteToAlliance('netherlands')">Пригласить</button></div>
+        <div class="id-item"><span>north_macedonia</span><button class="invite-btn" onclick="inviteToAlliance('north_macedonia')">Пригласить</button></div>
+        <div class="id-item"><span>norway</span><button class="invite-btn" onclick="inviteToAlliance('norway')">Пригласить</button></div>
+        <div class="id-item"><span>poland</span><button class="invite-btn" onclick="inviteToAlliance('poland')">Пригласить</button></div>
+        <div class="id-item"><span>portugal</span><button class="invite-btn" onclick="inviteToAlliance('portugal')">Пригласить</button></div>
       </div>
     </div>
   </div>
@@ -311,6 +230,36 @@
     const db = firebase.database();
 
     const country = "albania";
+
+    // Функция инициализации данных страны
+    async function initializeCountryData() {
+      const countryRef = db.ref("countries/" + country);
+      
+      // Проверяем, существуют ли данные страны
+      const snapshot = await countryRef.once("value");
+      
+      if (!snapshot.exists()) {
+        // Создаём начальные данные для страны
+        const initialData = {
+          gold: 1000,
+          army: 100,
+          population: 1000000,
+          income: 100,
+          chips: 50,
+          oil: 200,
+          food: 500,
+          createdAt: new Date().toISOString(),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        try {
+          await countryRef.set(initialData);
+          console.log("Данные страны инициализированы");
+        } catch (error) {
+          console.error("Ошибка инициализации данных страны:", error);
+        }
+      }
+    }
 
     // Загружаем данные страны и обновляем на странице
     function loadData() {
@@ -347,6 +296,31 @@
             Участники: ${Object.keys(alliance.members || {}).join(', ')}
           `;
           allianceContainer.appendChild(allianceInfo);
+        }
+      });
+    }
+
+    // Загружаем информацию о войнах
+    function loadWarInfo() {
+      db.ref("wars").orderByChild("participants/" + country).equalTo(true).on("value", (snapshot) => {
+        const warContainer = document.getElementById("war-container");
+        warContainer.innerHTML = '';
+        
+        const wars = snapshot.val();
+        if (wars) {
+          Object.keys(wars).forEach(warId => {
+            const war = wars[warId];
+            const warInfo = document.createElement('div');
+            warInfo.className = 'war-info';
+            
+            const enemies = Object.keys(war.participants || {}).filter(p => p !== country);
+            warInfo.innerHTML = `
+              <strong>⚔️ ВОЙНА</strong><br>
+              Против: ${enemies.join(', ')}<br>
+              Объявлена: ${formatDate(war.declaredAt)}
+            `;
+            warContainer.appendChild(warInfo);
+          });
         }
       });
     }
@@ -419,6 +393,64 @@
         alert("Альянс '" + name + "' успешно создан!");
       } catch (error) {
         alert("Ошибка при создании альянса: " + error.message);
+      }
+    }
+
+    // Объявление войны
+    async function declareWar() {
+      const enemy = prompt("Введите страну для объявления войны:");
+      if (!enemy) return;
+
+      if (enemy === country) {
+        alert("Нельзя объявить войну самому себе!");
+        return;
+      }
+
+      // Проверяем, существует ли вражеская страна
+      const enemyExists = await db.ref("countries/" + enemy).once("value");
+      if (!enemyExists.exists()) {
+        alert("Страна " + enemy + " не существует!");
+        return;
+      }
+
+      // Проверяем, не воюем ли мы уже с этой страной
+      const existingWar = await db.ref("wars").orderByChild("participants/" + country).equalTo(true).once("value");
+      if (existingWar.exists()) {
+        const wars = existingWar.val();
+        for (let warId in wars) {
+          if (wars[warId].participants[enemy]) {
+            alert("Вы уже воюете с " + enemy + "!");
+            return;
+          }
+        }
+      }
+
+      const newWar = {
+        declaredBy: country,
+        declaredAt: new Date().toISOString(),
+        participants: {
+          [country]: true,
+          [enemy]: true
+        },
+        status: "active"
+      };
+
+      try {
+        await db.ref("wars").push(newWar);
+        
+        // Отправляем уведомление о войне
+        const warMessage = {
+          sender: "system",
+          subject: "Объявление войны",
+          message: `Страна ${country} объявила вам войну!`,
+          timestamp: new Date().toISOString(),
+          type: 'war_declaration'
+        };
+        
+        await db.ref(`mail/${enemy}`).push(warMessage);
+        alert("Война объявлена стране " + enemy + "!");
+      } catch (error) {
+        alert("Ошибка при объявлении войны: " + error.message);
       }
     }
 
@@ -547,17 +579,17 @@
       alert(`От: ${mail.sender || 'Неизвестный отправитель'}\nТема: ${mail.subject || 'Без темы'}\n\n${mail.message || 'Сообщение отсутствует'}`);
     }
 
-    function declareWar() {
-      const enemy = prompt("Введите страну для объявления войны:");
-      if (enemy) {
-        alert("Война объявлена стране: " + enemy);
-      }
+    // Инициализация
+    async function initialize() {
+      await initializeCountryData();
+      loadData();
+      loadAllianceInfo();
+      loadWarInfo();
+      loadMail();
     }
 
-    // Инициализация
-    loadData();
-    loadAllianceInfo();
-    loadMail();
+    // Запускаем инициализацию при загрузке страницы
+    initialize();
   </script>
 </body>
 </html>

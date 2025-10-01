@@ -6,7 +6,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <style>
-    /* Все стили остаются такими же */
     body {
       font-family: Arial, sans-serif;
       background: #1e1e2f;
@@ -153,6 +152,23 @@
       background: #7f8c8d;
       cursor: not-allowed;
     }
+    .kick-btn {
+      background: linear-gradient(145deg, #e74c3c, #c0392b);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .kick-btn:hover {
+      background: linear-gradient(145deg, #c0392b, #a93226);
+    }
+    .kick-btn:disabled {
+      background: #7f8c8d;
+      cursor: not-allowed;
+    }
     .alliance-info {
       background: linear-gradient(145deg, #27ae60, #219653);
       padding: 10px;
@@ -174,6 +190,19 @@
       margin-bottom: 15px;
       font-size: 12px;
       color: #ecf0f1;
+    }
+    .alliance-members {
+      margin-top: 10px;
+    }
+    .member-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .member-item:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
@@ -198,7 +227,6 @@
     <button onclick="createAlliance()">Создать альянс</button>
     <button onclick="declareWar()">Объявить войну</button>
     <button onclick="leaveAlliance()">Выйти из альянса</button>
-    <button onclick="kickFromAlliance()">Выкинуть из альянса</button>
     <button onclick="forceInitialize()">Принудительная инициализация</button>
   </div>
 
@@ -376,10 +404,30 @@
           
           const allianceInfo = document.createElement('div');
           allianceInfo.className = 'alliance-info';
+          
+          let membersHtml = '';
+          if (alliance.members) {
+            membersHtml = '<div class="alliance-members">';
+            Object.keys(alliance.members).forEach(member => {
+              const isCreator = member === alliance.creator;
+              const isCurrentUser = member === country;
+              membersHtml += `
+                <div class="member-item">
+                  <span>${member} ${isCreator ? '👑' : ''}</span>
+                  ${isCurrentUser ? '<span>Вы</span>' : 
+                    alliance.creator === country ? 
+                    `<button class="kick-btn" onclick="kickFromAlliance('${member}')">Выгнать</button>` : 
+                    ''}
+                </div>
+              `;
+            });
+            membersHtml += '</div>';
+          }
+          
           allianceInfo.innerHTML = `
             <strong>Альянс: ${alliance.name}</strong><br>
             Основатель: ${alliance.creator}<br>
-            Участники: ${Object.keys(alliance.members || {}).join(', ')}
+            ${membersHtml}
           `;
           allianceContainer.appendChild(allianceInfo);
           debugLog("✅ Информация об альянсе загружена");
@@ -476,6 +524,142 @@
       }
     }
 
+    // Функция приглашения в альянс
+    async function inviteToAlliance(targetCountry) {
+      if (!checkDB()) {
+        alert("База данных не инициализирована. Попробуйте обновить страницу.");
+        return;
+      }
+
+      if (targetCountry === country) {
+        alert("Нельзя пригласить самого себя!");
+        return;
+      }
+
+      // Проверяем, состоит ли приглашающая страна в альянсе
+      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (!allianceSnapshot.exists()) {
+        alert("Вы не состоите в альянсе! Создайте альянс сначала.");
+        return;
+      }
+
+      const alliances = allianceSnapshot.val();
+      const allianceId = Object.keys(alliances)[0];
+      const alliance = alliances[allianceId];
+
+      // Проверяем, является ли пользователь основателем
+      if (alliance.creator !== country) {
+        alert("Только основатель альянса может приглашать участников!");
+        return;
+      }
+
+      // Проверяем, не состоит ли целевая страна уже в альянсе
+      if (alliance.members && alliance.members[targetCountry]) {
+        alert("Эта страна уже состоит в вашем альянсе!");
+        return;
+      }
+
+      // Создаём письмо-приглашение
+      const invitationData = {
+        from: country,
+        to: targetCountry,
+        subject: `Приглашение в альянс ${alliance.name}`,
+        message: `Страна ${country} приглашает вас присоединиться к альянсу "${alliance.name}". Примите приглашение чтобы стать частью нашего союза.`,
+        type: "alliance",
+        timestamp: new Date().toISOString(),
+        allianceId: allianceId,
+        allianceName: alliance.name,
+        read: false
+      };
+
+      try {
+        await db.ref("mail").push(invitationData);
+        debugLog("✅ Приглашение отправлено стране: " + targetCountry);
+        alert(`Приглашение отправлено стране ${targetCountry}`);
+      } catch (error) {
+        debugLog("❌ Ошибка при отправке приглашения: " + error.message);
+        alert("Ошибка при отправке приглашения: " + error.message);
+      }
+    }
+
+    // Исключение из альянса
+    async function kickFromAlliance(targetCountry) {
+      if (!checkDB()) {
+        alert("База данных не инициализирована. Попробуйте обновить страницу.");
+        return;
+      }
+
+      if (targetCountry === country) {
+        alert("Нельзя исключить самого себя!");
+        return;
+      }
+
+      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (!allianceSnapshot.exists()) {
+        alert("Вы не состоите в альянсе!");
+        return;
+      }
+
+      const alliances = allianceSnapshot.val();
+      const allianceId = Object.keys(alliances)[0];
+      const alliance = alliances[allianceId];
+
+      if (alliance.creator !== country) {
+        alert("Только основатель альянса может исключать участников!");
+        return;
+      }
+
+      if (!alliance.members || !alliance.members[targetCountry]) {
+        alert("Эта страна не состоит в вашем альянсе!");
+        return;
+      }
+
+      if (confirm(`Вы уверены, что хотите исключить ${targetCountry} из альянса?`)) {
+        try {
+          await db.ref(`alliances/${allianceId}/members/${targetCountry}`).remove();
+          debugLog("✅ Страна исключена из альянса: " + targetCountry);
+          alert(`Страна ${targetCountry} исключена из альянса`);
+        } catch (error) {
+          debugLog("❌ Ошибка при исключении: " + error.message);
+          alert("Ошибка при исключении: " + error.message);
+        }
+      }
+    }
+
+    // Выход из альянса
+    async function leaveAlliance() {
+      if (!checkDB()) {
+        alert("База данных не инициализирована. Попробуйте обновить страницу.");
+        return;
+      }
+
+      const allianceSnapshot = await db.ref("alliances").orderByChild("members/" + country).equalTo(true).once("value");
+      if (!allianceSnapshot.exists()) {
+        alert("Вы не состоите в альянсе!");
+        return;
+      }
+
+      const alliances = allianceSnapshot.val();
+      const allianceId = Object.keys(alliances)[0];
+      const alliance = alliances[allianceId];
+
+      if (alliance.creator === country) {
+        alert("Вы основатель альянса! Сначала передайте права основателя или распустите альянс.");
+        return;
+      }
+
+      if (confirm("Вы уверены, что хотите покинуть альянс?")) {
+        try {
+          await db.ref(`alliances/${allianceId}/members/${country}`).remove();
+          debugLog("✅ Вы вышли из альянса");
+          alert("Вы вышли из альянса");
+        } catch (error) {
+          debugLog("❌ Ошибка при выходе из альянса: " + error.message);
+          alert("Ошибка при выходе из альянса: " + error.message);
+        }
+      }
+    }
+
     // Вспомогательные функции
     function getMailTypeClass(type) {
       const typeMap = {
@@ -527,30 +711,11 @@ ${formatDate(mail.timestamp)}
       }
     }
 
-    // Временные функции для тестирования
+    // Временная функция для тестирования
     async function declareWar() {
       if (!checkDB()) return;
       const enemy = prompt("Введите страну для объявления войны:");
       if (enemy) alert("Функция войны в разработке");
-    }
-
-    async function inviteToAlliance(targetCountry) {
-      if (!checkDB()) return;
-      if (targetCountry === country) {
-        alert("Нельзя пригласить самого себя!");
-        return;
-      }
-      alert("Функция приглашения в разработке");
-    }
-
-    async function leaveAlliance() {
-      if (!checkDB()) return;
-      alert("Функция выхода из альянса в разработке");
-    }
-
-    async function kickFromAlliance() {
-      if (!checkDB()) return;
-      alert("Функция исключения из альянса в разработке");
     }
 
     // Инициализация

@@ -102,28 +102,183 @@ async function loadAlliances() {
   });
 }
 
+// Функция смены темы
+function toggleTheme() {
+  const body = document.body;
+  const isDark = body.classList.contains('dark-theme');
+  
+  if (isDark) {
+    body.classList.remove('dark-theme');
+    body.classList.add('light-theme');
+    localStorage.setItem('theme', 'light');
+  } else {
+    body.classList.remove('light-theme');
+    body.classList.add('dark-theme');
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Загрузка сохраненной темы
+function loadSavedTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.body.classList.add(savedTheme + '-theme');
+}
+
 window.onload = () => {
+  loadSavedTheme();
   renderCountries();
   loadAlliances();
   document.getElementById("goBtn").onclick = goToCountry;
+  document.getElementById("themeToggle").onclick = toggleTheme;
 };
 </script>
 <style>
-body { background:#111; color:#eee; font-family:Arial; padding:20px; }
-h1 { text-align:center; }
-.input-box { text-align:center; margin-bottom:20px; }
-input { padding:10px; border-radius:5px; border:none; width:200px; }
-button { padding:10px 15px; margin-left:10px; border:none; border-radius:5px; background:#4caf50; color:#fff; cursor:pointer; }
-button:hover { background:#45a049; }
-.container { max-width:900px; margin:auto; }
-.country-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:15px; }
-.country-card { background:#2a2a2a; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); }
-.country-card h2 { margin:0; }
-.alliances-section { margin-top:40px; }
+/* Темная тема (по умолчанию) */
+body.dark-theme {
+  background: #111;
+  color: #eee;
+}
+
+body.dark-theme .input-box input {
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+}
+
+body.dark-theme .country-card {
+  background: #2a2a2a;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+body.dark-theme button {
+  background: #4caf50;
+  color: #fff;
+}
+
+body.dark-theme button:hover {
+  background: #45a049;
+}
+
+/* Светлая тема */
+body.light-theme {
+  background: #f5f5f5;
+  color: #333;
+}
+
+body.light-theme .input-box input {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+body.light-theme .country-card {
+  background: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+}
+
+body.light-theme button {
+  background: #2196F3;
+  color: #fff;
+}
+
+body.light-theme button:hover {
+  background: #1976D2;
+}
+
+/* Общие стили */
+body {
+  font-family: Arial;
+  padding: 20px;
+  margin: 0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+h1 { 
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.theme-toggle {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.input-box { 
+  text-align: center; 
+  margin-bottom: 20px; 
+}
+
+input { 
+  padding: 10px; 
+  border-radius: 5px; 
+  width: 200px; 
+  transition: background-color 0.3s, color 0.3s, border 0.3s;
+}
+
+button { 
+  padding: 10px 15px; 
+  margin-left: 10px; 
+  border: none; 
+  border-radius: 5px; 
+  cursor: pointer; 
+  transition: background-color 0.3s;
+}
+
+.container { 
+  max-width: 900px; 
+  margin: auto; 
+}
+
+.country-list { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+  gap: 15px; 
+  margin-bottom: 30px;
+}
+
+.country-card { 
+  padding: 15px; 
+  border-radius: 10px; 
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.country-card h2 { 
+  margin: 0; 
+  font-size: 16px;
+}
+
+.alliances-section { 
+  margin-top: 40px; 
+  padding-top: 20px;
+  border-top: 1px solid;
+}
+
+body.dark-theme .alliances-section {
+  border-color: #444;
+}
+
+body.light-theme .alliances-section {
+  border-color: #ddd;
+}
 </style>
 </head>
 <body>
-<h1>Игра со странами и альянсами</h1>
+<div class="header-controls">
+  <h1>Игра со странами и альянсами</h1>
+  <button id="themeToggle" class="theme-toggle">Сменить тему</button>
+</div>
 
 <div class="input-box">
   <input type="text" id="codeInput" placeholder="Введите код страны">

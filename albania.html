@@ -6,6 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <style>
+    /* Все стили остаются такими же */
     body {
       font-family: Arial, sans-serif;
       background: #1e1e2f;
@@ -422,7 +423,6 @@
       notification.textContent = message;
       container.appendChild(notification);
       
-      // Автоудаление через 5 секунд
       setTimeout(() => {
         if (notification.parentNode) {
           notification.parentNode.removeChild(notification);
@@ -438,18 +438,15 @@
       }
       
       try {
-        // Firebase предоставляет серверное время через .info/serverTimeOffset
         const offsetRef = db.ref('.info/serverTimeOffset');
         const snapshot = await offsetRef.once('value');
         const offset = snapshot.val() || 0;
         
-        // Сохраняем offset для будущего использования
         serverTimeOffset = offset;
         isTimeSynced = true;
         
         const serverTime = Date.now() + offset;
         
-        // Обновляем статус синхронизации
         document.getElementById('time-sync-status').textContent = '⏰ Синхронизировано';
         document.getElementById('time-sync-status').style.background = '#27ae60';
         
@@ -534,13 +531,13 @@
             gold: 1000,
             army: 100,
             population: 1000000,
-            income: 100, // Доход в час
+            income: 100,
             chips: 50,
             oil: 200,
             food: 500,
             createdAt: new Date().toISOString(),
             lastUpdated: new Date().toISOString(),
-            lastIncomeUpdate: new Date().toISOString() // Для расчета оффлайн дохода
+            lastIncomeUpdate: new Date().toISOString()
           };
           
           await countryRef.set(initialData);
@@ -561,7 +558,6 @@
           new Date(countryData.lastIncomeUpdate).getTime() : 
           new Date(countryData.createdAt).getTime();
         
-        // Защита от читерства - проверяем что время движется вперед
         if (lastUpdate > serverNow) {
           debugLog("⚠️ Обнаружена попытка манипуляции временем!");
           showIncomeNotification("⚠️ Обнаружена аномалия времени");
@@ -569,26 +565,16 @@
         }
         
         const timeDiff = serverNow - lastUpdate;
-        
-        // Максимальное оффлайн время - 24 часа (защита от накрутки)
-        const maxOfflineTime = 24 * 60 * 60 * 1000; // 24 часа в миллисекундах
+        const maxOfflineTime = 24 * 60 * 60 * 1000;
         const clampedTimeDiff = Math.min(timeDiff, maxOfflineTime);
-        
         const minutesPassed = Math.floor(clampedTimeDiff / (1000 * 60));
         
-        // Начисляем если прошло больше 1 минуты
         if (minutesPassed >= 1) {
           const incomePerMinute = (countryData.income || 0) / 60;
           const goldToAdd = Math.floor(incomePerMinute * minutesPassed);
           
           if (goldToAdd > 0) {
-            const hoursPassed = (minutesPassed / 60).toFixed(1);
-            
-            // Логируем для отладки
-            debugLog(`⏰ Оффлайн время: ${minutesPassed} минут (${hoursPassed} часов)`);
-            debugLog(`⏰ Реальное время: ${timeDiff}ms, Ограниченное: ${clampedTimeDiff}ms`);
-            debugLog(`⏰ Используется: ${isTimeSynced ? 'серверное' : 'локальное'} время`);
-            
+            debugLog(`⏰ Оффлайн время: ${minutesPassed} минут`);
             return goldToAdd;
           }
         }
@@ -614,7 +600,6 @@
           if (offlineIncome > 0) {
             debugLog(`💰 Оффлайн доход: +${offlineIncome} золота`);
             
-            // Обновляем данные в реальном времени
             const updates = {};
             const newGold = (data.gold || 0) + offlineIncome;
             updates['gold'] = newGold;
@@ -623,22 +608,17 @@
             
             try {
               await db.ref(`countries/${country}`).update(updates);
-              // Обновляем локальные данные
               data.gold = newGold;
               data.lastIncomeUpdate = updates['lastIncomeUpdate'];
               
-              // Показываем уведомление
               showIncomeNotification(`💰 Оффлайн доход: +${offlineIncome} золота!`);
             } catch (error) {
               debugLog("❌ Ошибка обновления дохода: " + error.message);
             }
           }
           
-          // Отображаем данные
           updateUI(data);
           debugLog("✅ Данные страны загружены");
-          
-          // Запоминаем текущее количество золота для отслеживания изменений
           lastGoldAmount = data.gold || 0;
         } else {
           debugLog("❌ Данные страны не найдены");
@@ -656,7 +636,6 @@
       document.getElementById("oil").innerText = data.oil || 0;
       document.getElementById("food").innerText = data.food || 0;
       
-      // Обновляем панель экономики
       document.getElementById("income-per-hour").innerText = data.income || 0;
       document.getElementById("current-gold").innerText = data.gold || 0;
       
@@ -668,7 +647,6 @@
           `${lastUpdate.toLocaleTimeString()} (${diffMinutes} мин назад)`;
       }
       
-      // Отслеживаем изменения золота для уведомлений
       if (data.gold !== lastGoldAmount && lastGoldAmount > 0) {
         const difference = data.gold - lastGoldAmount;
         if (difference > 0) {
@@ -678,11 +656,11 @@
       }
     }
 
-    // Запуск таймера дохода (каждую минуту)
+    // ЗАПУСК ТАЙМЕРА ДОХОДА - ИСПРАВЛЕННАЯ ВЕРСИЯ
     function startIncomeTimer() {
       let secondsLeft = 60;
       
-      // Обновляем таймер каждую секунду
+      // Таймер обратного отсчета
       const timerInterval = setInterval(() => {
         secondsLeft--;
         document.getElementById("next-income").innerText = `${secondsLeft} сек`;
@@ -692,32 +670,34 @@
         }
       }, 1000);
       
-      // Начисляем доход каждую минуту с использованием серверного времени
+      // ОСНОВНОЙ ТАЙМЕР ДОХОДА - исправлен
       incomeTimer = setInterval(async () => {
         if (!checkDB()) return;
         
-        const snapshot = await db.ref("countries/" + country).once("value");
-        const data = snapshot.val();
-        if (data && data.income > 0) {
-          const incomePerMinute = Math.floor(data.income / 60);
-          const currentGold = data.gold || 0;
+        try {
+          const snapshot = await db.ref("countries/" + country).once("value");
+          const data = snapshot.val();
           
-          if (incomePerMinute > 0) {
-            // Получаем серверное время для записи
-            const serverTime = await getServerTime();
+          if (data && data.income > 0) {
+            const incomePerMinute = Math.floor(data.income / 60);
+            const currentGold = data.gold || 0;
             
-            // Добавляем доход за минуту
-            await db.ref(`countries/${country}`).update({
-              gold: currentGold + incomePerMinute,
-              lastIncomeUpdate: new Date(serverTime).toISOString(),
-              lastUpdated: new Date().toISOString()
-            });
-            
-            debugLog(`💰 +${incomePerMinute} золота (ежеминутный доход)`);
-            showIncomeNotification(`💰 Доход: +${incomePerMinute} золота`);
+            if (incomePerMinute > 0) {
+              // ПРОСТОЕ ОБНОВЛЕНИЕ - без сложных проверок
+              await db.ref(`countries/${country}`).update({
+                gold: currentGold + incomePerMinute,
+                lastIncomeUpdate: new Date().toISOString(),
+                lastUpdated: new Date().toISOString()
+              });
+              
+              debugLog(`💰 Онлайн доход: +${incomePerMinute} золота`);
+              showIncomeNotification(`💰 Доход: +${incomePerMinute} золота`);
+            }
           }
+        } catch (error) {
+          debugLog("❌ Ошибка онлайн дохода: " + error.message);
         }
-      }, 60000); // 60 секунд
+      }, 60000); // 60 секунд - ТОЧНО
     }
 
     // Улучшение дохода
@@ -736,7 +716,7 @@
       }
       
       const currentGold = data.gold || 0;
-      const upgradeCost = 500; // Стоимость улучшения
+      const upgradeCost = 500;
       
       if (currentGold < upgradeCost) {
         alert(`Недостаточно золота! Нужно: ${upgradeCost}, есть: ${currentGold}`);
@@ -763,40 +743,80 @@
       }
     }
 
-    // Инициализация
-    async function initialize() {
-      debugLog("Начало инициализации...");
-      if (initializeFirebase()) {
-        // Сначала синхронизируем время
-        await getServerTime();
+    // ========== СИСТЕМА АЛЬЯНСОВ - ДОБАВЛЕНА ==========
+
+    // Загружаем информацию об альянсе
+    function loadAllianceInfo() {
+      if (!checkDB()) return;
+      
+      db.ref("alliances").orderByChild("members/" + country).equalTo(true).on("value", (snapshot) => {
+        const allianceContainer = document.getElementById("alliance-container");
+        allianceContainer.innerHTML = '';
         
-        // Затем инициализируем остальные системы
-        await initializeCountryData();
-        loadData();
-        loadAllianceInfo();
-        loadMail();
-        startIncomeTimer();
-        
-        // Запускаем обновление времени
-        setInterval(updateTimeDisplay, 1000);
-        updateTimeDisplay();
-        
-        debugLog("✅ Система дохода запущена с серверным временем");
-      } else {
-        debugLog("❌ Не удалось инициализировать приложение");
-      }
+        const alliances = snapshot.val();
+        if (alliances) {
+          const allianceId = Object.keys(alliances)[0];
+          const alliance = alliances[allianceId];
+          
+          const allianceInfo = document.createElement('div');
+          allianceInfo.className = 'alliance-info';
+          
+          let membersHtml = '';
+          if (alliance.members) {
+            membersHtml = '<div class="alliance-members">';
+            Object.keys(alliance.members).forEach(member => {
+              const isCreator = member === alliance.creator;
+              const isCurrentUser = member === country;
+              membersHtml += `
+                <div class="member-item">
+                  <span>${member} ${isCreator ? '👑' : ''}</span>
+                  ${isCurrentUser ? '<span>Вы</span>' : 
+                    alliance.creator === country ? 
+                    `<button class="kick-btn" onclick="kickFromAlliance('${member}')">Выгнать</button>` : 
+                    ''}
+                </div>
+              `;
+            });
+            membersHtml += '</div>';
+          }
+          
+          allianceInfo.innerHTML = `
+            <strong>Альянс: ${alliance.name}</strong><br>
+            Основатель: ${alliance.creator}<br>
+            ${membersHtml}
+          `;
+          allianceContainer.appendChild(allianceInfo);
+          debugLog("✅ Информация об альянсе загружена");
+        }
+      });
     }
 
-    // Запускаем инициализацию при загрузке страницы
-    document.addEventListener('DOMContentLoaded', initialize);
+    // Загружаем почту
+    function loadMail() {
+      if (!checkDB()) return;
+      
+      db.ref("mail").orderByChild("to").equalTo(country).on("value", (snapshot) => {
+        const mailData = snapshot.val();
+        const mailContainer = document.getElementById("mail-container");
+        mailContainer.innerHTML = '';
 
-    // Очистка таймеров при закрытии страницы
-    window.addEventListener('beforeunload', () => {
-      if (incomeTimer) {
-        clearInterval(incomeTimer);
-      }
-    });
+        if (mailData) {
+          const mailArray = Object.entries(mailData).map(([key, value]) => ({
+            id: key,
+            ...value
+          })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-  </script>
-</body>
-</html>
+          mailArray.forEach(mail => {
+            const mailElement = document.createElement('div');
+            mailElement.className = 'mail-item';
+            
+            const typeClass = getMailTypeClass(mail.type);
+            const typeLabel = getMailTypeLabel(mail.type);
+            
+            let actionButtons = '';
+            if (mail.type === 'alliance' && !mail.responded) {
+              actionButtons = `
+                <div class="mail-actions">
+                  <button class="accept-btn" onclick="acceptAllianceInvitation('${mail.id}', '${mail.allianceId}', '${mail.allianceName}')">Принять</button>
+                  <button class="decline-btn" onclick="declineAllianceInvitation('${mail.id}')">Отклонить</button>
+                </div

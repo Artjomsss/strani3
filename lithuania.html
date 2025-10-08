@@ -325,11 +325,15 @@
 
   <!-- Панель экономики -->
   <div class="income-panel">
-    <h3>💰 Экономика (защищенная)</h3>
+    <h3>💰 Экономика (на основе населения)</h3>
     <div class="income-stats">
       <div class="income-stat-item">
+        <div>Население</div>
+        <div id="population-display">0</div>
+      </div>
+      <div class="income-stat-item">
         <div>Доход в час</div>
-        <div id="income-per-hour">100</div>
+        <div id="income-per-hour">0</div>
       </div>
       <div class="income-stat-item">
         <div>Текущее золото</div>
@@ -339,10 +343,6 @@
         <div>Следующее начисление</div>
         <div id="next-income">60 сек</div>
       </div>
-      <div class="income-stat-item">
-        <div>Последнее обновление</div>
-        <div id="last-income-update">-</div>
-      </div>
     </div>
   </div>
 
@@ -350,7 +350,7 @@
     <div class="card"><h3>💰 Золото</h3><span id="gold">0</span></div>
     <div class="card"><h3>⚔️ Армия</h3><span id="army">0</span></div>
     <div class="card"><h3>👥 Население</h3><span id="population">0</span></div>
-    <div class="card"><h3>📈 Доход</h3><span id="income">0</span></div>
+    <div class="card"><h3>📈 Доход/час</h3><span id="income">0</span></div>
     <div class="card"><h3>🔌 Микросхемы</h3><span id="chips">0</span></div>
     <div class="card"><h3>🛢️ Нефть</h3><span id="oil">0</span></div>
     <div class="card"><h3>🍞 Еда</h3><span id="food">0</span></div>
@@ -360,7 +360,7 @@
     <button onclick="createAlliance()">Создать альянс</button>
     <button onclick="declareWar()">Объявить войну</button>
     <button onclick="leaveAlliance()">Выйти из альянса</button>
-    <button onclick="upgradeIncome()">Улучшить доход (+10)</button>
+    <button onclick="upgradePopulation()">Улучшить население (+100,000)</button>
     <button onclick="forceInitialize()">Принудительная инициализация</button>
     <button onclick="checkTimeSync()">Проверить синхронизацию</button>
   </div>
@@ -429,6 +429,12 @@
     let isTimeSynced = false;
     let lastIncomeTime = 0;
     const country = "lithuania";
+
+    // Функция расчета дохода на основе населения
+    function calculateIncomeFromPopulation(population) {
+      // Доход в час = население / 100,000
+      return Math.floor(population / 100000);
+    }
 
     // Система уведомлений
     function showNotification(message, type = 'info') {
@@ -566,8 +572,7 @@
           const initialData = {
             gold: 1000,
             army: 100,
-            population: 1000000,
-            income: 100,
+            population: 2800000, // Начальное население Литвы
             chips: 50,
             oil: 200,
             food: 500,
@@ -607,11 +612,12 @@
         const minutesPassed = Math.floor(clampedTimeDiff / (1000 * 60));
         
         if (minutesPassed >= 1) {
-          const incomePerMinute = (countryData.income || 0) / 60;
+          // Рассчитываем доход на основе населения
+          const incomePerMinute = Math.floor(calculateIncomeFromPopulation(countryData.population) / 60);
           const goldToAdd = Math.floor(incomePerMinute * minutesPassed);
           
           if (goldToAdd > 0) {
-            debugLog(`⏰ Оффлайн время: ${minutesPassed} минут`);
+            debugLog(`⏰ Оффлайн время: ${minutesPassed} минут, доход: +${goldToAdd} золота`);
             return goldToAdd;
           }
         }
@@ -667,24 +673,21 @@
 
     // Функция обновления интерфейса
     function updateUI(data) {
+      const population = data.population || 0;
+      const incomePerHour = calculateIncomeFromPopulation(population);
+      
       document.getElementById("gold").innerText = data.gold || 0;
       document.getElementById("army").innerText = data.army || 0;
-      document.getElementById("population").innerText = data.population || 0;
-      document.getElementById("income").innerText = data.income || 0;
+      document.getElementById("population").innerText = population.toLocaleString();
+      document.getElementById("income").innerText = incomePerHour;
       document.getElementById("chips").innerText = data.chips || 0;
       document.getElementById("oil").innerText = data.oil || 0;
       document.getElementById("food").innerText = data.food || 0;
       
-      document.getElementById("income-per-hour").innerText = data.income || 0;
+      // Обновляем панель экономики
+      document.getElementById("population-display").innerText = population.toLocaleString();
+      document.getElementById("income-per-hour").innerText = incomePerHour;
       document.getElementById("current-gold").innerText = data.gold || 0;
-      
-      if (data.lastIncomeUpdate) {
-        const lastUpdate = new Date(data.lastIncomeUpdate);
-        const now = new Date();
-        const diffMinutes = Math.floor((now - lastUpdate) / (1000 * 60));
-        document.getElementById("last-income-update").innerText = 
-          `${lastUpdate.toLocaleTimeString()} (${diffMinutes} мин назад)`;
-      }
       
       if (data.gold !== lastGoldAmount && lastGoldAmount > 0) {
         const difference = data.gold - lastGoldAmount;
@@ -727,14 +730,16 @@
         }
       }, 1000);
       
-      // Начисляем доход каждую минуту
+      // Начисляем доход каждую минуту на основе населения
       incomeTimer = setInterval(async () => {
         if (!checkDB()) return;
         
         const snapshot = await db.ref("countries/" + country).once("value");
         const data = snapshot.val();
-        if (data && data.income > 0) {
-          const incomePerMinute = Math.floor(data.income / 60);
+        if (data) {
+          const population = data.population || 0;
+          const incomePerHour = calculateIncomeFromPopulation(population);
+          const incomePerMinute = Math.floor(incomePerHour / 60);
           const currentGold = data.gold || 0;
           
           if (incomePerMinute > 0) {
@@ -746,15 +751,15 @@
               lastUpdated: new Date().toISOString()
             });
             
-            debugLog(`💰 +${incomePerMinute} золота (ежеминутный доход)`);
+            debugLog(`💰 +${incomePerMinute} золота (ежеминутный доход от населения)`);
             showIncomeNotification(`💰 Доход: +${incomePerMinute} золота`);
           }
         }
       }, 60000);
     }
 
-    // Улучшение дохода
-    async function upgradeIncome() {
+    // Улучшение населения
+    async function upgradePopulation() {
       if (!checkDB()) {
         showNotification("База данных не инициализирована.", "error");
         return;
@@ -769,33 +774,36 @@
       }
       
       const currentGold = data.gold || 0;
-      const upgradeCost = 500;
+      const currentPopulation = data.population || 0;
+      const upgradeCost = 1000; // Стоимость улучшения
       
       if (currentGold < upgradeCost) {
         showNotification(`Недостаточно золота! Нужно: ${upgradeCost}, есть: ${currentGold}`, "warning");
         return;
       }
       
-      if (confirm(`Улучшить доход на 10 золота/час за ${upgradeCost} золота?`)) {
+      const newPopulation = currentPopulation + 100000;
+      const newIncome = calculateIncomeFromPopulation(newPopulation);
+      
+      if (confirm(`Увеличить население на 100,000 за ${upgradeCost} золота?\nНовое население: ${newPopulation.toLocaleString()}\nНовый доход: ${newIncome}/час`)) {
         try {
-          const newIncome = (data.income || 0) + 10;
           const newGold = currentGold - upgradeCost;
           
           await db.ref(`countries/${country}`).update({
-            income: newIncome,
+            population: newPopulation,
             gold: newGold,
             lastUpdated: new Date().toISOString()
           });
           
-          showNotification(`✅ Доход улучшен! Теперь: ${newIncome}/час`);
-          debugLog(`✅ Доход улучшен до ${newIncome}/час`);
+          showNotification(`✅ Население улучшено! Теперь: ${newPopulation.toLocaleString()}\nДоход: ${newIncome}/час`);
+          debugLog(`✅ Население улучшено до ${newPopulation}`);
         } catch (error) {
-          showNotification("Ошибка при улучшении дохода: " + error.message, "error");
+          showNotification("Ошибка при улучшении населения: " + error.message, "error");
         }
       }
     }
 
-    // СИСТЕМА АЛЬЯНСОВ - ИСПРАВЛЕННАЯ
+    // СИСТЕМА АЛЬЯНСОВ
     async function createAlliance() {
       if (!checkDB()) {
         showNotification('База данных не доступна', 'error');

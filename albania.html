@@ -289,6 +289,7 @@
       border-radius: 8px;
       z-index: 1000;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s ease;
     }
     .notification.error {
       background: #e74c3c;
@@ -299,6 +300,10 @@
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
   </style>
 </head>
@@ -315,6 +320,7 @@
     <div>🕒 Серверное время: <span id="server-time">-</span></div>
     <div>⏱ Локальное время: <span id="local-time">-</span></div>
     <div>📡 Расхождение: <span id="time-diff">0 мс</span></div>
+    <div>⏰ До следующего дохода: <span id="next-income-timer">60 сек</span></div>
   </div>
 
   <!-- Панель экономики -->
@@ -421,6 +427,7 @@
     let lastGoldAmount = 0;
     let serverTimeOffset = 0;
     let isTimeSynced = false;
+    let lastIncomeTime = 0;
     const country = "albania";
 
     // Система уведомлений
@@ -454,7 +461,6 @@
       notification.textContent = message;
       container.appendChild(notification);
       
-      // Автоудаление через 5 секунд
       setTimeout(() => {
         if (notification.parentNode) {
           notification.parentNode.removeChild(notification);
@@ -650,6 +656,9 @@
           updateUI(data);
           debugLog("✅ Данные страны загружены");
           lastGoldAmount = data.gold || 0;
+          
+          // Запускаем таймер после загрузки данных
+          startIncomeTimer(data.lastIncomeUpdate);
         } else {
           debugLog("❌ Данные страны не найдены");
         }
@@ -686,19 +695,39 @@
       }
     }
 
-    // Запуск таймера дохода (каждую минуту)
-    function startIncomeTimer() {
+    // УЛУЧШЕННЫЙ ТАЙМЕР ДОХОДА (сохраняет состояние)
+    function startIncomeTimer(lastIncomeUpdate) {
+      // Очищаем старый таймер
+      if (incomeTimer) {
+        clearInterval(incomeTimer);
+      }
+      
       let secondsLeft = 60;
       
+      // Вычисляем оставшееся время до следующего дохода
+      if (lastIncomeUpdate) {
+        const lastUpdate = new Date(lastIncomeUpdate).getTime();
+        const now = Date.now();
+        const timeSinceLastIncome = (now - lastUpdate) / 1000; // в секундах
+        const secondsPassed = Math.floor(timeSinceLastIncome % 60);
+        secondsLeft = 60 - secondsPassed;
+        
+        if (secondsLeft < 0) secondsLeft = 0;
+        if (secondsLeft > 60) secondsLeft = 60;
+      }
+      
+      // Обновляем таймер каждую секунду
       const timerInterval = setInterval(() => {
         secondsLeft--;
         document.getElementById("next-income").innerText = `${secondsLeft} сек`;
+        document.getElementById("next-income-timer").innerText = `${secondsLeft} сек`;
         
         if (secondsLeft <= 0) {
           secondsLeft = 60;
         }
       }, 1000);
       
+      // Начисляем доход каждую минуту
       incomeTimer = setInterval(async () => {
         if (!checkDB()) return;
         
@@ -766,7 +795,7 @@
       }
     }
 
-    // СИСТЕМА АЛЬЯНСОВ
+    // СИСТЕМА АЛЬЯНСОВ - ИСПРАВЛЕННАЯ
     async function createAlliance() {
       if (!checkDB()) {
         showNotification('База данных не доступна', 'error');
@@ -793,10 +822,12 @@
           }
         };
 
-        await db.ref(`alliances/${country}_alliance`).set(allianceData);
+        // Используем простой ID для альянса
+        const allianceId = country + '_alliance_' + Date.now();
+        await db.ref(`alliances/${allianceId}`).set(allianceData);
         
         await db.ref(`countries/${country}`).update({
-          alliance: country + '_alliance',
+          alliance: allianceId,
           lastUpdated: new Date().toISOString()
         });
 
@@ -812,22 +843,33 @@
       if (!checkDB()) return;
 
       try {
-        const allianceSnapshot = await db.ref(`alliances`).orderByChild('members/' + country).equalTo(true).once('value');
-        if (!allianceSnapshot.exists()) {
+        // Получаем информацию об альянсе текущей страны
+        const countrySnapshot = await db.ref(`countries/${country}`).once('value');
+        const countryData = countrySnapshot.val();
+        
+        if (!countryData || !countryData.alliance) {
           showNotification('Вы не состоите в альянсе!', 'warning');
           return;
         }
 
-        const allianceData = allianceSnapshot.val();
-        const allianceId = Object.keys(allianceData)[0];
-        const alliance = allianceData[allianceId];
+        const allianceId = countryData.alliance;
+        const allianceSnapshot = await db.ref(`alliances/${allianceId}`).once('value');
+        
+        if (!allianceSnapshot.exists()) {
+          showNotification('Ваш альянс не найден!', 'error');
+          return;
+        }
 
+        const alliance = allianceSnapshot.val();
+
+        // Проверяем права (только создатель может приглашать)
         if (alliance.creator !== country) {
           showNotification('Только создатель альянса может приглашать участников', 'warning');
           return;
         }
 
-        const invitationId = `${country}_to_${targetCountry}_${Date.now()}`;
+        // Отправляем приглашение
+        const invitationId = `invite_${country}_to_${targetCountry}_${Date.now()}`;
         const invitation = {
           type: 'alliance_invite',
           from: country,
@@ -843,6 +885,7 @@
 
       } catch (error) {
         showNotification('Ошибка отправки приглашения: ' + error.message, 'error');
+        console.error('Invite error:', error);
       }
     }
 
@@ -850,19 +893,22 @@
       if (!checkDB()) return;
 
       try {
-        const allianceSnapshot = await db.ref(`alliances`).orderByChild('members/' + country).equalTo(true).once('value');
-        if (!allianceSnapshot.exists()) {
+        const countrySnapshot = await db.ref(`countries/${country}`).once('value');
+        const countryData = countrySnapshot.val();
+        
+        if (!countryData || !countryData.alliance) {
           showNotification('Вы не состоите в альянсе!', 'warning');
           return;
         }
 
         if (!confirm('Вы уверены, что хотите покинуть альянс?')) return;
 
-        const allianceData = allianceSnapshot.val();
-        const allianceId = Object.keys(allianceData)[0];
+        const allianceId = countryData.alliance;
 
+        // Удаляем из альянса
         await db.ref(`alliances/${allianceId}/members/${country}`).remove();
         
+        // Обновляем данные страны
         await db.ref(`countries/${country}`).update({
           alliance: null,
           lastUpdated: new Date().toISOString()
@@ -915,33 +961,40 @@
       if (!checkDB()) return;
 
       try {
-        const allianceSnapshot = await db.ref(`alliances`).orderByChild('members/' + country).equalTo(true).once('value');
+        // Загрузка информации об альянсе через данные страны
+        const countrySnapshot = await db.ref(`countries/${country}`).once('value');
+        const countryData = countrySnapshot.val();
         const allianceContainer = document.getElementById('alliance-container');
         
-        if (allianceSnapshot.exists()) {
-          const allianceData = allianceSnapshot.val();
-          const allianceId = Object.keys(allianceData)[0];
-          const alliance = allianceData[allianceId];
+        if (countryData && countryData.alliance) {
+          const allianceSnapshot = await db.ref(`alliances/${countryData.alliance}`).once('value');
           
-          let html = `<div class="alliance-info">
-            <h3>Альянс: ${alliance.name}</h3>
-            <p>Создатель: ${alliance.creator}</p>
-            <div class="alliance-members">
-              <h4>Участники:</h4>`;
-          
-          Object.keys(alliance.members).forEach(member => {
-            const isCreator = member === alliance.creator;
-            html += `<div class="member-item">
-              <span>${member} ${isCreator ? '👑' : ''}</span>
-            </div>`;
-          });
-          
-          html += `</div></div>`;
-          allianceContainer.innerHTML = html;
+          if (allianceSnapshot.exists()) {
+            const alliance = allianceSnapshot.val();
+            
+            let html = `<div class="alliance-info">
+              <h3>Альянс: ${alliance.name}</h3>
+              <p>Создатель: ${alliance.creator}</p>
+              <div class="alliance-members">
+                <h4>Участники:</h4>`;
+            
+            Object.keys(alliance.members || {}).forEach(member => {
+              const isCreator = member === alliance.creator;
+              html += `<div class="member-item">
+                <span>${member} ${isCreator ? '👑' : ''}</span>
+              </div>`;
+            });
+            
+            html += `</div></div>`;
+            allianceContainer.innerHTML = html;
+          } else {
+            allianceContainer.innerHTML = '<div class="debug-info">Альянс не найден</div>';
+          }
         } else {
           allianceContainer.innerHTML = '';
         }
 
+        // Загрузка информации о войнах
         const warsSnapshot = await db.ref(`countries/${country}/wars`).once('value');
         const warContainer = document.getElementById('war-container');
         
@@ -953,8 +1006,10 @@
             const warSnapshot = await db.ref(`wars/${warId}`).once('value');
             const war = warSnapshot.val();
             if (war && war.status === 'active') {
-              const opponents = Object.keys(war.participants).filter(p => p !== country);
-              html += `<p>Война с: ${opponents.join(', ')}</p>`;
+              const opponents = Object.keys(war.participants || {}).filter(p => p !== country);
+              if (opponents.length > 0) {
+                html += `<p>Война с: ${opponents.join(', ')}</p>`;
+              }
             }
           }
           
@@ -974,7 +1029,7 @@
       if (!checkDB()) return;
 
       try {
-        const mailSnapshot = await db.ref(`mail/${country}`).orderByChild('timestamp').once('value');
+        const mailSnapshot = await db.ref(`mail/${country}`).once('value');
         const mailContainer = document.getElementById('mail-container');
         
         if (!mailSnapshot.exists()) {
@@ -985,26 +1040,30 @@
         let html = '';
         const mailData = mailSnapshot.val();
         
-        Object.keys(mailData).sort((a, b) => new Date(mailData[b].timestamp) - new Date(mailData[a].timestamp))
-          .forEach(mailId => {
-            const mail = mailData[mailId];
-            const date = new Date(mail.timestamp).toLocaleString();
-            
-            html += `<div class="mail-item">
-              <div class="mail-sender">${mail.from || 'Система'}</div>
-              <div class="mail-subject">${mail.subject || 'Без темы'}</div>
-              <span class="mail-type ${mail.type}">${mail.type}</span>
-              <div class="mail-date">${date}</div>`;
-            
-            if (mail.type === 'alliance_invite' && mail.status === 'pending') {
-              html += `<div class="mail-actions">
-                <button class="accept-btn" onclick="acceptInvitation('${mailId}', '${mail.allianceId}')">Принять</button>
-                <button class="decline-btn" onclick="declineInvitation('${mailId}')">Отклонить</button>
-              </div>`;
-            }
-            
-            html += `</div>`;
-          });
+        // Сортируем письма по времени (новые сверху)
+        const sortedMailIds = Object.keys(mailData).sort((a, b) => {
+          return new Date(mailData[b].timestamp) - new Date(mailData[a].timestamp);
+        });
+        
+        sortedMailIds.forEach(mailId => {
+          const mail = mailData[mailId];
+          const date = new Date(mail.timestamp).toLocaleString();
+          
+          html += `<div class="mail-item">
+            <div class="mail-sender">${mail.from || 'Система'}</div>
+            <div class="mail-subject">${mail.subject || mail.allianceName || 'Без темы'}</div>
+            <span class="mail-type ${mail.type}">${mail.type}</span>
+            <div class="mail-date">${date}</div>`;
+          
+          if (mail.type === 'alliance_invite' && mail.status === 'pending') {
+            html += `<div class="mail-actions">
+              <button class="accept-btn" onclick="acceptInvitation('${mailId}', '${mail.allianceId}')">Принять</button>
+              <button class="decline-btn" onclick="declineInvitation('${mailId}')">Отклонить</button>
+            </div>`;
+          }
+          
+          html += `</div>`;
+        });
         
         mailContainer.innerHTML = html;
       } catch (error) {
@@ -1015,12 +1074,14 @@
     // ОБРАБОТКА ПРИГЛАШЕНИЙ
     async function acceptInvitation(mailId, allianceId) {
       try {
+        // Принимаем в альянс
         await db.ref(`alliances/${allianceId}/members/${country}`).set(true);
         await db.ref(`countries/${country}`).update({
           alliance: allianceId,
           lastUpdated: new Date().toISOString()
         });
         
+        // Обновляем статус приглашения
         await db.ref(`mail/${country}/${mailId}/status`).set('accepted');
         
         showNotification('Вы приняли приглашение в альянс!');
@@ -1051,17 +1112,17 @@
         loadData();
         loadAllianceInfo();
         loadMail();
-        startIncomeTimer();
         
         setInterval(updateTimeDisplay, 1000);
         updateTimeDisplay();
         
+        // Обновляем политическую информацию каждые 30 секунд
         setInterval(() => {
           loadAllianceInfo();
           loadMail();
         }, 30000);
         
-        debugLog("✅ Система дохода запущена с серверным временем");
+        debugLog("✅ Система запущена");
       } else {
         debugLog("❌ Не удалось инициализировать приложение");
       }
@@ -1077,4 +1138,4 @@
 
   </script>
 </body>
-</html>
+</html> 

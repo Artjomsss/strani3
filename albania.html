@@ -356,14 +356,17 @@
     <div class="card"><h3>🍞 Еда</h3><span id="food">0</span></div>
   </div>
 
-  <div class="actions">
+ <div class="actions">
     <button onclick="createAlliance()">Создать альянс</button>
     <button onclick="declareWar()">Объявить войну</button>
     <button onclick="leaveAlliance()">Выйти из альянса</button>
     <button onclick="upgradePopulation()">Улучшить население (+100,000)</button>
     <button onclick="forceInitialize()">Принудительная инициализация</button>
     <button onclick="checkTimeSync()">Проверить синхронизацию</button>
-  </div>
+    <!-- Новая кнопка -->
+    <button onclick="goToMap()">Перейти на карту</button>
+</div>
+
 
   <div class="info-panels">
     <div class="panel">
@@ -407,6 +410,10 @@
       </div>
     </div>
   </div>
+  function goToMap() {
+    window.location.href = 'Albaniamap.html'; // замените на путь к вашей карте
+}
+
 
   <script>
     // Firebase configuration

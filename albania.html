@@ -346,75 +346,48 @@
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card"><h3>💰 Золото</h3><span id="gold">0</span></div>
-    <div class="card"><h3>⚔️ Армия</h3><span id="army">0</span></div>
-    <div class="card"><h3>👥 Население</h3><span id="population">0</span></div>
-    <div class="card"><h3>📈 Доход/час</h3><span id="income">0</span></div>
-    <div class="card"><h3>🔌 Микросхемы</h3><span id="chips">0</span></div>
-    <div class="card"><h3>🛢️ Нефть</h3><span id="oil">0</span></div>
-    <div class="card"><h3>🍞 Еда</h3><span id="food">0</span></div>
-  </div>
-
- <div class="actions">
-    <button onclick="createAlliance()">Создать альянс</button>
-    <button onclick="declareWar()">Объявить войну</button>
-    <button onclick="leaveAlliance()">Выйти из альянса</button>
-    <button onclick="upgradePopulation()">Улучшить население (+100,000)</button>
-    <button onclick="forceInitialize()">Принудительная инициализация</button>
-    <button onclick="checkTimeSync()">Проверить синхронизацию</button>
-    <!-- Новая кнопка -->
-    <button onclick="goToMap()">Перейти на карту</button>
+ <div class="grid">
+  <div class="card"><h3>💰 Золото</h3><span id="gold">0</span></div>
+  <div class="card"><h3>⚔️ Армия</h3><span id="army">0</span></div>
+  <div class="card"><h3>👥 Население</h3><span id="population">0</span></div>
+  <div class="card"><h3>📈 Доход/час</h3><span id="income">0</span></div>
+  <div class="card"><h3>🔌 Микросхемы</h3><span id="chips">0</span></div>
+  <div class="card"><h3>🛢️ Нефть</h3><span id="oil">0</span></div>
+  <div class="card"><h3>🍞 Еда</h3><span id="food">0</span></div>
 </div>
 
+<div class="actions">
+  <button onclick="createAlliance()">Создать альянс</button>
+  <button onclick="declareWar()">Объявить войну</button>
+  <button onclick="leaveAlliance()">Выйти из альянса</button>
+  <button onclick="upgradePopulation()">Улучшить население (+100,000)</button>
+  <button onclick="forceInitialize()">Принудительная инициализация</button>
+  <button onclick="checkTimeSync()">Проверить синхронизацию</button>
+  <!-- Новая кнопка -->
+  <button onclick="goToMap()">Перейти на карту</button>
+</div>
 
-  <div class="info-panels">
-    <div class="panel">
-      <h2>Почта</h2>
-      <div id="mail-container"></div>
-    </div>
-    <div class="panel">
-      <h2>ID Стран</h2>
-      <div id="countries-container">
-        <!-- Список стран -->
-        <div class="id-item"><span>albania</span><button class="invite-btn" onclick="inviteToAlliance('albania')" disabled>Пригласить</button></div>
-        <div class="id-item"><span>andorra</span><button class="invite-btn" onclick="inviteToAlliance('andorra')">Пригласить</button></div>
-        <div class="id-item"><span>austria</span><button class="invite-btn" onclick="inviteToAlliance('austria')">Пригласить</button></div>
-        <div class="id-item"><span>belarus</span><button class="invite-btn" onclick="inviteToAlliance('belarus')">Пригласить</button></div>
-        <div class="id-item"><span>belgium</span><button class="invite-btn" onclick="inviteToAlliance('belgium')">Пригласить</button></div>
-        <div class="id-item"><span>bulgaria</span><button class="invite-btn" onclick="inviteToAlliance('bulgaria')">Пригласить</button></div>
-        <div class="id-item"><span>croatia</span><button class="invite-btn" onclick="inviteToAlliance('croatia')">Пригласить</button></div>
-        <div class="id-item"><span>czechia</span><button class="invite-btn" onclick="inviteToAlliance('czechia')">Пригласить</button></div>
-        <div class="id-item"><span>denmark</span><button class="invite-btn" onclick="inviteToAlliance('denmark')">Пригласить</button></div>
-        <div class="id-item"><span>estonia</span><button class="invite-btn" onclick="inviteToAlliance('estonia')">Пригласить</button></div>
-        <div class="id-item"><span>finland</span><button class="invite-btn" onclick="inviteToAlliance('finland')">Пригласить</button></div>
-        <div class="id-item"><span>france</span><button class="invite-btn" onclick="inviteToAlliance('france')">Пригласить</button></div>
-        <div class="id-item"><span>germany</span><button class="invite-btn" onclick="inviteToAlliance('germany')">Пригласить</button></div>
-        <div class="id-item"><span>greece</span><button class="invite-btn" onclick="inviteToAlliance('greece')">Пригласить</button></div>
-        <div class="id-item"><span>hungary</span><button class="invite-btn" onclick="inviteToAlliance('hungary')">Пригласить</button></div>
-        <div class="id-item"><span>iceland</span><button class="invite-btn" onclick="inviteToAlliance('iceland')">Пригласить</button></div>
-        <div class="id-item"><span>ireland</span><button class="invite-btn" onclick="inviteToAlliance('ireland')">Пригласить</button></div>
-        <div class="id-item"><span>italy</span><button class="invite-btn" onclick="inviteToAlliance('italy')">Пригласить</button></div>
-        <div class="id-item"><span>latvia</span><button class="invite-btn" onclick="inviteToAlliance('latvia')">Пригласить</button></div>
-        <div class="id-item"><span>lithuania</span><button class="invite-btn" onclick="inviteToAlliance('lithuania')">Пригласить</button></div>
-        <div class="id-item"><span>luxembourg</span><button class="invite-btn" onclick="inviteToAlliance('luxembourg')">Пригласить</button></div>
-        <div class="id-item"><span>malta</span><button class="invite-btn" onclick="inviteToAlliance('malta')">Пригласить</button></div>
-        <div class="id-item"><span>moldova</span><button class="invite-btn" onclick="inviteToAlliance('moldova')">Пригласить</button></div>
-        <div class="id-item"><span>monaco</span><button class="invite-btn" onclick="inviteToAlliance('monaco')">Пригласить</button></div>
-        <div class="id-item"><span>montenegro</span><button class="invite-btn" onclick="inviteToAlliance('montenegro')">Пригласить</button></div>
-        <div class="id-item"><span>netherlands</span><button class="invite-btn" onclick="inviteToAlliance('netherlands')">Пригласить</button></div>
-        <div class="id-item"><span>north_macedonia</span><button class="invite-btn" onclick="inviteToAlliance('north_macedonia')">Пригласить</button></div>
-        <div class="id-item"><span>norway</span><button class="invite-btn" onclick="inviteToAlliance('norway')">Пригласить</button></div>
-        <div class="id-item"><span>poland</span><button class="invite-btn" onclick="inviteToAlliance('poland')">Пригласить</button></div>
-        <div class="id-item"><span>portugal</span><button class="invite-btn" onclick="inviteToAlliance('portugal')">Пригласить</button></div>
-      </div>
+<div class="info-panels">
+  <div class="panel">
+    <h2>Почта</h2>
+    <div id="mail-container"></div>
+  </div>
+  <div class="panel">
+    <h2>ID Стран</h2>
+    <div id="countries-container">
+      <!-- список стран -->
+      ...
     </div>
   </div>
-  function goToMap() {
-    window.location.href = 'map.html'; // замените на путь к вашей карте
-}
+</div>
 
+<!-- вставь это внизу перед </body> -->
+<script>
+function goToMap() {
+  window.location.href = 'map.html'; // замени на путь к твоей карте
 }
+</script>
+
 
 
   <script>

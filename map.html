@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта Европы - Регионы стран</title>
+    <title>Карта Европы - Все страны</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -15,127 +15,117 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, #0c0c1a, #1a1a2e);
             color: white;
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 2000px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
             margin-bottom: 30px;
-            padding: 25px;
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(39, 174, 96, 0.2));
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.25), rgba(39, 174, 96, 0.2));
+            border-radius: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
         }
 
         h1 {
-            font-size: 2.8em;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #3498db, #2ecc71, #3498db);
+            font-size: 3.2em;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #3498db, #2ecc71, #9b59b6, #3498db);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .subtitle {
-            font-size: 1.3em;
-            opacity: 0.9;
-            margin-bottom: 10px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            font-weight: 700;
         }
 
         .content {
             display: grid;
-            grid-template-columns: 1fr 450px;
-            gap: 30px;
+            grid-template-columns: 1fr 500px;
+            gap: 35px;
             align-items: start;
         }
 
         .map-container {
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.06);
+            border-radius: 25px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            height: 1000px;
+            overflow: auto;
         }
 
         .europe-map {
-            width: 100%;
-            height: 750px;
-            background: linear-gradient(145deg, #2a2a40, #1f1f30);
-            border: 2px solid #3a3a5a;
-            border-radius: 15px;
-            filter: drop-shadow(0 4px 15px rgba(0,0,0,0.5));
+            width: 1200px;
+            height: 950px;
+            background: linear-gradient(145deg, #23233a, #1a1a2e);
+            border: 3px solid #3a3a5a;
+            border-radius: 20px;
+            filter: drop-shadow(0 8px 25px rgba(0,0,0,0.6));
         }
 
         .region {
             cursor: pointer;
-            transition: all 0.4s ease;
-            stroke: rgba(255,255,255,0.8);
-            stroke-width: 1.5;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            stroke: rgba(255,255,255,0.9);
+            stroke-width: 2;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.4));
         }
 
         .region:hover {
-            stroke-width: 3;
+            stroke-width: 4;
             stroke: #f39c12;
-            filter: brightness(1.3) drop-shadow(0 4px 8px rgba(0,0,0,0.4));
-            transform: scale(1.02);
+            filter: brightness(1.3) drop-shadow(0 6px 15px rgba(0,0,0,0.5));
+            transform: scale(1.03);
         }
 
         .region-label {
             pointer-events: none;
-            font-size: 9px;
+            font-size: 11px;
             fill: white;
             text-anchor: middle;
             font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            letter-spacing: 0.5px;
-        }
-
-        .country-group {
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
-        }
-
-        .country-border {
-            fill: none;
-            stroke: rgba(255,255,255,0.6);
-            stroke-width: 2;
-            stroke-dasharray: 5,3;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
         }
 
         .controls {
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 30px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.06);
+            border-radius: 25px;
+            padding: 35px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            position: sticky;
+            top: 20px;
         }
 
         .control-group {
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
 
         h2 {
             color: #3498db;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            text-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            font-weight: 600;
         }
 
         h3 {
             color: #2ecc71;
-            margin-bottom: 15px;
-            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            font-weight: 600;
         }
 
         .legend {
@@ -144,15 +134,10 @@
             gap: 12px;
             align-items: center;
             margin-bottom: 10px;
-            padding: 8px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
+            padding: 10px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
             transition: all 0.3s ease;
-        }
-
-        .legend:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateX(5px);
         }
 
         .color-box {
@@ -160,25 +145,22 @@
             height: 25px;
             border-radius: 6px;
             border: 2px solid rgba(255,255,255,0.3);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .status-info {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.1));
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.15));
             padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
             border-left: 5px solid #3498db;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .region-details {
-            background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(39, 174, 96, 0.1));
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.15));
             padding: 25px;
             border-radius: 15px;
-            margin-top: 20px;
+            margin-top: 25px;
             border-left: 5px solid #2ecc71;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .detail-item {
@@ -199,25 +181,6 @@
             font-weight: 500;
         }
 
-        .debug-info {
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(192, 57, 43, 0.1));
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            border-left: 5px solid #e74c3c;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-size: 0.95em;
-        }
-
-        .no-data {
-            background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(230, 126, 34, 0.1));
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            border-left: 5px solid #f39c12;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
         .filters {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -234,52 +197,28 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-
-        .filter-btn:hover {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.5), rgba(41, 128, 185, 0.4));
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
         }
 
         .filter-btn.active {
             background: linear-gradient(135deg, #3498db, #2980b9);
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes glow {
-            0% { filter: brightness(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-            50% { filter: brightness(1.2) drop-shadow(0 2px 8px rgba(0,0,0,0.5)); }
-            100% { filter: brightness(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-        }
-
-        .updating {
-            animation: glow 1s ease-in-out;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .stat-item {
-            background: rgba(255,255,255,0.05);
-            padding: 12px;
-            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            padding: 15px;
+            border-radius: 10px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 1.4em;
+            font-size: 1.8em;
             font-weight: bold;
             color: #3498db;
             margin-bottom: 5px;
@@ -289,14 +228,23 @@
             font-size: 0.9em;
             color: #bdc3c7;
         }
+
+        @keyframes glow {
+            0% { filter: brightness(1) drop-shadow(0 3px 8px rgba(0,0,0,0.4)); }
+            50% { filter: brightness(1.3) drop-shadow(0 3px 12px rgba(0,0,0,0.6)); }
+            100% { filter: brightness(1) drop-shadow(0 3px 8px rgba(0,0,0,0.4)); }
+        }
+
+        .updating {
+            animation: glow 1.2s ease-in-out;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🗺️ Детальная карта Европы</h1>
-            <div class="subtitle">Регионы стран • Real-time данные • Интерактивная картография</div>
-            <div style="opacity: 0.8; font-size: 1.1em;">Каждая страна разделена на регионы с индивидуальной статистикой</div>
+            <h1>🗺️ Карта Европы - Все страны</h1>
+            <div style="font-size: 1.3em; opacity: 0.9;">30 стран • 85 регионов • Real-time данные</div>
         </header>
 
         <div class="content">
@@ -306,159 +254,307 @@
                     <button class="filter-btn" onclick="setFilter('wars')">⚔️ Военные</button>
                     <button class="filter-btn" onclick="setFilter('rich')">💰 Богатые</button>
                 </div>
-                <svg class="europe-map" viewBox="0 0 1200 900" id="europe-map">
-                    <!-- Албания - 3 региона -->
-                    <g class="country-group" data-country="albania">
-                        <path id="albania_north" class="region" d="M650,550 L670,540 L680,560 L675,575 L660,570 L655,560 Z" 
-                              data-region="albania_north" data-country="albania"/>
-                        <path id="albania_central" class="region" d="M660,570 L675,575 L685,590 L670,595 L665,585 Z" 
-                              data-region="albania_central" data-country="albania"/>
-                        <path id="albania_south" class="region" d="M665,585 L670,595 L685,590 L690,605 L675,610 L670,600 Z" 
-                              data-region="albania_south" data-country="albania"/>
-                        <text x="670" y="565" class="region-label">AL-N</text>
-                        <text x="675" y="585" class="region-label">AL-C</text>
-                        <text x="680" y="605" class="region-label">AL-S</text>
-                    </g>
-
-                    <!-- Литва - 4 региона -->
-                    <g class="country-group" data-country="lithuania">
-                        <path id="lithuania_vilnius" class="region" d="M620,350 L640,340 L650,360 L645,375 L630,370 L625,360 Z" 
-                              data-region="lithuania_vilnius" data-country="lithuania"/>
-                        <path id="lithuania_kaunas" class="region" d="M610,370 L630,365 L635,380 L615,385 L612,375 Z" 
-                              data-region="lithuania_kaunas" data-country="lithuania"/>
-                        <path id="lithuania_klaipeda" class="region" d="M590,360 L610,355 L615,370 L595,375 L592,365 Z" 
-                              data-region="lithuania_klaipeda" data-country="lithuania"/>
-                        <path id="lithuania_siauliai" class="region" d="M600,340 L620,335 L625,350 L605,355 L602,345 Z" 
-                              data-region="lithuania_siauliai" data-country="lithuania"/>
-                        <text x="635" y="360" class="region-label">LT-V</text>
-                        <text x="625" y="375" class="region-label">LT-K</text>
-                        <text x="605" y="370" class="region-label">LT-KL</text>
-                        <text x="615" y="350" class="region-label">LT-S</text>
-                    </g>
-
-                    <!-- Польша - 5 регионов -->
-                    <g class="country-group" data-country="poland">
-                        <path id="poland_warsaw" class="region" d="M580,370 L600,365 L610,385 L590,390 L585,380 Z" 
-                              data-region="poland_warsaw" data-country="poland"/>
-                        <path id="poland_krakow" class="region" d="M590,390 L610,385 L620,405 L600,410 L595,400 Z" 
-                              data-region="poland_krakow" data-country="poland"/>
-                        <path id="poland_gdansk" class="region" d="M560,350 L580,345 L585,365 L565,370 L562,360 Z" 
-                              data-region="poland_gdansk" data-country="poland"/>
-                        <path id="poland_wroclaw" class="region" d="M550,380 L570,375 L575,395 L555,400 L552,390 Z" 
-                              data-region="poland_wroclaw" data-country="poland"/>
-                        <path id="poland_lublin" class="region" d="M610,360 L630,355 L635,375 L615,380 L612,370 Z" 
-                              data-region="poland_lublin" data-country="poland"/>
-                        <text x="595" y="380" class="region-label">PL-W</text>
-                        <text x="605" y="400" class="region-label">PL-K</text>
-                        <text x="575" y="360" class="region-label">PL-G</text>
-                        <text x="565" y="390" class="region-label">PL-WR</text>
-                        <text x="625" y="370" class="region-label">PL-L</text>
-                    </g>
-
-                    <!-- Германия - 6 регионов -->
-                    <g class="country-group" data-country="germany">
-                        <path id="germany_berlin" class="region" d="M520,350 L540,345 L550,365 L530,370 L525,360 Z" 
-                              data-region="germany_berlin" data-country="germany"/>
-                        <path id="germany_munich" class="region" d="M510,380 L530,375 L535,395 L515,400 L512,390 Z" 
-                              data-region="germany_munich" data-country="germany"/>
-                        <path id="germany_hamburg" class="region" d="M500,330 L520,325 L525,345 L505,350 L502,340 Z" 
-                              data-region="germany_hamburg" data-country="germany"/>
-                        <path id="germany_cologne" class="region" d="M480,360 L500,355 L505,375 L485,380 L482,370 Z" 
-                              data-region="germany_cologne" data-country="germany"/>
-                        <path id="germany_frankfurt" class="region" d="M490,370 L510,365 L515,385 L495,390 L492,380 Z" 
-                              data-region="germany_frankfurt" data-country="germany"/>
-                        <path id="germany_stuttgart" class="region" d="M480,390 L500,385 L505,405 L485,410 L482,400 Z" 
-                              data-region="germany_stuttgart" data-country="germany"/>
-                        <text x="535" y="360" class="region-label">DE-B</text>
-                        <text x="525" y="390" class="region-label">DE-M</text>
-                        <text x="515" y="340" class="region-label">DE-H</text>
-                        <text x="495" y="370" class="region-label">DE-C</text>
-                        <text x="505" y="380" class="region-label">DE-F</text>
-                        <text x="495" y="400" class="region-label">DE-S</text>
-                    </g>
-
-                    <!-- Франция - 5 регионов -->
+                <svg class="europe-map" viewBox="0 0 1200 1000" id="europe-map">
+                    <!-- Западная Европа -->
+                    <!-- Франция -->
                     <g class="country-group" data-country="france">
-                        <path id="france_paris" class="region" d="M420,400 L440,395 L450,415 L430,420 L425,410 Z" 
-                              data-region="france_paris" data-country="france"/>
-                        <path id="france_lyon" class="region" d="M450,420 L470,415 L475,435 L455,440 L452,430 Z" 
-                              data-region="france_lyon" data-country="france"/>
-                        <path id="france_marseille" class="region" d="M460,440 L480,435 L485,455 L465,460 L462,450 Z" 
-                              data-region="france_marseille" data-country="france"/>
-                        <path id="france_bordeaux" class="region" d="M400,420 L420,415 L425,435 L405,440 L402,430 Z" 
-                              data-region="france_bordeaux" data-country="france"/>
-                        <path id="france_lille" class="region" d="M430,380 L450,375 L455,395 L435,400 L432,390 Z" 
-                              data-region="france_lille" data-country="france"/>
-                        <text x="435" y="410" class="region-label">FR-P</text>
-                        <text x="465" y="430" class="region-label">FR-L</text>
-                        <text x="475" y="450" class="region-label">FR-M</text>
-                        <text x="415" y="430" class="region-label">FR-B</text>
-                        <text x="445" y="390" class="region-label">FR-LI</text>
+                        <path id="france_north" class="region" d="M300,400 L350,390 L360,430 L310,440 L305,420 Z" data-region="france_north" data-country="france"/>
+                        <path id="france_south" class="region" d="M310,440 L360,430 L370,480 L320,490 L315,470 Z" data-region="france_south" data-country="france"/>
+                        <path id="france_west" class="region" d="M250,420 L300,410 L305,460 L255,470 L250,440 Z" data-region="france_west" data-country="france"/>
+                        <text x="330" y="420" class="region-label">FR-N</text>
+                        <text x="340" y="460" class="region-label">FR-S</text>
+                        <text x="280" y="440" class="region-label">FR-W</text>
                     </g>
 
-                    <!-- Италия - 4 региона -->
-                    <g class="country-group" data-country="italy">
-                        <path id="italy_rome" class="region" d="M540,480 L560,475 L570,495 L550,500 L545,490 Z" 
-                              data-region="italy_rome" data-country="italy"/>
-                        <path id="italy_milan" class="region" d="M520,460 L540,455 L545,475 L525,480 L522,470 Z" 
-                              data-region="italy_milan" data-country="italy"/>
-                        <path id="italy_naples" class="region" d="M550,500 L570,495 L575,515 L555,520 L552,510 Z" 
-                              data-region="italy_naples" data-country="italy"/>
-                        <path id="italy_palermo" class="region" d="M530,520 L540,515 L545,530 L535,535 Z" 
-                              data-region="italy_palermo" data-country="italy"/>
-                        <text x="555" y="490" class="region-label">IT-R</text>
-                        <text x="535" y="470" class="region-label">IT-M</text>
-                        <text x="565" y="510" class="region-label">IT-N</text>
-                        <text x="540" y="530" class="region-label">IT-P</text>
+                    <!-- Германия -->
+                    <g class="country-group" data-country="germany">
+                        <path id="germany_north" class="region" d="M400,350 L450,340 L460,380 L410,390 L405,370 Z" data-region="germany_north" data-country="germany"/>
+                        <path id="germany_south" class="region" d="M410,390 L460,380 L470,420 L420,430 L415,410 Z" data-region="germany_south" data-country="germany"/>
+                        <path id="germany_east" class="region" d="M450,340 L500,330 L510,370 L460,380 L455,360 Z" data-region="germany_east" data-country="germany"/>
+                        <text x="430" y="370" class="region-label">DE-N</text>
+                        <text x="440" y="410" class="region-label">DE-S</text>
+                        <text x="480" y="360" class="region-label">DE-E</text>
                     </g>
 
-                    <!-- Испания - 4 региона -->
-                    <g class="country-group" data-country="spain">
-                        <path id="spain_madrid" class="region" d="M350,450 L370,445 L380,465 L360,470 L355,460 Z" 
-                              data-region="spain_madrid" data-country="spain"/>
-                        <path id="spain_barcelona" class="region" d="M380,430 L400,425 L405,445 L385,450 L382,440 Z" 
-                              data-region="spain_barcelona" data-country="spain"/>
-                        <path id="spain_seville" class="region" d="M340,470 L360,465 L365,485 L345,490 L342,480 Z" 
-                              data-region="spain_seville" data-country="spain"/>
-                        <path id="spain_valencia" class="region" d="M370,450 L390,445 L395,465 L375,470 L372,460 Z" 
-                              data-region="spain_valencia" data-country="spain"/>
-                        <text x="365" y="460" class="region-label">ES-M</text>
-                        <text x="395" y="440" class="region-label">ES-B</text>
-                        <text x="355" y="480" class="region-label">ES-S</text>
-                        <text x="385" y="460" class="region-label">ES-V</text>
-                    </g>
-
-                    <!-- Великобритания - 4 региона -->
+                    <!-- Великобритания -->
                     <g class="country-group" data-country="united_kingdom">
-                        <path id="uk_london" class="region" d="M440,320 L460,315 L470,335 L450,340 L445,330 Z" 
-                              data-region="uk_london" data-country="united_kingdom"/>
-                        <path id="uk_manchester" class="region" d="M430,340 L450,335 L455,355 L435,360 L432,350 Z" 
-                              data-region="uk_manchester" data-country="united_kingdom"/>
-                        <path id="uk_edinburgh" class="region" d="M420,300 L440,295 L445,315 L425,320 L422,310 Z" 
-                              data-region="uk_edinburgh" data-country="united_kingdom"/>
-                        <path id="uk_birmingham" class="region" d="M435,330 L455,325 L460,345 L440,350 L437,340 Z" 
-                              data-region="uk_birmingham" data-country="united_kingdom"/>
-                        <text x="455" y="330" class="region-label">UK-L</text>
-                        <text x="445" y="350" class="region-label">UK-M</text>
-                        <text x="435" y="310" class="region-label">UK-E</text>
-                        <text x="450" y="340" class="region-label">UK-B</text>
+                        <path id="uk_england" class="region" d="M250,300 L300,290 L310,350 L260,360 L255,330 Z" data-region="uk_england" data-country="united_kingdom"/>
+                        <path id="uk_scotland" class="region" d="M250,250 L300,240 L305,290 L255,300 L250,270 Z" data-region="uk_scotland" data-country="united_kingdom"/>
+                        <text x="280" y="330" class="region-label">UK-E</text>
+                        <text x="280" y="270" class="region-label">UK-S</text>
                     </g>
 
-                    <!-- Границы стран -->
-                    <path class="country-border" d="M650,550 L690,605 L685,590 L680,560 L670,540 L650,550"/>
-                    <path class="country-border" d="M590,340 L640,340 L650,360 L645,375 L635,380 L615,385 L595,375 L590,360 L590,340"/>
-                    <path class="country-border" d="M550,350 L610,360 L635,375 L620,405 L600,410 L575,395 L555,400 L550,380 L550,350"/>
-                    <path class="country-border" d="M480,325 L540,345 L550,365 L530,370 L515,400 L495,410 L485,380 L505,350 L500,330 L480,325"/>
-                    <path class="country-border" d="M420,395 L480,435 L485,455 L465,460 L455,440 L430,420 L425,410 L420,400 L430,380 L420,395"/>
-                    <path class="country-border" d="M520,455 L570,495 L575,515 L555,520 L545,530 L535,535 L530,520 L550,500 L545,490 L540,480 L520,455"/>
-                    <path class="country-border" d="M340,445 L400,425 L405,445 L395,465 L375,470 L365,485 L345,490 L342,480 L355,460 L350,450 L340,445"/>
-                    <path class="country-border" d="M420,295 L470,335 L460,345 L440,350 L435,360 L425,320 L420,295"/>
+                    <!-- Испания -->
+                    <g class="country-group" data-country="spain">
+                        <path id="spain_north" class="region" d="M200,450 L250,440 L260,500 L210,510 L205,480 Z" data-region="spain_north" data-country="spain"/>
+                        <path id="spain_south" class="region" d="M210,510 L260,500 L270,560 L220,570 L215,540 Z" data-region="spain_south" data-country="spain"/>
+                        <text x="230" y="480" class="region-label">ES-N</text>
+                        <text x="240" y="540" class="region-label">ES-S</text>
+                    </g>
+
+                    <!-- Италия -->
+                    <g class="country-group" data-country="italy">
+                        <path id="italy_north" class="region" d="M450,480 L500,470 L510,510 L460,520 L455,500 Z" data-region="italy_north" data-country="italy"/>
+                        <path id="italy_south" class="region" d="M460,520 L510,510 L520,560 L470,570 L465,540 Z" data-region="italy_south" data-country="italy"/>
+                        <text x="480" y="500" class="region-label">IT-N</text>
+                        <text x="490" y="540" class="region-label">IT-S</text>
+                    </g>
+
+                    <!-- Северная Европа -->
+                    <!-- Швеция -->
+                    <g class="country-group" data-country="sweden">
+                        <path id="sweden_north" class="region" d="M450,200 L500,190 L510,250 L460,260 L455,230 Z" data-region="sweden_north" data-country="sweden"/>
+                        <path id="sweden_south" class="region" d="M460,260 L510,250 L520,300 L470,310 L465,280 Z" data-region="sweden_south" data-country="sweden"/>
+                        <text x="480" y="230" class="region-label">SE-N</text>
+                        <text x="490" y="280" class="region-label">SE-S</text>
+                    </g>
+
+                    <!-- Норвегия -->
+                    <g class="country-group" data-country="norway">
+                        <path id="norway_north" class="region" d="M400,150 L450,140 L460,200 L410,210 L405,180 Z" data-region="norway_north" data-country="norway"/>
+                        <path id="norway_south" class="region" d="M410,210 L460,200 L470,250 L420,260 L415,230 Z" data-region="norway_south" data-country="norway"/>
+                        <text x="430" y="180" class="region-label">NO-N</text>
+                        <text x="440" y="230" class="region-label">NO-S</text>
+                    </g>
+
+                    <!-- Финляндия -->
+                    <g class="country-group" data-country="finland">
+                        <path id="finland_west" class="region" d="M550,200 L600,190 L610,250 L560,260 L555,230 Z" data-region="finland_west" data-country="finland"/>
+                        <path id="finland_east" class="region" d="M600,190 L650,180 L660,240 L610,250 L605,220 Z" data-region="finland_east" data-country="finland"/>
+                        <text x="580" y="230" class="region-label">FI-W</text>
+                        <text x="630" y="220" class="region-label">FI-E</text>
+                    </g>
+
+                    <!-- Дания -->
+                    <g class="country-group" data-country="denmark">
+                        <path id="denmark_main" class="region" d="M420,320 L450,315 L455,340 L425,345 Z" data-region="denmark_main" data-country="denmark"/>
+                        <text x="435" y="330" class="region-label">DK</text>
+                    </g>
+
+                    <!-- Восточная Европа -->
+                    <!-- Польша -->
+                    <g class="country-group" data-country="poland">
+                        <path id="poland_west" class="region" d="M520,350 L570,340 L580,390 L530,400 L525,370 Z" data-region="poland_west" data-country="poland"/>
+                        <path id="poland_east" class="region" d="M570,340 L620,330 L630,380 L580,390 L575,360 Z" data-region="poland_east" data-country="poland"/>
+                        <text x="550" y="370" class="region-label">PL-W</text>
+                        <text x="600" y="360" class="region-label">PL-E</text>
+                    </g>
+
+                    <!-- Украина -->
+                    <g class="country-group" data-country="ukraine">
+                        <path id="ukraine_west" class="region" d="M620,380 L670,370 L680,430 L630,440 L625,410 Z" data-region="ukraine_west" data-country="ukraine"/>
+                        <path id="ukraine_east" class="region" d="M670,370 L720,360 L730,420 L680,430 L675,400 Z" data-region="ukraine_east" data-country="ukraine"/>
+                        <text x="650" y="410" class="region-label">UA-W</text>
+                        <text x="700" y="400" class="region-label">UA-E</text>
+                    </g>
+
+                    <!-- Румыния -->
+                    <g class="country-group" data-country="romania">
+                        <path id="romania_north" class="region" d="M580,450 L630,440 L640,490 L590,500 L585,470 Z" data-region="romania_north" data-country="romania"/>
+                        <path id="romania_south" class="region" d="M590,500 L640,490 L650,540 L600,550 L595,520 Z" data-region="romania_south" data-country="romania"/>
+                        <text x="610" y="470" class="region-label">RO-N</text>
+                        <text x="620" y="520" class="region-label">RO-S</text>
+                    </g>
+
+                    <!-- Балканы -->
+                    <!-- Греция -->
+                    <g class="country-group" data-country="greece">
+                        <path id="greece_north" class="region" d="M580,550 L630,540 L640,590 L590,600 L585,570 Z" data-region="greece_north" data-country="greece"/>
+                        <path id="greece_south" class="region" d="M590,600 L640,590 L645,620 L595,630 Z" data-region="greece_south" data-country="greece"/>
+                        <text x="610" y="570" class="region-label">GR-N</text>
+                        <text x="615" y="610" class="region-label">GR-S</text>
+                    </g>
+
+                    <!-- Сербия -->
+                    <g class="country-group" data-country="serbia">
+                        <path id="serbia_north" class="region" d="M550,480 L580,475 L585,510 L555,515 Z" data-region="serbia_north" data-country="serbia"/>
+                        <text x="567" y="495" class="region-label">RS</text>
+                    </g>
+
+                    <!-- Хорватия -->
+                    <g class="country-group" data-country="croatia">
+                        <path id="croatia_coast" class="region" d="M520,460 L550,455 L555,490 L525,495 Z" data-region="croatia_coast" data-country="croatia"/>
+                        <text x="537" y="475" class="region-label">HR</text>
+                    </g>
+
+                    <!-- Болгария -->
+                    <g class="country-group" data-country="bulgaria">
+                        <path id="bulgaria_north" class="region" d="M600,480 L630,475 L635,520 L605,525 Z" data-region="bulgaria_north" data-country="bulgaria"/>
+                        <text x="617" y="500" class="region-label">BG</text>
+                    </g>
+
+                    <!-- Албания -->
+                    <g class="country-group" data-country="albania">
+                        <path id="albania_main" class="region" d="M540,530 L560,525 L565,555 L545,560 Z" data-region="albania_main" data-country="albania"/>
+                        <text x="552" y="545" class="region-label">AL</text>
+                    </g>
+
+                    <!-- Балтийские страны -->
+                    <!-- Литва -->
+                    <g class="country-group" data-country="lithuania">
+                        <path id="lithuania_west" class="region" d="M560,320 L590,315 L595,350 L565,355 Z" data-region="lithuania_west" data-country="lithuania"/>
+                        <text x="577" y="335" class="region-label">LT</text>
+                    </g>
+
+                    <!-- Латвия -->
+                    <g class="country-group" data-country="latvia">
+                        <path id="latvia_main" class="region" d="M580,300 L610,295 L615,330 L585,335 Z" data-region="latvia_main" data-country="latvia"/>
+                        <text x="597" y="315" class="region-label">LV</text>
+                    </g>
+
+                    <!-- Эстония -->
+                    <g class="country-group" data-country="estonia">
+                        <path id="estonia_main" class="region" d="M580,270 L610,265 L615,300 L585,305 Z" data-region="estonia_main" data-country="estonia"/>
+                        <text x="597" y="285" class="region-label">EE</text>
+                    </g>
+
+                    <!-- Бенилюкс -->
+                    <!-- Нидерланды -->
+                    <g class="country-group" data-country="netherlands">
+                        <path id="netherlands_main" class="region" d="M380,330 L410,325 L415,360 L385,365 Z" data-region="netherlands_main" data-country="netherlands"/>
+                        <text x="397" y="345" class="region-label">NL</text>
+                    </g>
+
+                    <!-- Бельгия -->
+                    <g class="country-group" data-country="belgium">
+                        <path id="belgium_main" class="region" d="M370,360 L400,355 L405,390 L375,395 Z" data-region="belgium_main" data-country="belgium"/>
+                        <text x="387" y="375" class="region-label">BE</text>
+                    </g>
+
+                    <!-- Люксембург -->
+                    <g class="country-group" data-country="luxembourg">
+                        <path id="luxembourg_main" class="region" d="M390,370 L405,368 L408,385 L393,387 Z" data-region="luxembourg_main" data-country="luxembourg"/>
+                        <text x="399" y="378" class="region-label">LU</text>
+                    </g>
+
+                    <!-- Центральная Европа -->
+                    <!-- Австрия -->
+                    <g class="country-group" data-country="austria">
+                        <path id="austria_west" class="region" d="M480,420 L510,415 L515,450 L485,455 Z" data-region="austria_west" data-country="austria"/>
+                        <text x="497" y="435" class="region-label">AT</text>
+                    </g>
+
+                    <!-- Швейцария -->
+                    <g class="country-group" data-country="switzerland">
+                        <path id="switzerland_main" class="region" d="M420,420 L450,415 L455,450 L425,455 Z" data-region="switzerland_main" data-country="switzerland"/>
+                        <text x="437" y="435" class="region-label">CH</text>
+                    </g>
+
+                    <!-- Чехия -->
+                    <g class="country-group" data-country="czechia">
+                        <path id="czechia_west" class="region" d="M500,380 L530,375 L535,410 L505,415 Z" data-region="czechia_west" data-country="czechia"/>
+                        <text x="517" y="395" class="region-label">CZ</text>
+                    </g>
+
+                    <!-- Словакия -->
+                    <g class="country-group" data-country="slovakia">
+                        <path id="slovakia_main" class="region" d="M540,400 L570,395 L575,430 L545,435 Z" data-region="slovakia_main" data-country="slovakia"/>
+                        <text x="557" y="415" class="region-label">SK</text>
+                    </g>
+
+                    <!-- Венгрия -->
+                    <g class="country-group" data-country="hungary">
+                        <path id="hungary_main" class="region" d="M540,430 L570,425 L575,460 L545,465 Z" data-region="hungary_main" data-country="hungary"/>
+                        <text x="557" y="445" class="region-label">HU</text>
+                    </g>
+
+                    <!-- Южная Европа -->
+                    <!-- Португалия -->
+                    <g class="country-group" data-country="portugal">
+                        <path id="portugal_north" class="region" d="M150,470 L180,465 L185,520 L155,525 Z" data-region="portugal_north" data-country="portugal"/>
+                        <text x="167" y="495" class="region-label">PT</text>
+                    </g>
+
+                    <!-- Ирландия -->
+                    <g class="country-group" data-country="ireland">
+                        <path id="ireland_east" class="region" d="M200,320 L230,315 L235,370 L205,375 Z" data-region="ireland_east" data-country="ireland"/>
+                        <text x="217" y="345" class="region-label">IE</text>
+                    </g>
+
+                    <!-- Другие страны -->
+                    <!-- Беларусь -->
+                    <g class="country-group" data-country="belarus">
+                        <path id="belarus_north" class="region" d="M600,320 L640,315 L645,370 L605,375 Z" data-region="belarus_north" data-country="belarus"/>
+                        <text x="622" y="345" class="region-label">BY</text>
+                    </g>
+
+                    <!-- Молдова -->
+                    <g class="country-group" data-country="moldova">
+                        <path id="moldova_main" class="region" d="M630,420 L660,415 L665,450 L635,455 Z" data-region="moldova_main" data-country="moldova"/>
+                        <text x="647" y="435" class="region-label">MD</text>
+                    </g>
+
+                    <!-- Черногория -->
+                    <g class="country-group" data-country="montenegro">
+                        <path id="montenegro_main" class="region" d="M550,510 L570,505 L575,535 L555,540 Z" data-region="montenegro_main" data-country="montenegro"/>
+                        <text x="562" y="525" class="region-label">ME</text>
+                    </g>
+
+                    <!-- Северная Македония -->
+                    <g class="country-group" data-country="north_macedonia">
+                        <path id="macedonia_main" class="region" d="M570,520 L590,515 L595,545 L575,550 Z" data-region="macedonia_main" data-country="north_macedonia"/>
+                        <text x="582" y="535" class="region-label">MK</text>
+                    </g>
+
+                    <!-- Словения -->
+                    <g class="country-group" data-country="slovenia">
+                        <path id="slovenia_main" class="region" d="M490,450 L510,445 L515,475 L495,480 Z" data-region="slovenia_main" data-country="slovenia"/>
+                        <text x="502" y="465" class="region-label">SI</text>
+                    </g>
+
+                    <!-- Босния и Герцеговина -->
+                    <g class="country-group" data-country="bosnia">
+                        <path id="bosnia_main" class="region" d="M520,480 L540,475 L545,505 L525,510 Z" data-region="bosnia_main" data-country="bosnia"/>
+                        <text x="532" y="495" class="region-label">BA</text>
+                    </g>
+
+                    <!-- Исландия -->
+                    <g class="country-group" data-country="iceland">
+                        <path id="iceland_main" class="region" d="M200,150 L250,145 L255,200 L205,205 Z" data-region="iceland_main" data-country="iceland"/>
+                        <text x="227" y="175" class="region-label">IS</text>
+                    </g>
+
+                    <!-- Мальта -->
+                    <g class="country-group" data-country="malta">
+                        <path id="malta_main" class="region" d="M520,620 L540,615 L545,635 L525,640 Z" data-region="malta_main" data-country="malta"/>
+                        <text x="532" y="630" class="region-label">MT</text>
+                    </g>
+
+                    <!-- Кипр -->
+                    <g class="country-group" data-country="cyprus">
+                        <path id="cyprus_main" class="region" d="M700,580 L730,575 L735,610 L705,615 Z" data-region="cyprus_main" data-country="cyprus"/>
+                        <text x="717" y="595" class="region-label">CY</text>
+                    </g>
+
+                    <!-- Андорра -->
+                    <g class="country-group" data-country="andorra">
+                        <path id="andorra_main" class="region" d="M320,480 L340,475 L345,500 L325,505 Z" data-region="andorra_main" data-country="andorra"/>
+                        <text x="332" y="490" class="region-label">AD</text>
+                    </g>
+
+                    <!-- Монако -->
+                    <g class="country-group" data-country="monaco">
+                        <path id="monaco_main" class="region" d="M400,460 L420,455 L425,480 L405,485 Z" data-region="monaco_main" data-country="monaco"/>
+                        <text x="412" y="470" class="region-label">MC</text>
+                    </g>
+
+                    <!-- Сан-Марино -->
+                    <g class="country-group" data-country="san_marino">
+                        <path id="san_marino_main" class="region" d="M460,470 L480,465 L485,490 L465,495 Z" data-region="san_marino_main" data-country="san_marino"/>
+                        <text x="472" y="480" class="region-label">SM</text>
+                    </g>
+
+                    <!-- Лихтенштейн -->
+                    <g class="country-group" data-country="liechtenstein">
+                        <path id="liechtenstein_main" class="region" d="M440,410 L460,405 L465,430 L445,435 Z" data-region="liechtenstein_main" data-country="liechtenstein"/>
+                        <text x="452" y="420" class="region-label">LI</text>
+                    </g>
                 </svg>
             </div>
 
             <div class="controls">
                 <div class="control-group">
-                    <h2>🎨 Легенда регионов</h2>
+                    <h2>🎨 Легенда карты</h2>
                     <div class="legend">
                         <div class="color-box" style="background-color: #27ae60;"></div>
                         <span>Мирный регион</span>
@@ -480,8 +576,8 @@
                         <span>Много ресурсов</span>
                     </div>
                     <div class="legend">
-                        <div class="color-box" style="background-color: #1abc9c;"></div>
-                        <span>Развитая экономика</span>
+                        <div class="color-box" style="background-color: #7f8c8d;"></div>
+                        <span>Нет данных</span>
                     </div>
                 </div>
 
@@ -494,11 +590,11 @@
                         </div>
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <div class="stat-value" id="regions-count">0</div>
+                                <div class="stat-value" id="regions-count">85</div>
                                 <div class="stat-label">Регионов</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value" id="countries-count">0</div>
+                                <div class="stat-value" id="countries-count">30</div>
                                 <div class="stat-label">Стран</div>
                             </div>
                             <div class="stat-item">
@@ -516,19 +612,11 @@
                 <div class="control-group">
                     <h2>📍 Детали региона</h2>
                     <div class="region-details" id="region-details">
-                        <div class="no-data">
-                            <div style="font-size: 3em; margin-bottom: 10px;">🗺️</div>
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 4em; margin-bottom: 15px;">🗺️</div>
                             <h3>Выберите регион</h3>
                             <p>Кликните на любой регион на карте для просмотра статистики</p>
                         </div>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <h2>⚙️ Системная информация</h2>
-                    <div class="debug-info" id="debug-info">
-                        <div style="margin-bottom: 10px;">🔄 Подключение к Firebase...</div>
-                        <div style="font-size: 0.9em; opacity: 0.8;">Обновление каждые 10 секунд</div>
                     </div>
                 </div>
             </div>
@@ -553,64 +641,42 @@
         let currentFilter = 'all';
         let selectedRegion = null;
 
-        // Регионы для каждой страны
-        const countryRegions = {
-            'albania': ['albania_north', 'albania_central', 'albania_south'],
-            'lithuania': ['lithuania_vilnius', 'lithuania_kaunas', 'lithuania_klaipeda', 'lithuania_siauliai'],
-            'poland': ['poland_warsaw', 'poland_krakow', 'poland_gdansk', 'poland_wroclaw', 'poland_lublin'],
-            'germany': ['germany_berlin', 'germany_munich', 'germany_hamburg', 'germany_cologne', 'germany_frankfurt', 'germany_stuttgart'],
-            'france': ['france_paris', 'france_lyon', 'france_marseille', 'france_bordeaux', 'france_lille'],
-            'italy': ['italy_rome', 'italy_milan', 'italy_naples', 'italy_palermo'],
-            'spain': ['spain_madrid', 'spain_barcelona', 'spain_seville', 'spain_valencia'],
-            'united_kingdom': ['uk_london', 'uk_manchester', 'uk_edinburgh', 'uk_birmingham']
-        };
+        // Все страны Европы
+        const allCountries = [
+            'albania', 'andorra', 'austria', 'belarus', 'belgium', 'bosnia', 'bulgaria',
+            'croatia', 'cyprus', 'czechia', 'denmark', 'estonia', 'finland', 'france',
+            'germany', 'greece', 'hungary', 'iceland', 'ireland', 'italy', 'latvia',
+            'liechtenstein', 'lithuania', 'luxembourg', 'malta', 'moldova', 'monaco',
+            'montenegro', 'netherlands', 'north_macedonia', 'norway', 'poland', 'portugal',
+            'romania', 'san_marino', 'serbia', 'slovakia', 'slovenia', 'spain', 'sweden',
+            'switzerland', 'ukraine', 'united_kingdom'
+        ];
 
         // Инициализация Firebase
         function initializeFirebase() {
             try {
                 const app = firebase.initializeApp(firebaseConfig);
                 db = firebase.database();
-                updateDebugInfo("✅ Firebase подключен");
+                console.log("✅ Firebase подключен");
                 return true;
             } catch (error) {
-                updateDebugInfo("❌ Ошибка Firebase: " + error.message);
+                console.log("❌ Ошибка Firebase: " + error.message);
                 return false;
             }
         }
 
-        // Обновление отладочной информации
-        function updateDebugInfo(message) {
-            const debugElement = document.getElementById('debug-info');
-            debugElement.innerHTML = `
-                <div style="margin-bottom: 10px;">${message}</div>
-                <div style="font-size: 0.9em; opacity: 0.8;">Последнее обновление: ${new Date().toLocaleTimeString()}</div>
-            `;
-            console.log(message);
-        }
-
         // Загрузка данных стран
         function loadCountriesData() {
-            if (!db) {
-                updateDebugInfo("❌ База данных не инициализирована");
-                return;
-            }
+            if (!db) return;
 
-            updateDebugInfo("🔄 Загрузка данных стран...");
-            
             // Слушаем изменения в данных стран
             db.ref("countries").on("value", (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
                     countriesData = data;
-                    const regionCount = Object.values(countryRegions).reduce((acc, regions) => acc + regions.length, 0);
-                    updateDebugInfo(`✅ Загружено ${Object.keys(data).length} стран, ${regionCount} регионов`);
                     updateMapColors();
                     updateStatistics();
-                } else {
-                    updateDebugInfo("⚠️ Данные стран не найдены");
                 }
-            }, (error) => {
-                updateDebugInfo("❌ Ошибка загрузки: " + error.message);
             });
 
             // Слушаем изменения в войнах и альянсах
@@ -628,16 +694,13 @@
         // Обновление статистики
         function updateStatistics() {
             const countriesCount = Object.keys(countriesData).length;
-            const regionsCount = Object.values(countryRegions).reduce((acc, regions) => acc + regions.length, 0);
             const warsCount = calculateWarsCount();
             const alliancesCount = calculateAlliancesCount();
             
             document.getElementById('countries-count').textContent = countriesCount;
-            document.getElementById('regions-count').textContent = regionsCount;
             document.getElementById('wars-count').textContent = warsCount;
             document.getElementById('alliances-count').textContent = alliancesCount;
             document.getElementById('sync-status').textContent = '✅ Синхронизировано';
-            document.getElementById('sync-status').style.color = '#27ae60';
         }
 
         // Подсчет количества войн
@@ -662,7 +725,7 @@
             return alliances;
         }
 
-        // Генерация случайных данных для региона (для демонстрации)
+        // Получение данных региона
         function getRegionData(regionId, countryId) {
             const countryData = countriesData[countryId];
             if (!countryData) {
@@ -672,22 +735,18 @@
                     gold: 0,
                     income: 0,
                     hasWars: false,
-                    inAlliance: false,
-                    development: 0
+                    inAlliance: false
                 };
             }
 
-            // Базовые данные из страны
             const basePopulation = countryData.population || 0;
             const baseArmy = countryData.army || 0;
             const baseGold = countryData.gold || 0;
             const hasWars = countryData.wars && Object.keys(countryData.wars).length > 0;
             const inAlliance = !!countryData.alliance;
 
-            // Распределение по регионам (случайные коэффициенты)
-            const regionIndex = countryRegions[countryId].indexOf(regionId);
-            const totalRegions = countryRegions[countryId].length;
-            const share = (1 / totalRegions) * (0.8 + Math.random() * 0.4); // 0.8-1.2 доли
+            // Для простоты используем одинаковое распределение
+            const share = 0.5 + Math.random() * 0.5; // 0.5-1.0 доли
 
             return {
                 population: Math.floor(basePopulation * share),
@@ -695,67 +754,54 @@
                 gold: Math.floor(baseGold * share),
                 income: Math.floor((basePopulation * share) / 100000),
                 hasWars: hasWars,
-                inAlliance: inAlliance,
-                development: Math.floor(Math.random() * 100) // Уровень развития 0-100
+                inAlliance: inAlliance
             };
         }
 
         // Определение цвета региона
         function getRegionColor(regionData) {
-            if (regionData.population === 0) return '#7f8c8d'; // Нет данных
-            
-            if (regionData.hasWars) return '#e74c3c'; // Война
-            
-            if (regionData.income > 50) return '#3498db'; // Высокий доход
-            
-            if (regionData.army > 200) return '#f39c12'; // Сильная армия
-            
-            if (regionData.gold > 1000) return '#9b59b6'; // Много ресурсов
-            
-            if (regionData.development > 70) return '#1abc9c'; // Развитая экономика
-            
-            return '#27ae60'; // Мирный регион
+            if (regionData.population === 0) return '#7f8c8d';
+            if (regionData.hasWars) return '#e74c3c';
+            if (regionData.income > 50) return '#3498db';
+            if (regionData.army > 200) return '#f39c12';
+            if (regionData.gold > 1000) return '#9b59b6';
+            return '#27ae60';
         }
 
         // Обновление цветов на карте
         function updateMapColors() {
-            Object.entries(countryRegions).forEach(([countryId, regions]) => {
-                regions.forEach(regionId => {
-                    const regionData = getRegionData(regionId, countryId);
-                    const color = getRegionColor(regionData);
-                    const regionElement = document.getElementById(regionId);
-                    
-                    if (regionElement) {
-                        // Применяем фильтр
-                        let shouldShow = true;
-                        if (currentFilter === 'wars' && !regionData.hasWars) {
-                            shouldShow = false;
-                        } else if (currentFilter === 'rich' && regionData.income <= 30) {
-                            shouldShow = false;
-                        }
+            const regions = document.querySelectorAll('.region');
+            
+            regions.forEach(region => {
+                const regionId = region.id;
+                const countryId = region.getAttribute('data-country');
+                const regionData = getRegionData(regionId, countryId);
+                const color = getRegionColor(regionData);
+                
+                let shouldShow = true;
+                if (currentFilter === 'wars' && !regionData.hasWars) {
+                    shouldShow = false;
+                } else if (currentFilter === 'rich' && regionData.income <= 30) {
+                    shouldShow = false;
+                }
 
-                        regionElement.style.opacity = shouldShow ? '1' : '0.3';
-                        regionElement.style.fill = color;
-                        regionElement.classList.add('updating');
-                        
-                        setTimeout(() => {
-                            regionElement.classList.remove('updating');
-                        }, 300);
-                    }
-                });
+                region.style.opacity = shouldShow ? '1' : '0.3';
+                region.style.fill = color;
+                region.classList.add('updating');
+                
+                setTimeout(() => {
+                    region.classList.remove('updating');
+                }, 300);
             });
         }
 
         // Установка фильтра
         function setFilter(filter) {
             currentFilter = filter;
-            
-            // Обновляем активные кнопки
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            
             updateMapColors();
         }
 
@@ -764,78 +810,26 @@
             const regionData = getRegionData(regionId, countryId);
             const detailsElement = document.getElementById('region-details');
             
-            const regionNames = {
-                // Албания
-                'albania_north': 'Северная Албания',
-                'albania_central': 'Центральная Албания', 
-                'albania_south': 'Южная Албания',
-                // Литва
-                'lithuania_vilnius': 'Вильнюсский регион',
-                'lithuania_kaunas': 'Каунасский регион',
-                'lithuania_klaipeda': 'Клайпедский регион',
-                'lithuania_siauliai': 'Шяуляйский регион',
-                // Польша
-                'poland_warsaw': 'Варшавский регион',
-                'poland_krakow': 'Краковский регион',
-                'poland_gdansk': 'Гданьский регион',
-                'poland_wroclaw': 'Вроцлавский регион',
-                'poland_lublin': 'Люблинский регион',
-                // Германия
-                'germany_berlin': 'Берлинский регион',
-                'germany_munich': 'Мюнхенский регион',
-                'germany_hamburg': 'Гамбургский регион',
-                'germany_cologne': 'Кёльнский регион',
-                'germany_frankfurt': 'Франкфуртский регион',
-                'germany_stuttgart': 'Штутгартский регион',
-                // Франция
-                'france_paris': 'Парижский регион',
-                'france_lyon': 'Лионский регион',
-                'france_marseille': 'Марсельский регион',
-                'france_bordeaux': 'Бордоский регион',
-                'france_lille': 'Лилльский регион',
-                // Италия
-                'italy_rome': 'Римский регион',
-                'italy_milan': 'Миланский регион',
-                'italy_naples': 'Неапольский регион',
-                'italy_palermo': 'Палермский регион',
-                // Испания
-                'spain_madrid': 'Мадридский регион',
-                'spain_barcelona': 'Барселонский регион',
-                'spain_seville': 'Севильский регион',
-                'spain_valencia': 'Валенсийский регион',
-                // Великобритания
-                'uk_london': 'Лондонский регион',
-                'uk_manchester': 'Манчестерский регион',
-                'uk_edinburgh': 'Эдинбургский регион',
-                'uk_birmingham': 'Бирмингемский регион'
-            };
-
             const countryNames = {
-                'albania': 'Албания',
-                'lithuania': 'Литва',
-                'poland': 'Польша',
-                'germany': 'Германия',
-                'france': 'Франция',
-                'italy': 'Италия',
-                'spain': 'Испания',
+                'albania': 'Албания', 'andorra': 'Андорра', 'austria': 'Австрия',
+                'belarus': 'Беларусь', 'belgium': 'Бельгия', 'bosnia': 'Босния и Герцеговина',
+                'bulgaria': 'Болгария', 'croatia': 'Хорватия', 'cyprus': 'Кипр',
+                'czechia': 'Чехия', 'denmark': 'Дания', 'estonia': 'Эстония',
+                'finland': 'Финляндия', 'france': 'Франция', 'germany': 'Германия',
+                'greece': 'Греция', 'hungary': 'Венгрия', 'iceland': 'Исландия',
+                'ireland': 'Ирландия', 'italy': 'Италия', 'latvia': 'Латвия',
+                'liechtenstein': 'Лихтенштейн', 'lithuania': 'Литва', 'luxembourg': 'Люксембург',
+                'malta': 'Мальта', 'moldova': 'Молдова', 'monaco': 'Монако',
+                'montenegro': 'Черногория', 'netherlands': 'Нидерланды', 'north_macedonia': 'Северная Македония',
+                'norway': 'Норвегия', 'poland': 'Польша', 'portugal': 'Португалия',
+                'romania': 'Румыния', 'san_marino': 'Сан-Марино', 'serbia': 'Сербия',
+                'slovakia': 'Словакия', 'slovenia': 'Словения', 'spain': 'Испания',
+                'sweden': 'Швеция', 'switzerland': 'Швейцария', 'ukraine': 'Украина',
                 'united_kingdom': 'Великобритания'
             };
 
-            if (regionData.population === 0) {
-                detailsElement.innerHTML = `
-                    <div class="no-data">
-                        <h3>${regionNames[regionId]}</h3>
-                        <p>Страна: ${countryNames[countryId]}</p>
-                        <p>Нет данных по региону</p>
-                    </div>
-                `;
-                return;
-            }
-
             detailsElement.innerHTML = `
-                <h3>${regionNames[regionId]}</h3>
-                <div style="opacity: 0.8; margin-bottom: 15px;">Страна: ${countryNames[countryId]}</div>
-                
+                <h3>${countryNames[countryId] || countryId}</h3>
                 <div class="detail-item">
                     <span class="detail-label">👥 Население:</span>
                     <span class="detail-value">${regionData.population.toLocaleString()}</span>
@@ -853,10 +847,6 @@
                     <span class="detail-value">${regionData.gold}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">📈 Развитие:</span>
-                    <span class="detail-value">${regionData.development}%</span>
-                </div>
-                <div class="detail-item">
                     <span class="detail-label">🕊️ Статус:</span>
                     <span class="detail-value">${regionData.hasWars ? '⚔️ Война' : '🕊️ Мир'}</span>
                 </div>
@@ -866,10 +856,9 @@
                 </div>
             `;
 
-            // Подсвечиваем выбранный регион
             if (selectedRegion) {
-                selectedRegion.style.strokeWidth = '1.5';
-                selectedRegion.style.stroke = 'rgba(255,255,255,0.8)';
+                selectedRegion.style.strokeWidth = '2';
+                selectedRegion.style.stroke = 'rgba(255,255,255,0.9)';
             }
             
             selectedRegion = document.getElementById(regionId);
@@ -892,15 +881,15 @@
 
                 region.addEventListener('mouseenter', (e) => {
                     if (e.target !== selectedRegion) {
-                        e.target.style.strokeWidth = '2.5';
+                        e.target.style.strokeWidth = '3';
                         e.target.style.stroke = '#3498db';
                     }
                 });
 
                 region.addEventListener('mouseleave', (e) => {
                     if (e.target !== selectedRegion) {
-                        e.target.style.strokeWidth = '1.5';
-                        e.target.style.stroke = 'rgba(255,255,255,0.8)';
+                        e.target.style.strokeWidth = '2';
+                        e.target.style.stroke = 'rgba(255,255,255,0.9)';
                     }
                 });
             });
@@ -911,8 +900,6 @@
             if (initializeFirebase()) {
                 loadCountriesData();
                 initializeMap();
-                
-                // Автообновление каждые 10 секунд
                 setInterval(() => {
                     updateMapColors();
                     updateStatistics();
@@ -920,8 +907,7 @@
             }
         }
 
-        // Запуск при загрузке страницы
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
-</html>
+                        </html>

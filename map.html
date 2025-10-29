@@ -19,25 +19,27 @@
             color: white;
             min-height: 100vh;
             padding: 20px;
+            overflow: hidden;
         }
 
         .container {
-            max-width: 1800px;
+            max-width: 95vw;
             margin: 0 auto;
+            height: 95vh;
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 25px;
+            margin-bottom: 20px;
+            padding: 20px;
             background: linear-gradient(135deg, rgba(52, 152, 219, 0.25), rgba(39, 174, 96, 0.2));
-            border-radius: 20px;
+            border-radius: 15px;
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.15);
         }
 
         h1 {
-            font-size: 2.8em;
+            font-size: 2.5em;
             margin-bottom: 10px;
             background: linear-gradient(45deg, #3498db, #2ecc71, #9b59b6);
             -webkit-background-clip: text;
@@ -46,48 +48,62 @@
 
         .content {
             display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
-            align-items: start;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: calc(95vh - 150px);
         }
 
         .map-container {
             background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 15px;
+            padding: 15px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 10px;
+            position: relative;
+            cursor: grab;
+        }
+
+        .map-wrapper:active {
+            cursor: grabbing;
         }
 
         .pixel-map {
             display: grid;
-            grid-template-columns: repeat(24, 30px);
-            grid-template-rows: repeat(20, 30px);
-            gap: 1px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            transition: transform 0.1s ease;
             background: #2a2a40;
-            padding: 20px;
-            border-radius: 15px;
-            border: 3px solid #3a3a5a;
-            position: relative;
+            padding: 30px;
+            border-radius: 10px;
         }
 
         .pixel {
-            width: 30px;
-            height: 30px;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 9px;
+            font-size: 12px;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            border: 1px solid rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,0,0,0.4);
+            user-select: none;
         }
 
         .pixel:hover {
-            transform: scale(1.15);
+            transform: scale(1.1);
             z-index: 10;
             box-shadow: 0 0 0 2px #f39c12, 0 0 15px rgba(243, 156, 18, 0.5);
         }
@@ -99,7 +115,7 @@
 
         .pixel-border {
             position: absolute;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             z-index: 5;
             pointer-events: none;
         }
@@ -114,36 +130,80 @@
             z-index: 6;
         }
 
+        /* Элементы управления зумом */
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(52, 152, 219, 0.8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .zoom-btn:hover {
+            background: rgba(52, 152, 219, 1);
+            transform: scale(1.1);
+        }
+
+        .zoom-display {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+
         .controls {
             background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 15px;
+            padding: 20px;
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.1);
+            overflow-y: auto;
         }
 
         .control-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         h2 {
             color: #3498db;
-            margin-bottom: 15px;
-            font-size: 1.4em;
+            margin-bottom: 12px;
+            font-size: 1.3em;
         }
 
         h3 {
             color: #2ecc71;
-            margin-bottom: 10px;
-            font-size: 1.2em;
+            margin-bottom: 8px;
+            font-size: 1.1em;
         }
 
         .legend {
             display: grid;
             grid-template-columns: 20px 1fr;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .color-box {
@@ -151,57 +211,70 @@
             height: 20px;
             border-radius: 4px;
             border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
         }
 
         .status-info {
             background: rgba(52, 152, 219, 0.15);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
             border-left: 4px solid #3498db;
         }
 
         .region-details {
             background: rgba(39, 174, 96, 0.15);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
             border-left: 4px solid #27ae60;
         }
 
         .detail-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            padding: 5px 0;
+            margin-bottom: 6px;
+            padding: 4px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .detail-label {
             font-weight: bold;
             color: #bdc3c7;
+            font-size: 0.9em;
         }
 
         .detail-value {
             color: #ecf0f1;
             font-weight: 500;
+            font-size: 0.9em;
         }
 
         .filters {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         .filter-btn {
             background: rgba(52, 152, 219, 0.3);
             border: 1px solid #3498db;
             color: white;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 8px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 0.9em;
         }
 
         .filter-btn.active {
@@ -211,26 +284,26 @@
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 10px;
+            margin-top: 12px;
         }
 
         .stat-item {
             background: rgba(255,255,255,0.08);
-            padding: 12px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 6px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 1.4em;
+            font-size: 1.2em;
             font-weight: bold;
             color: #3498db;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .stat-label {
-            font-size: 0.9em;
+            font-size: 0.8em;
             color: #bdc3c7;
         }
 
@@ -242,58 +315,98 @@
         }
 
         .coordinates {
-            font-size: 0.9em;
+            font-size: 0.85em;
             opacity: 0.8;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .country-colors-legend {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 5px;
+            grid-template-columns: 1fr;
+            gap: 4px;
             max-height: 200px;
             overflow-y: auto;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .country-color-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 3px;
+            padding: 4px;
             font-size: 0.8em;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            margin-bottom: 2px;
+        }
+
+        .color-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .reset-colors {
+            background: rgba(231, 76, 60, 0.3);
+            border: 1px solid #e74c3c;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8em;
+            margin-top: 8px;
+        }
+
+        .reset-colors:hover {
+            background: #e74c3c;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🧱 Пиксельная карта Европы</h1>
-            <div style="opacity: 0.9;">Квадратные регионы с границами стран • Уникальные цвета</div>
+            <h1>🧱 Интерактивная карта Европы</h1>
+            <div style="opacity: 0.9;">Увеличьте масштаб, перемещайте и меняйте цвета • Используйте колесо мыши для зума</div>
         </header>
 
         <div class="content">
             <div class="map-container">
-                <div class="filters">
-                    <button class="filter-btn active" onclick="setFilter('all')">🌍 Все страны</button>
-                    <button class="filter-btn" onclick="setFilter('wars')">⚔️ Военные</button>
-                    <button class="filter-btn" onclick="setFilter('rich')">💰 Богатые</button>
+                <div class="map-wrapper" id="map-wrapper">
+                    <div class="pixel-map" id="pixel-map">
+                        <!-- Пиксели будут созданы через JavaScript -->
+                    </div>
                 </div>
-                <div class="pixel-map" id="pixel-map">
-                    <!-- Пиксели будут созданы через JavaScript -->
+                
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomIn()">+</button>
+                    <button class="zoom-btn" onclick="zoomOut()">-</button>
+                    <button class="zoom-btn" onclick="resetZoom()">⟲</button>
                 </div>
+                
+                <div class="zoom-display" id="zoom-display">Масштаб: 100%</div>
             </div>
 
             <div class="controls">
                 <div class="control-group">
-                    <h2>🎨 Цвета стран</h2>
+                    <h2>🎨 Настройка цветов</h2>
+                    <div class="color-control">
+                        <input type="color" id="color-picker" class="color-picker" value="#3498db">
+                        <span>Выберите цвет</span>
+                    </div>
+                    <button class="reset-colors" onclick="resetAllColors()">Сбросить все цвета</button>
+                </div>
+
+                <div class="control-group">
+                    <h2>🌍 Цвета стран</h2>
                     <div class="country-colors-legend" id="country-colors-legend">
                         <!-- Легенда цветов будет создана через JavaScript -->
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <h2>📊 Статистика системы</h2>
+                    <h2>📊 Статистика</h2>
                     <div class="status-info">
                         <div class="detail-item">
                             <span class="detail-label">Статус:</span>
@@ -308,14 +421,6 @@
                                 <div class="stat-value" id="countries-count">0</div>
                                 <div class="stat-label">Стран</div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="wars-count">0</div>
-                                <div class="stat-label">Войн</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="alliances-count">0</div>
-                                <div class="stat-label">Альянсов</div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -323,10 +428,10 @@
                 <div class="control-group">
                     <h2>📍 Детали региона</h2>
                     <div class="region-details" id="region-details">
-                        <div style="text-align: center; padding: 20px;">
-                            <div style="font-size: 3em; margin-bottom: 10px;">🧱</div>
+                        <div style="text-align: center; padding: 15px;">
+                            <div style="font-size: 2em; margin-bottom: 8px;">🧱</div>
                             <h3>Выберите регион</h3>
-                            <p>Кликните на любой квадрат на карте</p>
+                            <p style="font-size: 0.8em;">Кликните на любой квадрат на карте</p>
                         </div>
                     </div>
                 </div>
@@ -349,214 +454,81 @@
 
         let db;
         let countriesData = {};
-        let currentFilter = 'all';
         let selectedPixel = null;
+        let currentScale = 1.0;
+        let currentTranslate = { x: 0, y: 0 };
+        let isDragging = false;
+        let lastMousePos = { x: 0, y: 0 };
+        let selectedCountryForColor = null;
 
         // Уникальные цвета для каждой страны
-        const countryColors = {
-            'france': '#1f77b4',
-            'germany': '#ff7f0e',
-            'united_kingdom': '#2ca02c',
-            'spain': '#d62728',
-            'italy': '#9467bd',
-            'sweden': '#8c564b',
-            'norway': '#e377c2',
-            'finland': '#7f7f7f',
-            'denmark': '#bcbd22',
-            'poland': '#17becf',
-            'ukraine': '#aec7e8',
-            'romania': '#ffbb78',
-            'greece': '#98df8a',
-            'serbia': '#ff9896',
-            'croatia': '#c5b0d5',
-            'bulgaria': '#c49c94',
-            'albania': '#f7b6d2',
-            'lithuania': '#c7c7c7',
-            'latvia': '#dbdb8d',
-            'estonia': '#9edae5',
-            'netherlands': '#393b79',
-            'belgium': '#637939',
-            'luxembourg': '#8c6d31',
-            'austria': '#843c39',
-            'switzerland': '#7b4173',
-            'czechia': '#5254a3',
-            'slovakia': '#8ca252',
-            'hungary': '#bd9e39',
-            'portugal': '#ad494a',
-            'ireland': '#a55194',
-            'belarus': '#6b6ecf',
-            'moldova': '#b5cf6b',
-            'montenegro': '#e7ba52',
-            'slovenia': '#ce6dbd',
-            'bosnia': '#9c9ede',
-            'iceland': '#cedb9c',
-            'malta': '#e7cb94',
-            'cyprus': '#e7969c',
-            'andorra': '#7b4173',
-            'monaco': '#843c39',
-            'san_marino': '#8c6d31',
-            'liechtenstein': '#637939'
+        const defaultCountryColors = {
+            'france': '#1f77b4', 'germany': '#ff7f0e', 'united_kingdom': '#2ca02c',
+            'spain': '#d62728', 'italy': '#9467bd', 'sweden': '#8c564b',
+            'norway': '#e377c2', 'finland': '#7f7f7f', 'denmark': '#bcbd22',
+            'poland': '#17becf', 'ukraine': '#aec7e8', 'romania': '#ffbb78',
+            'greece': '#98df8a', 'serbia': '#ff9896', 'croatia': '#c5b0d5',
+            'bulgaria': '#c49c94', 'albania': '#f7b6d2', 'lithuania': '#c7c7c7',
+            'latvia': '#dbdb8d', 'estonia': '#9edae5', 'netherlands': '#393b79',
+            'belgium': '#637939', 'luxembourg': '#8c6d31', 'austria': '#843c39',
+            'switzerland': '#7b4173', 'czechia': '#5254a3', 'slovakia': '#8ca252',
+            'hungary': '#bd9e39', 'portugal': '#ad494a', 'ireland': '#a55194',
+            'belarus': '#6b6ecf', 'moldova': '#b5cf6b', 'montenegro': '#e7ba52',
+            'slovenia': '#ce6dbd', 'bosnia': '#9c9ede', 'iceland': '#cedb9c',
+            'malta': '#e7cb94', 'cyprus': '#e7969c', 'andorra': '#7b4173',
+            'monaco': '#843c39', 'san_marino': '#8c6d31', 'liechtenstein': '#637939'
         };
 
-        // Распределение стран по пикселям (координаты x,y)
+        let countryColors = {...defaultCountryColors};
+
+        // Увеличенное распределение стран по пикселям (48x40 вместо 24x20)
         const countryPixels = {
-            'france': [
-                [5,8],[6,8],[7,8],[8,8],
-                [5,9],[6,9],[7,9],[8,9],
-                [5,10],[6,10],[7,10]
-            ],
-            'germany': [
-                [9,7],[10,7],[11,7],[12,7],
-                [9,8],[10,8],[11,8],[12,8],
-                [10,9],[11,9],[12,9]
-            ],
-            'united_kingdom': [
-                [2,5],[3,5],[4,5],
-                [2,6],[3,6],[4,6],
-                [3,7]
-            ],
-            'spain': [
-                [3,9],[4,9],[5,9],
-                [3,10],[4,10],[5,10],[6,10],
-                [4,11],[5,11]
-            ],
-            'italy': [
-                [10,10],[11,10],
-                [10,11],[11,11],[12,11],
-                [11,12]
-            ],
-            'sweden': [
-                [10,3],[11,3],[12,3],
-                [10,4],[11,4],[12,4],
-                [11,5]
-            ],
-            'norway': [
-                [9,2],[10,2],
-                [9,3],[10,3],
-                [9,4]
-            ],
-            'finland': [
-                [13,3],[14,3],
-                [13,4],[14,4],[15,4],
-                [13,5],[14,5]
-            ],
-            'denmark': [
-                [9,6],[10,6],
-                [9,7]
-            ],
-            'poland': [
-                [12,7],[13,7],[14,7],
-                [12,8],[13,8],[14,8],
-                [12,9],[13,9]
-            ],
-            'ukraine': [
-                [15,7],[16,7],[17,7],
-                [15,8],[16,8],[17,8],
-                [15,9],[16,9]
-            ],
-            'romania': [
-                [13,9],[14,9],[15,9],
-                [13,10],[14,10],[15,10]
-            ],
-            'greece': [
-                [13,12],[14,12],
-                [13,13],[14,13]
-            ],
-            'serbia': [
-                [12,10],[13,10],
-                [12,11]
-            ],
-            'croatia': [
-                [11,9],[12,9],
-                [11,10]
-            ],
-            'bulgaria': [
-                [14,10],[15,10],
-                [14,11],[15,11]
-            ],
-            'albania': [
-                [12,12]
-            ],
-            'lithuania': [
-                [13,6],[14,6]
-            ],
-            'latvia': [
-                [12,5],[13,5]
-            ],
-            'estonia': [
-                [13,4],[14,4]
-            ],
-            'netherlands': [
-                [8,6],[9,6]
-            ],
-            'belgium': [
-                [8,7],[9,7]
-            ],
-            'luxembourg': [
-                [9,8]
-            ],
-            'austria': [
-                [11,8],[12,8]
-            ],
-            'switzerland': [
-                [9,9]
-            ],
-            'czechia': [
-                [11,7],[12,7]
-            ],
-            'slovakia': [
-                [13,8]
-            ],
-            'hungary': [
-                [12,9],[13,9]
-            ],
-            'portugal': [
-                [2,10],[3,10],
-                [2,11],[3,11]
-            ],
-            'ireland': [
-                [1,6],[2,6],
-                [1,7],[2,7]
-            ],
-            'belarus': [
-                [14,5],[15,5],
-                [14,6],[15,6]
-            ],
-            'moldova': [
-                [15,9]
-            ],
-            'montenegro': [
-                [12,11]
-            ],
-            'slovenia': [
-                [11,9]
-            ],
-            'bosnia': [
-                [11,10]
-            ],
-            'iceland': [
-                [0,2],[1,2],
-                [0,3],[1,3]
-            ],
-            'malta': [
-                [11,13]
-            ],
-            'cyprus': [
-                [17,12]
-            ],
-            'andorra': [
-                [4,9]
-            ],
-            'monaco': [
-                [8,10]
-            ],
-            'san_marino': [
-                [10,10]
-            ],
-            'liechtenstein': [
-                [10,8]
-            ]
+            'france': generateExpandedPixels([
+                [10,16],[11,16],[12,16],[13,16],[14,16],[15,16],
+                [10,17],[11,17],[12,17],[13,17],[14,17],[15,17],
+                [10,18],[11,18],[12,18],[13,18],[14,18],[15,18],
+                [10,19],[11,19],[12,19],[13,19],[14,19],
+                [10,20],[11,20],[12,20],[13,20],[14,20]
+            ]),
+            'germany': generateExpandedPixels([
+                [18,14],[19,14],[20,14],[21,14],[22,14],[23,14],
+                [18,15],[19,15],[20,15],[21,15],[22,15],[23,15],
+                [18,16],[19,16],[20,16],[21,16],[22,16],[23,16],
+                [19,17],[20,17],[21,17],[22,17],[23,17],
+                [20,18],[21,18],[22,18],[23,18]
+            ]),
+            'united_kingdom': generateExpandedPixels([
+                [4,10],[5,10],[6,10],[7,10],[8,10],
+                [4,11],[5,11],[6,11],[7,11],[8,11],
+                [4,12],[5,12],[6,12],[7,12],[8,12],
+                [5,13],[6,13],[7,13],[8,13],
+                [6,14],[7,14]
+            ]),
+            'spain': generateExpandedPixels([
+                [6,18],[7,18],[8,18],[9,18],[10,18],
+                [6,19],[7,19],[8,19],[9,19],[10,19],[11,19],
+                [6,20],[7,20],[8,20],[9,20],[10,20],[11,20],
+                [7,21],[8,21],[9,21],[10,21],[11,21],
+                [8,22],[9,22],[10,22]
+            ]),
+            'italy': generateExpandedPixels([
+                [20,20],[21,20],[22,20],[23,20],
+                [20,21],[21,21],[22,21],[23,21],[24,21],
+                [20,22],[21,22],[22,22],[23,22],[24,22],
+                [21,23],[22,23],[23,23],[24,23],
+                [22,24],[23,24]
+            ])
         };
+
+        // Вспомогательная функция для расширения координат
+        function generateExpandedPixels(originalPixels) {
+            const expanded = [];
+            originalPixels.forEach(([x, y]) => {
+                // Создаем кластер из 4 пикселей для каждого оригинального пикселя
+                expanded.push([x*2, y*2], [x*2 + 1, y*2], [x*2, y*2 + 1], [x*2 + 1, y*2 + 1]);
+            });
+            return expanded;
+        }
 
         // Инициализация Firebase
         function initializeFirebase() {
@@ -574,7 +546,6 @@
         // Обновление статуса
         function updateStatus(message) {
             document.getElementById('sync-status').textContent = message;
-            console.log(message);
         }
 
         // Загрузка данных стран
@@ -595,16 +566,6 @@
                     updateStatus("⚠️ Данные стран не найдены");
                 }
             });
-
-            db.ref("wars").on("value", () => {
-                updateStatistics();
-                updatePixelColors();
-            });
-
-            db.ref("alliances").on("value", () => {
-                updateStatistics();
-                updatePixelColors();
-            });
         }
 
         // Создание легенды цветов стран
@@ -618,50 +579,202 @@
                     const item = document.createElement('div');
                     item.className = 'country-color-item';
                     item.innerHTML = `
-                        <div class="color-box" style="background-color: ${color};"></div>
+                        <div class="color-box" style="background-color: ${color};" 
+                             onclick="selectCountryForColor('${countryId}')"></div>
                         <span>${countryName}</span>
+                        <input type="color" value="${color}" 
+                               onchange="changeCountryColor('${countryId}', this.value)" 
+                               style="margin-left: auto; width: 25px; height: 20px;">
                     `;
                     legendElement.appendChild(item);
                 }
             });
         }
 
-        // Создание пиксельной карты с границами
+        // Выбор страны для смены цвета
+        function selectCountryForColor(countryId) {
+            selectedCountryForColor = countryId;
+            const colorPicker = document.getElementById('color-picker');
+            colorPicker.value = countryColors[countryId];
+            
+            // Подсветка выбранной страны
+            document.querySelectorAll('.pixel').forEach(pixel => {
+                if (pixel.dataset.country === countryId) {
+                    pixel.style.boxShadow = '0 0 0 2px #f39c12, 0 0 10px rgba(243, 156, 18, 0.5)';
+                } else {
+                    pixel.style.boxShadow = 'none';
+                }
+            });
+        }
+
+        // Смена цвета страны
+        function changeCountryColor(countryId, newColor) {
+            countryColors[countryId] = newColor;
+            
+            // Обновляем цвет на карте
+            document.querySelectorAll(`.pixel[data-country="${countryId}"]`).forEach(pixel => {
+                pixel.style.background = newColor;
+            });
+            
+            // Обновляем легенду
+            createCountryColorsLegend();
+        }
+
+        // Сброс всех цветов
+        function resetAllColors() {
+            countryColors = {...defaultCountryColors};
+            createCountryColorsLegend();
+            updatePixelColors();
+        }
+
+        // Создание пиксельной карты
         function createPixelMap() {
             const pixelMap = document.getElementById('pixel-map');
             pixelMap.innerHTML = '';
 
-            // Создаем 24x20 сетку
-            for (let y = 0; y < 20; y++) {
-                for (let x = 0; x < 24; x++) {
+            // Создаем увеличенную сетку 48x40
+            const gridSizeX = 48;
+            const gridSizeY = 40;
+            const pixelSize = 25; // Размер пикселя в пикселях
+
+            pixelMap.style.gridTemplateColumns = `repeat(${gridSizeX}, ${pixelSize}px)`;
+            pixelMap.style.gridTemplateRows = `repeat(${gridSizeY}, ${pixelSize}px)`;
+
+            for (let y = 0; y < gridSizeY; y++) {
+                for (let x = 0; x < gridSizeX; x++) {
                     const pixel = document.createElement('div');
                     pixel.className = 'pixel empty';
                     pixel.dataset.x = x;
                     pixel.dataset.y = y;
                     
-                    // Находим страну для этого пикселя
                     const country = findCountryForPixel(x, y);
                     if (country) {
                         pixel.dataset.country = country;
                         pixel.dataset.region = `${country}_${x}_${y}`;
                         pixel.textContent = getCountryCode(country);
-                        // Устанавливаем цвет страны
                         pixel.style.background = countryColors[country];
                     }
                     
                     pixel.addEventListener('click', handlePixelClick);
-                    pixel.addEventListener('mouseenter', handlePixelHover);
-                    pixel.addEventListener('mouseleave', handlePixelLeave);
                     
                     pixelMap.appendChild(pixel);
                 }
             }
             
-            // Добавляем границы между странами
             addCountryBorders();
+            setupZoomAndPan();
         }
 
-        // Добавление пиксельных границ
+        // Настройка зума и панорамирования
+        function setupZoomAndPan() {
+            const mapWrapper = document.getElementById('map-wrapper');
+            const pixelMap = document.getElementById('pixel-map');
+
+            // Зум колесом мыши
+            mapWrapper.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomIntensity = 0.1;
+                const wheel = e.deltaY < 0 ? 1 : -1;
+                const zoom = Math.exp(wheel * zoomIntensity);
+                
+                const rect = mapWrapper.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Вычисляем новые координаты
+                currentTranslate.x -= (mouseX - currentTranslate.x) * (zoom - 1);
+                currentTranslate.y -= (mouseY - currentTranslate.y) * (zoom - 1);
+                currentScale *= zoom;
+                
+                updateMapTransform();
+            });
+
+            // Панорамирование
+            mapWrapper.addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // Левая кнопка мыши
+                    isDragging = true;
+                    lastMousePos = { x: e.clientX, y: e.clientY };
+                    mapWrapper.style.cursor = 'grabbing';
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - lastMousePos.x;
+                    const deltaY = e.clientY - lastMousePos.y;
+                    
+                    currentTranslate.x += deltaX;
+                    currentTranslate.y += deltaY;
+                    
+                    lastMousePos = { x: e.clientX, y: e.clientY };
+                    updateMapTransform();
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                mapWrapper.style.cursor = 'grab';
+            });
+
+            // Сенсорные события для мобильных устройств
+            let touchStart = null;
+            mapWrapper.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+
+            mapWrapper.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && touchStart) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const deltaX = touch.clientX - touchStart.x;
+                    const deltaY = touch.clientY - touchStart.y;
+                    
+                    currentTranslate.x += deltaX;
+                    currentTranslate.y += deltaY;
+                    
+                    touchStart = { x: touch.clientX, y: touch.clientY };
+                    updateMapTransform();
+                }
+            });
+        }
+
+        // Обновление трансформации карты
+        function updateMapTransform() {
+            const pixelMap = document.getElementById('pixel-map');
+            pixelMap.style.transform = `translate(${currentTranslate.x}px, ${currentTranslate.y}px) scale(${currentScale})`;
+            
+            // Обновление отображения масштаба
+            document.getElementById('zoom-display').textContent = `Масштаб: ${Math.round(currentScale * 100)}%`;
+        }
+
+        // Управление зумом
+        function zoomIn() {
+            currentScale *= 1.2;
+            updateMapTransform();
+        }
+
+        function zoomOut() {
+            currentScale /= 1.2;
+            updateMapTransform();
+        }
+
+        function resetZoom() {
+            currentScale = 1.0;
+            currentTranslate = { x: 0, y: 0 };
+            updateMapTransform();
+        }
+
+        // Обновление цветов пикселей
+        function updatePixelColors() {
+            document.querySelectorAll('.pixel:not(.empty)').forEach(pixel => {
+                const countryId = pixel.dataset.country;
+                pixel.style.background = countryColors[countryId];
+            });
+        }
+
+        // Остальные функции остаются похожими, но адаптированы под увеличенную карту
         function addCountryBorders() {
             const pixels = document.querySelectorAll('.pixel:not(.empty)');
             
@@ -670,12 +783,11 @@
                 const y = parseInt(pixel.dataset.y);
                 const country = pixel.dataset.country;
 
-                // Проверяем соседей и добавляем границы
                 const neighbors = [
-                    {dx: 0, dy: -1, border: 'top'},    // сверху
-                    {dx: 1, dy: 0, border: 'right'},   // справа
-                    {dx: 0, dy: 1, border: 'bottom'},  // снизу
-                    {dx: -1, dy: 0, border: 'left'}    // слева
+                    {dx: 0, dy: -1, border: 'top'},
+                    {dx: 1, dy: 0, border: 'right'},
+                    {dx: 0, dy: 1, border: 'bottom'},
+                    {dx: -1, dy: 0, border: 'left'}
                 ];
 
                 neighbors.forEach(neighbor => {
@@ -685,13 +797,11 @@
                     if (isValidCoordinate(nx, ny)) {
                         const neighborCountry = findCountryForPixel(nx, ny);
                         if (neighborCountry !== country) {
-                            // Добавляем границу
                             const border = document.createElement('div');
                             border.className = `pixel-border border-${neighbor.border} thick-border`;
                             pixel.appendChild(border);
                         }
                     } else {
-                        // Граница карты
                         const border = document.createElement('div');
                         border.className = `pixel-border border-${neighbor.border}`;
                         border.style.background = '#000000';
@@ -701,12 +811,10 @@
             });
         }
 
-        // Проверка валидности координат
         function isValidCoordinate(x, y) {
-            return x >= 0 && x < 24 && y >= 0 && y < 20;
+            return x >= 0 && x < 48 && y >= 0 && y < 40;
         }
 
-        // Поиск страны для пикселя
         function findCountryForPixel(x, y) {
             for (const [country, pixels] of Object.entries(countryPixels)) {
                 if (pixels.some(([px, py]) => px === x && py === y)) {
@@ -716,129 +824,30 @@
             return null;
         }
 
-        // Получение данных региона
-        function getRegionData(countryId, x, y) {
-            const countryData = countriesData[countryId];
-            if (!countryData) {
-                return {
-                    population: 0,
-                    army: 0,
-                    gold: 0,
-                    income: 0,
-                    hasWars: false,
-                    inAlliance: false
-                };
-            }
-
-            const basePopulation = countryData.population || 0;
-            const baseArmy = countryData.army || 0;
-            const baseGold = countryData.gold || 0;
-            const hasWars = countryData.wars && Object.keys(countryData.wars).length > 0;
-            const inAlliance = !!countryData.alliance;
-
-            // Уникальный коэффициент для каждого региона
-            const regionCoefficient = ((x * 7 + y * 13) % 10) / 10 + 0.5;
-
-            return {
-                population: Math.floor(basePopulation * regionCoefficient / getCountryRegionCount(countryId)),
-                army: Math.floor(baseArmy * regionCoefficient / getCountryRegionCount(countryId)),
-                gold: Math.floor(baseGold * regionCoefficient / getCountryRegionCount(countryId)),
-                income: Math.floor((basePopulation * regionCoefficient / getCountryRegionCount(countryId)) / 100000),
-                hasWars: hasWars,
-                inAlliance: inAlliance
-            };
-        }
-
-        // Получение количества регионов в стране
-        function getCountryRegionCount(countryId) {
-            return countryPixels[countryId] ? countryPixels[countryId].length : 1;
-        }
-
-        // Получение кода страны
         function getCountryCode(countryId) {
             const codes = {
-                'france': 'FR', 'germany': 'DE', 'united_kingdom': 'UK', 'spain': 'ES', 'italy': 'IT',
-                'sweden': 'SE', 'norway': 'NO', 'finland': 'FI', 'denmark': 'DK', 'poland': 'PL',
-                'ukraine': 'UA', 'romania': 'RO', 'greece': 'GR', 'serbia': 'RS', 'croatia': 'HR',
-                'bulgaria': 'BG', 'albania': 'AL', 'lithuania': 'LT', 'latvia': 'LV', 'estonia': 'EE',
-                'netherlands': 'NL', 'belgium': 'BE', 'luxembourg': 'LU', 'austria': 'AT', 'switzerland': 'CH',
-                'czechia': 'CZ', 'slovakia': 'SK', 'hungary': 'HU', 'portugal': 'PT', 'ireland': 'IE',
-                'belarus': 'BY', 'moldova': 'MD', 'montenegro': 'ME', 'slovenia': 'SI', 'bosnia': 'BA',
-                'iceland': 'IS', 'malta': 'MT', 'cyprus': 'CY', 'andorra': 'AD', 'monaco': 'MC',
-                'san_marino': 'SM', 'liechtenstein': 'LI'
+                'france': 'FR', 'germany': 'DE', 'united_kingdom': 'UK',
+                'spain': 'ES', 'italy': 'IT', 'sweden': 'SE', 'norway': 'NO'
             };
             return codes[countryId] || countryId.substring(0, 2).toUpperCase();
         }
 
-        // Получение названия страны
         function getCountryName(countryId) {
             const names = {
                 'france': 'Франция', 'germany': 'Германия', 'united_kingdom': 'Великобритания',
-                'spain': 'Испания', 'italy': 'Италия', 'sweden': 'Швеция', 'norway': 'Норвегия',
-                'finland': 'Финляндия', 'denmark': 'Дания', 'poland': 'Польша', 'ukraine': 'Украина',
-                'romania': 'Румыния', 'greece': 'Греция', 'serbia': 'Сербия', 'croatia': 'Хорватия',
-                'bulgaria': 'Болгария', 'albania': 'Албания', 'lithuania': 'Литва', 'latvia': 'Латвия',
-                'estonia': 'Эстония', 'netherlands': 'Нидерланды', 'belgium': 'Бельгия', 'luxembourg': 'Люксембург',
-                'austria': 'Австрия', 'switzerland': 'Швейцария', 'czechia': 'Чехия', 'slovakia': 'Словакия',
-                'hungary': 'Венгрия', 'portugal': 'Португалия', 'ireland': 'Ирландия', 'belarus': 'Беларусь',
-                'moldova': 'Молдова', 'montenegro': 'Черногория', 'slovenia': 'Словения', 'bosnia': 'Босния и Герцеговина',
-                'iceland': 'Исландия', 'malta': 'Мальта', 'cyprus': 'Кипр', 'andorra': 'Андорра',
-                'monaco': 'Монако', 'san_marino': 'Сан-Марино', 'liechtenstein': 'Лихтенштейн'
+                'spain': 'Испания', 'italy': 'Италия', 'sweden': 'Швеция', 'norway': 'Норвегия'
             };
             return names[countryId] || countryId;
         }
 
-        // Обновление статистики
         function updateStatistics() {
             const countriesCount = Object.keys(countriesData).length;
             const regionsCount = Object.values(countryPixels).reduce((acc, pixels) => acc + pixels.length, 0);
-            const warsCount = calculateWarsCount();
-            const alliancesCount = calculateAlliancesCount();
             
             document.getElementById('countries-count').textContent = countriesCount;
             document.getElementById('regions-count').textContent = regionsCount;
-            document.getElementById('wars-count').textContent = warsCount;
-            document.getElementById('alliances-count').textContent = alliancesCount;
         }
 
-        function calculateWarsCount() {
-            let wars = 0;
-            Object.values(countriesData).forEach(country => {
-                if (country.wars && Object.keys(country.wars).length > 0) wars++;
-            });
-            return wars;
-        }
-
-        function calculateAlliancesCount() {
-            let alliances = 0;
-            Object.values(countriesData).forEach(country => {
-                if (country.alliance) alliances++;
-            });
-            return alliances;
-        }
-
-        // Обновление цветов пикселей (для фильтров)
-        function updatePixelColors() {
-            const pixels = document.querySelectorAll('.pixel:not(.empty)');
-            
-            pixels.forEach(pixel => {
-                const countryId = pixel.dataset.country;
-                const x = parseInt(pixel.dataset.x);
-                const y = parseInt(pixel.dataset.y);
-                const regionData = getRegionData(countryId, x, y);
-                
-                let shouldShow = true;
-                if (currentFilter === 'wars' && !regionData.hasWars) {
-                    shouldShow = false;
-                } else if (currentFilter === 'rich' && regionData.income <= 20) {
-                    shouldShow = false;
-                }
-
-                pixel.style.opacity = shouldShow ? '1' : '0.3';
-            });
-        }
-
-        // Обработчики событий
         function handlePixelClick(event) {
             const pixel = event.target;
             const countryId = pixel.dataset.country;
@@ -850,50 +859,13 @@
             }
         }
 
-        function handlePixelHover(event) {
-            if (event.target !== selectedPixel) {
-                event.target.style.transform = 'scale(1.15)';
-            }
-        }
-
-        function handlePixelLeave(event) {
-            if (event.target !== selectedPixel) {
-                event.target.style.transform = 'scale(1)';
-            }
-        }
-
-        // Показ информации о регионе
         function showRegionInfo(countryId, x, y) {
-            const regionData = getRegionData(countryId, x, y);
             const detailsElement = document.getElementById('region-details');
-
             detailsElement.innerHTML = `
                 <div class="country-name">${getCountryName(countryId)}</div>
                 <div class="coordinates">Координаты: [${x}, ${y}]</div>
-                
-                <div class="detail-item">
-                    <span class="detail-label">👥 Население:</span>
-                    <span class="detail-value">${regionData.population.toLocaleString()}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">💰 Доход/час:</span>
-                    <span class="detail-value">${regionData.income} золота</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">⚔️ Армия:</span>
-                    <span class="detail-value">${regionData.army} солдат</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">🏦 Золото:</span>
-                    <span class="detail-value">${regionData.gold}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">🕊️ Статус:</span>
-                    <span class="detail-value">${regionData.hasWars ? '⚔️ Война' : '🕊️ Мир'}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">🤝 Альянс:</span>
-                    <span class="detail-value">${regionData.inAlliance ? '✅ В альянсе' : '❌ Не в альянсе'}</span>
+                <div style="margin-top: 10px; font-size: 0.8em; opacity: 0.8;">
+                    🎨 Нажмите на цвет страны в легенде чтобы изменить его
                 </div>
             `;
 
@@ -907,24 +879,10 @@
             }
         }
 
-        // Установка фильтра
-        function setFilter(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            updatePixelColors();
-        }
-
         // Основная инициализация
         function initialize() {
             if (initializeFirebase()) {
                 loadCountriesData();
-                setInterval(() => {
-                    updatePixelColors();
-                    updateStatistics();
-                }, 10000);
             }
         }
 

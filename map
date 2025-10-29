@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта Европы - Политическая ситуация</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1e2f, #2a2a40);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #3498db, #27ae60);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .map-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .europe-map {
+            width: 100%;
+            height: 700px;
+            background: #2a2a40;
+            border: 2px solid #3a3a5a;
+            border-radius: 10px;
+        }
+
+        .country {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            stroke: #fff;
+            stroke-width: 1;
+        }
+
+        .country:hover {
+            stroke-width: 3;
+            stroke: #3498db;
+            filter: brightness(1.2);
+        }
+
+        .controls {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        h3 {
+            color: #27ae60;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: 20px 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid #fff;
+        }
+
+        .status-info {
+            background: rgba(52, 152, 219, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .country-details {
+            background: rgba(39, 174, 96, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #ccc;
+        }
+
+        .detail-value {
+            color: #fff;
+        }
+
+        .debug-info {
+            background: rgba(231, 76, 60, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #e74c3c;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.1em;
+        }
+
+        .no-data {
+            background: rgba(243, 156, 18, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #f39c12;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background: rgba(52, 152, 219, 0.3);
+            border: 1px solid #3498db;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: rgba(52, 152, 219, 0.5);
+        }
+
+        .filter-btn.active {
+            background: #3498db;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .updating {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 Карта Европы - Политическая ситуация</h1>
+            <div class="subtitle">Реальное время • Данные из Firebase • Интерактивная карта</div>
+        </header>
+
+        <div class="content">
+            <div class="map-container">
+                <div class="filters">
+                    <button class="filter-btn active" onclick="setFilter('all')">Все страны</button>
+                    <button class="filter-btn" onclick="setFilter('wars')">Только с войнами</button>
+                </div>
+                <svg class="europe-map" viewBox="0 0 1000 800" id="europe-map">
+                    <!-- Албания -->
+                    <path id="albania" class="country" d="M550,500 L560,490 L570,500 L565,510 L555,505 Z" 
+                          data-country="albania" fill="#3498db"/>
+                    
+                    <!-- Андорра -->
+                    <path id="andorra" class="country" d="M400,450 L410,440 L420,450 L415,460 L405,455 Z" 
+                          data-country="andorra" fill="#3498db"/>
+                    
+                    <!-- Австрия -->
+                    <path id="austria" class="country" d="M500,400 L520,390 L530,400 L525,410 L510,405 Z" 
+                          data-country="austria" fill="#3498db"/>
+                    
+                    <!-- Беларусь -->
+                    <path id="belarus" class="country" d="M600,350 L630,340 L640,360 L620,370 L610,355 Z" 
+                          data-country="belarus" fill="#3498db"/>
+                    
+                    <!-- Бельгия -->
+                    <path id="belgium" class="country" d="M420,380 L440,370 L450,385 L435,395 L425,385 Z" 
+                          data-country="belgium" fill="#3498db"/>
+                    
+                    <!-- Болгария -->
+                    <path id="bulgaria" class="country" d="M580,450 L600,440 L610,460 L590,470 L580,455 Z" 
+                          data-country="bulgaria" fill="#3498db"/>
+                    
+                    <!-- Хорватия -->
+                    <path id="croatia" class="country" d="M520,430 L540,420 L545,435 L530,445 L525,435 Z" 
+                          data-country="croatia" fill="#3498db"/>
+                    
+                    <!-- Чехия -->
+                    <path id="czechia" class="country" d="M520,380 L540,370 L545,385 L530,395 L525,385 Z" 
+                          data-country="czechia" fill="#3498db"/>
+                    
+                    <!-- Дания -->
+                    <path id="denmark" class="country" d="M470,330 L490,320 L495,335 L480,345 L475,335 Z" 
+                          data-country="denmark" fill="#3498db"/>
+                    
+                    <!-- Эстония -->
+                    <path id="estonia" class="country" d="M580,300 L600,290 L605,310 L585,320 L580,305 Z" 
+                          data-country="estonia" fill="#3498db"/>
+                    
+                    <!-- Финляндия -->
+                    <path id="finland" class="country" d="M550,250 L590,240 L600,270 L570,280 L555,260 Z" 
+                          data-country="finland" fill="#3498db"/>
+                    
+                    <!-- Франция -->
+                    <path id="france" class="country" d="M380,400 L430,380 L440,420 L400,440 L385,410 Z" 
+                          data-country="france" fill="#3498db"/>
+                    
+                    <!-- Германия -->
+                    <path id="germany" class="country" d="M470,370 L510,360 L520,390 L480,400 L475,380 Z" 
+                          data-country="germany" fill="#3498db"/>
+                    
+                    <!-- Греция -->
+                    <path id="greece" class="country" d="M570,480 L590,470 L595,490 L575,500 L570,485 Z" 
+                          data-country="greece" fill="#3498db"/>
+                    
+                    <!-- Венгрия -->
+                    <path id="hungary" class="country" d="M540,420 L560,410 L565,430 L545,440 L540,425 Z" 
+                          data-country="hungary" fill="#3498db"/>
+                    
+                    <!-- Исландия -->
+                    <path id="iceland" class="country" d="M300,200 L340,190 L345,220 L310,230 L305,210 Z" 
+                          data-country="iceland" fill="#3498db"/>
+                    
+                    <!-- Ирландия -->
+                    <path id="ireland" class="country" d="M320,350 L360,340 L365,370 L330,380 L325,360 Z" 
+                          data-country="ireland" fill="#3498db"/>
+                    
+                    <!-- Италия -->
+                    <path id="italy" class="country" d="M480,460 L520,450 L525,480 L490,490 L485,470 Z" 
+                          data-country="italy" fill="#3498db"/>
+                    
+                    <!-- Латвия -->
+                    <path id="latvia" class="country" d="M580,330 L600,320 L605,340 L585,350 L580,335 Z" 
+                          data-country="latvia" fill="#3498db"/>
+                    
+                    <!-- Литва -->
+                    <path id="lithuania" class="country" d="M570,350 L590,340 L595,360 L575,370 L570,355 Z" 
+                          data-country="lithuania" fill="#3498db"/>
+                    
+                    <!-- Люксембург -->
+                    <path id="luxembourg" class="country" d="M440,390 L450,385 L455,395 L445,400 L442,392 Z" 
+                          data-country="luxembourg" fill="#3498db"/>
+                    
+                    <!-- Мальта -->
+                    <path id="malta" class="country" d="M520,520 L530,515 L535,525 L525,530 Z" 
+                          data-country="malta" fill="#3498db"/>
+                    
+                    <!-- Молдова -->
+                    <path id="moldova" class="country" d="M620,420 L640,410 L645,430 L625,440 L620,425 Z" 
+                          data-country="moldova" fill="#3498db"/>
+                    
+                    <!-- Монако -->
+                    <path id="monaco" class="country" d="M460,440 L465,438 L468,445 L463,447 Z" 
+                          data-country="monaco" fill="#3498db"/>
+                    
+                    <!-- Черногория -->
+                    <path id="montenegro" class="country" d="M550,470 L560,465 L565,475 L555,480 Z" 
+                          data-country="montenegro" fill="#3498db"/>
+                    
+                    <!-- Нидерланды -->
+                    <path id="netherlands" class="country" d="M440,360 L460,350 L465,370 L445,380 L442,365 Z" 
+                          data-country="netherlands" fill="#3498db"/>
+                    
+                    <!-- Северная Македония -->
+                    <path id="north_macedonia" class="country" d="M570,460 L580,455 L585,465 L575,470 Z" 
+                          data-country="north_macedonia" fill="#3498db"/>
+                    
+                    <!-- Норвегия -->
+                    <path id="norway" class="country" d="M480,280 L530,270 L540,310 L500,320 L485,290 Z" 
+                          data-country="norway" fill="#3498db"/>
+                    
+                    <!-- Польша -->
+                    <path id="poland" class="country" d="M540,370 L580,360 L585,390 L550,400 L545,375 Z" 
+                          data-country="poland" fill="#3498db"/>
+                    
+                    <!-- Португалия -->
+                    <path id="portugal" class="country" d="M320,450 L360,440 L365,470 L330,480 L325,460 Z" 
+                          data-country="portugal" fill="#3498db"/>
+                    
+                    <!-- Подписи стран -->
+                    <text x="555" y="505" font-size="8" fill="white" text-anchor="middle">AL</text>
+                    <text x="415" y="455" font-size="8" fill="white" text-anchor="middle">AD</text>
+                    <text x="525" y="405" font-size="8" fill="white" text-anchor="middle">AT</text>
+                    <text x="625" y="360" font-size="8" fill="white" text-anchor="middle">BY</text>
+                    <text x="435" y="390" font-size="8" fill="white" text-anchor="middle">BE</text>
+                    <text x="595" y="465" font-size="8" fill="white" text-anchor="middle">BG</text>
+                    <text x="535" y="440" font-size="8" fill="white" text-anchor="middle">HR</text>
+                    <text x="535" y="390" font-size="8" fill="white" text-anchor="middle">CZ</text>
+                    <text x="485" y="340" font-size="8" fill="white" text-anchor="middle">DK</text>
+                    <text x="595" y="315" font-size="8" fill="white" text-anchor="middle">EE</text>
+                    <text x="575" y="270" font-size="8" fill="white" text-anchor="middle">FI</text>
+                    <text x="410" y="420" font-size="8" fill="white" text-anchor="middle">FR</text>
+                    <text x="490" y="385" font-size="8" fill="white" text-anchor="middle">DE</text>
+                    <text x="585" y="495" font-size="8" fill="white" text-anchor="middle">GR</text>
+                    <text x="555" y="435" font-size="8" fill="white" text-anchor="middle">HU</text>
+                    <text x="325" y="220" font-size="8" fill="white" text-anchor="middle">IS</text>
+                    <text x="345" y="375" font-size="8" fill="white" text-anchor="middle">IE</text>
+                    <text x="505" y="480" font-size="8" fill="white" text-anchor="middle">IT</text>
+                    <text x="595" y="345" font-size="8" fill="white" text-anchor="middle">LV</text>
+                    <text x="585" y="365" font-size="8" fill="white" text-anchor="middle">LT</text>
+                    <text x="448" y="395" font-size="6" fill="white" text-anchor="middle">LU</text>
+                    <text x="530" y="528" font-size="6" fill="white" text-anchor="middle">MT</text>
+                    <text x="635" y="435" font-size="8" fill="white" text-anchor="middle">MD</text>
+                    <text x="463" y="445" font-size="6" fill="white" text-anchor="middle">MC</text>
+                    <text x="560" y="478" font-size="6" fill="white" text-anchor="middle">ME</text>
+                    <text x="455" y="375" font-size="8" fill="white" text-anchor="middle">NL</text>
+                    <text x="578" y="468" font-size="6" fill="white" text-anchor="middle">MK</text>
+                    <text x="510" y="305" font-size="8" fill="white" text-anchor="middle">NO</text>
+                    <text x="565" y="385" font-size="8" fill="white" text-anchor="middle">PL</text>
+                    <text x="345" y="475" font-size="8" fill="white" text-anchor="middle">PT</text>
+                </svg>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h2>🎯 Легенда карты</h2>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #27ae60;"></div>
+                        <span>Мирная страна (нет войн)</span>
+                    </div>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #e74c3c;"></div>
+                        <span>Участвует в войне</span>
+                    </div>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #3498db;"></div>
+                        <span>В альянсе</span>
+                    </div>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #f39c12;"></div>
+                        <span>Высокий доход (>50/час)</span>
+                    </div>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #9b59b6;"></div>
+                        <span>Большая армия (>500)</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h2>📊 Статус системы</h2>
+                    <div class="status-info">
+                        <div class="detail-item">
+                            <span class="detail-label">Синхронизация:</span>
+                            <span class="detail-value" id="sync-status">Загрузка...</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Стран загружено:</span>
+                            <span class="detail-value" id="countries-count">0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Активных войн:</span>
+                            <span class="detail-value" id="wars-count">0</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Альянсов:</span>
+                            <span class="detail-value" id="alliances-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h2>📍 Информация о стране</h2>
+                    <div class="country-details" id="country-details">
+                        <div class="no-data">Выберите страну на карте</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h2>⚙️ Отладка</h2>
+                    <div class="debug-info" id="debug-info">
+                        Загрузка данных из Firebase...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+            authDomain: "strani3.firebaseapp.com",
+            databaseURL: "https://strani3-default-rtdb.europe-west1.firebasedatabase.app/",
+            projectId: "strani3",
+            storageBucket: "strani3.firebasestorage.app",
+            messagingSenderId: "225168183800",
+            appId: "1:225168183800:web:825e782a35bccca89d460d",
+            measurementId: "G-3NKBET5R9J"
+        };
+
+        let db;
+        let countriesData = {};
+        let currentFilter = 'all';
+        let selectedCountry = null;
+
+        // Инициализация Firebase
+        function initializeFirebase() {
+            try {
+                const app = firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                updateDebugInfo("✅ Firebase инициализирован");
+                return true;
+            } catch (error) {
+                updateDebugInfo("❌ Ошибка Firebase: " + error.message);
+                return false;
+            }
+        }
+
+        // Обновление отладочной информации
+        function updateDebugInfo(message) {
+            const debugElement = document.getElementById('debug-info');
+            debugElement.innerHTML = message;
+            console.log(message);
+        }
+
+        // Загрузка данных стран
+        function loadCountriesData() {
+            if (!db) {
+                updateDebugInfo("❌ База данных не инициализирована");
+                return;
+            }
+
+            updateDebugInfo("🔄 Загрузка данных стран...");
+            
+            // Слушаем изменения в данных стран
+            db.ref("countries").on("value", (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    countriesData = data;
+                    updateDebugInfo(`✅ Загружено ${Object.keys(data).length} стран`);
+                    updateMapColors();
+                    updateStatistics();
+                } else {
+                    updateDebugInfo("⚠️ Данные стран не найдены");
+                }
+            }, (error) => {
+                updateDebugInfo("❌ Ошибка загрузки: " + error.message);
+            });
+
+            // Слушаем изменения в войнах
+            db.ref("wars").on("value", (snapshot) => {
+                const wars = snapshot.val();
+                updateStatistics();
+                updateMapColors();
+            });
+
+            // Слушаем изменения в альянсах
+            db.ref("alliances").on("value", (snapshot) => {
+                const alliances = snapshot.val();
+                updateStatistics();
+                updateMapColors();
+            });
+        }
+
+        // Обновление статистики
+        function updateStatistics() {
+            const countriesCount = Object.keys(countriesData).length;
+            const wars = document.getElementById('wars-count');
+            const alliances = document.getElementById('alliances-count');
+            const countries = document.getElementById('countries-count');
+            const syncStatus = document.getElementById('sync-status');
+
+            countries.textContent = countriesCount;
+            syncStatus.textContent = '✅ Синхронизировано';
+            syncStatus.style.color = '#27ae60';
+
+            // Подсчет войн и альянсов (упрощенная версия)
+            wars.textContent = '0';
+            alliances.textContent = '0';
+        }
+
+        // Обновление цветов на карте
+        function updateMapColors() {
+            const countries = document.querySelectorAll('.country');
+            
+            countries.forEach(countryElement => {
+                const countryId = countryElement.getAttribute('data-country');
+                const countryData = countriesData[countryId];
+                
+                if (!countryData) {
+                    countryElement.style.fill = '#7f8c8d'; // Серый для стран без данных
+                    return;
+                }
+
+                let color = '#3498db'; // Стандартный синий
+
+                // Проверка на участие в войнах
+                if (countryData.wars && Object.keys(countryData.wars).length > 0) {
+                    color = '#e74c3c'; // Красный для войны
+                }
+                // Проверка на альянс
+                else if (countryData.alliance) {
+                    color = '#3498db'; // Синий для альянса
+                }
+                // Проверка на высокий доход
+                else if (countryData.population && (countryData.population / 100000) > 50) {
+                    color = '#f39c12'; // Оранжевый для высокого дохода
+                }
+                // Проверка на большую армию
+                else if (countryData.army && countryData.army > 500) {
+                    color = '#9b59b6'; // Фиолетовый для большой армии
+                }
+                // Мирная страна
+                else {
+                    color = '#27ae60'; // Зеленый для мирных
+                }
+
+                // Применяем фильтр
+                if (currentFilter === 'wars' && color !== '#e74c3c') {
+                    countryElement.style.opacity = '0.3';
+                } else {
+                    countryElement.style.opacity = '1';
+                }
+
+                countryElement.style.fill = color;
+                countryElement.classList.add('updating');
+                
+                // Убираем анимацию через короткое время
+                setTimeout(() => {
+                    countryElement.classList.remove('updating');
+                }, 300);
+            });
+        }
+
+        // Установка фильтра
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Обновляем активные кнопки
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateMapColors();
+        }
+
+        // Показ информации о стране
+        function showCountryInfo(countryId) {
+            const countryData = countriesData[countryId];
+            const detailsElement = document.getElementById('country-details');
+            
+            if (!countryData) {
+                detailsElement.innerHTML = `
+                    <div class="no-data">
+                        <h3>${countryId.toUpperCase()}</h3>
+                        <p>Данные по стране не найдены в базе</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const population = countryData.population || 0;
+            const income = Math.floor(population / 100000);
+            const army = countryData.army || 0;
+            const gold = countryData.gold || 0;
+            const alliance = countryData.alliance ? 'Да' : 'Нет';
+            const wars = countryData.wars ? Object.keys(countryData.wars).length : 0;
+
+            detailsElement.innerHTML = `
+                <h3>${countryId.toUpperCase()}</h3>
+                <div class="detail-item">
+                    <span class="detail-label">Население:</span>
+                    <span class="detail-value">${population.toLocaleString()}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Доход/час:</span>
+                    <span class="detail-value">${income} золота</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Армия:</span>
+                    <span class="detail-value">${army} солдат</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Золото:</span>
+                    <span class="detail-value">${gold}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">В альянсе:</span>
+                    <span class="detail-value">${alliance}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Активных войн:</span>
+                    <span class="detail-value">${wars}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Последнее обновление:</span>
+                    <span class="detail-value">${new Date(countryData.lastUpdated || Date.now()).toLocaleString()}</span>
+                </div>
+            `;
+
+            // Подсвечиваем выбранную страну
+            if (selectedCountry) {
+                selectedCountry.style.strokeWidth = '1';
+            }
+            selectedCountry = document.getElementById(countryId);
+            selectedCountry.style.strokeWidth = '4';
+            selectedCountry.style.stroke = '#f39c12';
+        }
+
+        // Инициализация карты
+        function initializeMap() {
+            const countries = document.querySelectorAll('.country');
+            
+            countries.forEach(country => {
+                country.addEventListener('click', (e) => {
+                    const countryId = e.target.getAttribute('data-country');
+                    showCountryInfo(countryId);
+                });
+
+                country.addEventListener('mouseenter', (e) => {
+                    const countryId = e.target.getAttribute('data-country');
+                    e.target.style.strokeWidth = '3';
+                    e.target.style.stroke = '#3498db';
+                });
+
+                country.addEventListener('mouseleave', (e) => {
+                    if (e.target !== selectedCountry) {
+                        e.target.style.strokeWidth = '1';
+                        e.target.style.stroke = '#fff';
+                    }
+                });
+            });
+        }
+
+        // Основная инициализация
+        function initialize() {
+            if (initializeFirebase()) {
+                loadCountriesData();
+                initializeMap();
+                
+                // Автообновление каждые 30 секунд
+                setInterval(() => {
+                    updateMapColors();
+                    updateStatistics();
+                }, 30000);
+            }
+        }
+
+        // Запуск при загрузке страницы
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>

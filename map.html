@@ -83,7 +83,7 @@
             font-size: 9px;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(0,0,0,0.3);
         }
 
         .pixel:hover {
@@ -99,7 +99,7 @@
 
         .pixel-border {
             position: absolute;
-            background: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.8);
             z-index: 5;
             pointer-events: none;
         }
@@ -108,6 +108,11 @@
         .border-right { top: 0; right: -1px; width: 2px; height: 100%; }
         .border-bottom { bottom: -1px; left: 0; width: 100%; height: 2px; }
         .border-left { top: 0; left: -1px; width: 2px; height: 100%; }
+
+        .thick-border {
+            background: rgba(0,0,0,0.9);
+            z-index: 6;
+        }
 
         .controls {
             background: rgba(255,255,255,0.05);
@@ -242,16 +247,21 @@
             margin-bottom: 10px;
         }
 
-        /* Улучшенные стили для границ */
-        .country-border {
-            position: absolute;
-            background: rgba(255,255,255,0.8);
-            z-index: 8;
+        .country-colors-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
         }
 
-        .thick-border {
-            background: rgba(255,255,255,0.9);
-            box-shadow: 0 0 5px rgba(255,255,255,0.5);
+        .country-color-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px;
+            font-size: 0.8em;
         }
     </style>
 </head>
@@ -259,13 +269,13 @@
     <div class="container">
         <header>
             <h1>🧱 Пиксельная карта Европы</h1>
-            <div style="opacity: 0.9;">Квадратные регионы с пиксельными границами • Real-time данные</div>
+            <div style="opacity: 0.9;">Квадратные регионы с границами стран • Уникальные цвета</div>
         </header>
 
         <div class="content">
             <div class="map-container">
                 <div class="filters">
-                    <button class="filter-btn active" onclick="setFilter('all')">🌍 Все регионы</button>
+                    <button class="filter-btn active" onclick="setFilter('all')">🌍 Все страны</button>
                     <button class="filter-btn" onclick="setFilter('wars')">⚔️ Военные</button>
                     <button class="filter-btn" onclick="setFilter('rich')">💰 Богатые</button>
                 </div>
@@ -276,30 +286,9 @@
 
             <div class="controls">
                 <div class="control-group">
-                    <h2>🎨 Легенда карты</h2>
-                    <div class="legend">
-                        <div class="color-box" style="background-color: #27ae60;"></div>
-                        <span>Мирный регион</span>
-                    </div>
-                    <div class="legend">
-                        <div class="color-box" style="background-color: #e74c3c;"></div>
-                        <span>Регион в войне</span>
-                    </div>
-                    <div class="legend">
-                        <div class="color-box" style="background-color: #3498db;"></div>
-                        <span>Высокий доход</span>
-                    </div>
-                    <div class="legend">
-                        <div class="color-box" style="background-color: #f39c12;"></div>
-                        <span>Сильная армия</span>
-                    </div>
-                    <div class="legend">
-                        <div class="color-box" style="background-color: #9b59b6;"></div>
-                        <span>Много ресурсов</span>
-                    </div>
-                    <div class="legend">
-                        <div class="color-box" style="background-color: #7f8c8d;"></div>
-                        <span>Нет данных</span>
+                    <h2>🎨 Цвета стран</h2>
+                    <div class="country-colors-legend" id="country-colors-legend">
+                        <!-- Легенда цветов будет создана через JavaScript -->
                     </div>
                 </div>
 
@@ -363,9 +352,54 @@
         let currentFilter = 'all';
         let selectedPixel = null;
 
+        // Уникальные цвета для каждой страны
+        const countryColors = {
+            'france': '#1f77b4',
+            'germany': '#ff7f0e',
+            'united_kingdom': '#2ca02c',
+            'spain': '#d62728',
+            'italy': '#9467bd',
+            'sweden': '#8c564b',
+            'norway': '#e377c2',
+            'finland': '#7f7f7f',
+            'denmark': '#bcbd22',
+            'poland': '#17becf',
+            'ukraine': '#aec7e8',
+            'romania': '#ffbb78',
+            'greece': '#98df8a',
+            'serbia': '#ff9896',
+            'croatia': '#c5b0d5',
+            'bulgaria': '#c49c94',
+            'albania': '#f7b6d2',
+            'lithuania': '#c7c7c7',
+            'latvia': '#dbdb8d',
+            'estonia': '#9edae5',
+            'netherlands': '#393b79',
+            'belgium': '#637939',
+            'luxembourg': '#8c6d31',
+            'austria': '#843c39',
+            'switzerland': '#7b4173',
+            'czechia': '#5254a3',
+            'slovakia': '#8ca252',
+            'hungary': '#bd9e39',
+            'portugal': '#ad494a',
+            'ireland': '#a55194',
+            'belarus': '#6b6ecf',
+            'moldova': '#b5cf6b',
+            'montenegro': '#e7ba52',
+            'slovenia': '#ce6dbd',
+            'bosnia': '#9c9ede',
+            'iceland': '#cedb9c',
+            'malta': '#e7cb94',
+            'cyprus': '#e7969c',
+            'andorra': '#7b4173',
+            'monaco': '#843c39',
+            'san_marino': '#8c6d31',
+            'liechtenstein': '#637939'
+        };
+
         // Распределение стран по пикселям (координаты x,y)
         const countryPixels = {
-            // Западная Европа - компактные группы
             'france': [
                 [5,8],[6,8],[7,8],[8,8],
                 [5,9],[6,9],[7,9],[8,9],
@@ -391,8 +425,6 @@
                 [10,11],[11,11],[12,11],
                 [11,12]
             ],
-            
-            // Северная Европа
             'sweden': [
                 [10,3],[11,3],[12,3],
                 [10,4],[11,4],[12,4],
@@ -412,8 +444,6 @@
                 [9,6],[10,6],
                 [9,7]
             ],
-            
-            // Восточная Европа
             'poland': [
                 [12,7],[13,7],[14,7],
                 [12,8],[13,8],[14,8],
@@ -428,8 +458,6 @@
                 [13,9],[14,9],[15,9],
                 [13,10],[14,10],[15,10]
             ],
-            
-            // Балканы
             'greece': [
                 [13,12],[14,12],
                 [13,13],[14,13]
@@ -449,8 +477,6 @@
             'albania': [
                 [12,12]
             ],
-            
-            // Балтийские страны
             'lithuania': [
                 [13,6],[14,6]
             ],
@@ -460,8 +486,6 @@
             'estonia': [
                 [13,4],[14,4]
             ],
-            
-            // Бенилюкс
             'netherlands': [
                 [8,6],[9,6]
             ],
@@ -471,8 +495,6 @@
             'luxembourg': [
                 [9,8]
             ],
-            
-            // Центральная Европа
             'austria': [
                 [11,8],[12,8]
             ],
@@ -488,8 +510,6 @@
             'hungary': [
                 [12,9],[13,9]
             ],
-            
-            // Другие страны
             'portugal': [
                 [2,10],[3,10],
                 [2,11],[3,11]
@@ -570,6 +590,7 @@
                     updateStatus(`✅ Загружено ${Object.keys(data).length} стран`);
                     createPixelMap();
                     updateStatistics();
+                    createCountryColorsLegend();
                 } else {
                     updateStatus("⚠️ Данные стран не найдены");
                 }
@@ -583,6 +604,25 @@
             db.ref("alliances").on("value", () => {
                 updateStatistics();
                 updatePixelColors();
+            });
+        }
+
+        // Создание легенды цветов стран
+        function createCountryColorsLegend() {
+            const legendElement = document.getElementById('country-colors-legend');
+            legendElement.innerHTML = '';
+
+            Object.entries(countryColors).forEach(([countryId, color]) => {
+                if (countryPixels[countryId]) {
+                    const countryName = getCountryName(countryId);
+                    const item = document.createElement('div');
+                    item.className = 'country-color-item';
+                    item.innerHTML = `
+                        <div class="color-box" style="background-color: ${color};"></div>
+                        <span>${countryName}</span>
+                    `;
+                    legendElement.appendChild(item);
+                }
             });
         }
 
@@ -605,6 +645,8 @@
                         pixel.dataset.country = country;
                         pixel.dataset.region = `${country}_${x}_${y}`;
                         pixel.textContent = getCountryCode(country);
+                        // Устанавливаем цвет страны
+                        pixel.style.background = countryColors[country];
                     }
                     
                     pixel.addEventListener('click', handlePixelClick);
@@ -617,7 +659,6 @@
             
             // Добавляем границы между странами
             addCountryBorders();
-            updatePixelColors();
         }
 
         // Добавление пиксельных границ
@@ -653,7 +694,7 @@
                         // Граница карты
                         const border = document.createElement('div');
                         border.className = `pixel-border border-${neighbor.border}`;
-                        border.style.background = '#5a5a7a'; // Более темная граница для края карты
+                        border.style.background = '#000000';
                         pixel.appendChild(border);
                     }
                 });
@@ -713,40 +754,6 @@
             return countryPixels[countryId] ? countryPixels[countryId].length : 1;
         }
 
-        // Определение цвета региона
-        function getRegionColor(regionData) {
-            if (regionData.population === 0) return '#7f8c8d';
-            if (regionData.hasWars) return '#e74c3c';
-            if (regionData.income > 30) return '#3498db';
-            if (regionData.army > 100) return '#f39c12';
-            if (regionData.gold > 500) return '#9b59b6';
-            return '#27ae60';
-        }
-
-        // Обновление цветов пикселей
-        function updatePixelColors() {
-            const pixels = document.querySelectorAll('.pixel:not(.empty)');
-            
-            pixels.forEach(pixel => {
-                const countryId = pixel.dataset.country;
-                const x = parseInt(pixel.dataset.x);
-                const y = parseInt(pixel.dataset.y);
-                const regionData = getRegionData(countryId, x, y);
-                const color = getRegionColor(regionData);
-                
-                let shouldShow = true;
-                if (currentFilter === 'wars' && !regionData.hasWars) {
-                    shouldShow = false;
-                } else if (currentFilter === 'rich' && regionData.income <= 20) {
-                    shouldShow = false;
-                }
-
-                pixel.style.opacity = shouldShow ? '1' : '0.3';
-                pixel.style.background = color;
-                pixel.style.borderColor = 'rgba(255,255,255,0.4)'; // Более видимая граница
-            });
-        }
-
         // Получение кода страны
         function getCountryCode(countryId) {
             const codes = {
@@ -761,6 +768,24 @@
                 'san_marino': 'SM', 'liechtenstein': 'LI'
             };
             return codes[countryId] || countryId.substring(0, 2).toUpperCase();
+        }
+
+        // Получение названия страны
+        function getCountryName(countryId) {
+            const names = {
+                'france': 'Франция', 'germany': 'Германия', 'united_kingdom': 'Великобритания',
+                'spain': 'Испания', 'italy': 'Италия', 'sweden': 'Швеция', 'norway': 'Норвегия',
+                'finland': 'Финляндия', 'denmark': 'Дания', 'poland': 'Польша', 'ukraine': 'Украина',
+                'romania': 'Румыния', 'greece': 'Греция', 'serbia': 'Сербия', 'croatia': 'Хорватия',
+                'bulgaria': 'Болгария', 'albania': 'Албания', 'lithuania': 'Литва', 'latvia': 'Латвия',
+                'estonia': 'Эстония', 'netherlands': 'Нидерланды', 'belgium': 'Бельгия', 'luxembourg': 'Люксембург',
+                'austria': 'Австрия', 'switzerland': 'Швейцария', 'czechia': 'Чехия', 'slovakia': 'Словакия',
+                'hungary': 'Венгрия', 'portugal': 'Португалия', 'ireland': 'Ирландия', 'belarus': 'Беларусь',
+                'moldova': 'Молдова', 'montenegro': 'Черногория', 'slovenia': 'Словения', 'bosnia': 'Босния и Герцеговина',
+                'iceland': 'Исландия', 'malta': 'Мальта', 'cyprus': 'Кипр', 'andorra': 'Андорра',
+                'monaco': 'Монако', 'san_marino': 'Сан-Марино', 'liechtenstein': 'Лихтенштейн'
+            };
+            return names[countryId] || countryId;
         }
 
         // Обновление статистики
@@ -792,6 +817,27 @@
             return alliances;
         }
 
+        // Обновление цветов пикселей (для фильтров)
+        function updatePixelColors() {
+            const pixels = document.querySelectorAll('.pixel:not(.empty)');
+            
+            pixels.forEach(pixel => {
+                const countryId = pixel.dataset.country;
+                const x = parseInt(pixel.dataset.x);
+                const y = parseInt(pixel.dataset.y);
+                const regionData = getRegionData(countryId, x, y);
+                
+                let shouldShow = true;
+                if (currentFilter === 'wars' && !regionData.hasWars) {
+                    shouldShow = false;
+                } else if (currentFilter === 'rich' && regionData.income <= 20) {
+                    shouldShow = false;
+                }
+
+                pixel.style.opacity = shouldShow ? '1' : '0.3';
+            });
+        }
+
         // Обработчики событий
         function handlePixelClick(event) {
             const pixel = event.target;
@@ -820,23 +866,9 @@
         function showRegionInfo(countryId, x, y) {
             const regionData = getRegionData(countryId, x, y);
             const detailsElement = document.getElementById('region-details');
-            
-            const countryNames = {
-                'france': 'Франция', 'germany': 'Германия', 'united_kingdom': 'Великобритания',
-                'spain': 'Испания', 'italy': 'Италия', 'sweden': 'Швеция', 'norway': 'Норвегия',
-                'finland': 'Финляндия', 'denmark': 'Дания', 'poland': 'Польша', 'ukraine': 'Украина',
-                'romania': 'Румыния', 'greece': 'Греция', 'serbia': 'Сербия', 'croatia': 'Хорватия',
-                'bulgaria': 'Болгария', 'albania': 'Албания', 'lithuania': 'Литва', 'latvia': 'Латвия',
-                'estonia': 'Эстония', 'netherlands': 'Нидерланды', 'belgium': 'Бельгия', 'luxembourg': 'Люксембург',
-                'austria': 'Австрия', 'switzerland': 'Швейцария', 'czechia': 'Чехия', 'slovakia': 'Словакия',
-                'hungary': 'Венгрия', 'portugal': 'Португалия', 'ireland': 'Ирландия', 'belarus': 'Беларусь',
-                'moldova': 'Молдова', 'montenegro': 'Черногория', 'slovenia': 'Словения', 'bosnia': 'Босния и Герцеговина',
-                'iceland': 'Исландия', 'malta': 'Мальта', 'cyprus': 'Кипр', 'andorra': 'Андорра',
-                'monaco': 'Монако', 'san_marino': 'Сан-Марино', 'liechtenstein': 'Лихтенштейн'
-            };
 
             detailsElement.innerHTML = `
-                <div class="country-name">${countryNames[countryId] || countryId}</div>
+                <div class="country-name">${getCountryName(countryId)}</div>
                 <div class="coordinates">Координаты: [${x}, ${y}]</div>
                 
                 <div class="detail-item">

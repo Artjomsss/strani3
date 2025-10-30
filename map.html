@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -95,7 +96,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
             border: 1px solid rgba(0,0,0,0.4);
@@ -463,71 +464,108 @@
 
         // Уникальные цвета для каждой страны
         const defaultCountryColors = {
+            // Западная Европа
             'france': '#1f77b4', 'germany': '#ff7f0e', 'united_kingdom': '#2ca02c',
-            'spain': '#d62728', 'italy': '#9467bd', 'sweden': '#8c564b',
-            'norway': '#e377c2', 'finland': '#7f7f7f', 'denmark': '#bcbd22',
-            'poland': '#17becf', 'ukraine': '#aec7e8', 'romania': '#ffbb78',
-            'greece': '#98df8a', 'serbia': '#ff9896', 'croatia': '#c5b0d5',
-            'bulgaria': '#c49c94', 'albania': '#f7b6d2', 'lithuania': '#c7c7c7',
-            'latvia': '#dbdb8d', 'estonia': '#9edae5', 'netherlands': '#393b79',
-            'belgium': '#637939', 'luxembourg': '#8c6d31', 'austria': '#843c39',
-            'switzerland': '#7b4173', 'czechia': '#5254a3', 'slovakia': '#8ca252',
-            'hungary': '#bd9e39', 'portugal': '#ad494a', 'ireland': '#a55194',
-            'belarus': '#6b6ecf', 'moldova': '#b5cf6b', 'montenegro': '#e7ba52',
-            'slovenia': '#ce6dbd', 'bosnia': '#9c9ede', 'iceland': '#cedb9c',
-            'malta': '#e7cb94', 'cyprus': '#e7969c', 'andorra': '#7b4173',
-            'monaco': '#843c39', 'san_marino': '#8c6d31', 'liechtenstein': '#637939'
+            'spain': '#d62728', 'portugal': '#9467bd', 'italy': '#8c564b',
+            'netherlands': '#e377c2', 'belgium': '#7f7f7f', 'luxembourg': '#bcbd22',
+            'ireland': '#17becf', 'switzerland': '#aec7e8', 'austria': '#ffbb78',
+            
+            // Северная Европа
+            'sweden': '#98df8a', 'norway': '#ff9896', 'denmark': '#c5b0d5',
+            'finland': '#c49c94', 'iceland': '#f7b6d2', 'estonia': '#c7c7c7',
+            'latvia': '#dbdb8d', 'lithuania': '#9edae5',
+            
+            // Восточная Европа
+            'poland': '#393b79', 'czechia': '#637939', 'slovakia': '#8c6d31',
+            'hungary': '#843c39', 'romania': '#7b4173', 'bulgaria': '#5254a3',
+            'slovenia': '#8ca252', 'croatia': '#bd9e39', 'bosnia': '#ad494a',
+            'serbia': '#a55194', 'montenegro': '#6b6ecf', 'albania': '#b5cf6b',
+            'macedonia': '#e7ba52', 'kosovo': '#ce6dbd',
+            
+            // Балтийские страны
+            'estonia': '#9c9ede', 'latvia': '#cedb9c', 'lithuania': '#e7cb94',
+            
+            // Другие
+            'greece': '#e7969c', 'cyprus': '#7b4173', 'malta': '#843c39',
+            'andorra': '#8c6d31', 'monaco': '#637939', 'san_marino': '#393b79',
+            'liechtenstein': '#637939', 'moldova': '#8ca252', 'belarus': '#bd9e39',
+            'ukraine': '#ad494a'
         };
 
         let countryColors = {...defaultCountryColors};
 
-        // Увеличенное распределение стран по пикселям (48x40 вместо 24x20)
+        // Правильное расположение стран Европы (60x50 сетка)
         const countryPixels = {
-            'france': generateExpandedPixels([
-                [10,16],[11,16],[12,16],[13,16],[14,16],[15,16],
-                [10,17],[11,17],[12,17],[13,17],[14,17],[15,17],
-                [10,18],[11,18],[12,18],[13,18],[14,18],[15,18],
-                [10,19],[11,19],[12,19],[13,19],[14,19],
-                [10,20],[11,20],[12,20],[13,20],[14,20]
-            ]),
-            'germany': generateExpandedPixels([
-                [18,14],[19,14],[20,14],[21,14],[22,14],[23,14],
-                [18,15],[19,15],[20,15],[21,15],[22,15],[23,15],
-                [18,16],[19,16],[20,16],[21,16],[22,16],[23,16],
-                [19,17],[20,17],[21,17],[22,17],[23,17],
-                [20,18],[21,18],[22,18],[23,18]
-            ]),
-            'united_kingdom': generateExpandedPixels([
-                [4,10],[5,10],[6,10],[7,10],[8,10],
-                [4,11],[5,11],[6,11],[7,11],[8,11],
-                [4,12],[5,12],[6,12],[7,12],[8,12],
-                [5,13],[6,13],[7,13],[8,13],
-                [6,14],[7,14]
-            ]),
-            'spain': generateExpandedPixels([
-                [6,18],[7,18],[8,18],[9,18],[10,18],
-                [6,19],[7,19],[8,19],[9,19],[10,19],[11,19],
-                [6,20],[7,20],[8,20],[9,20],[10,20],[11,20],
-                [7,21],[8,21],[9,21],[10,21],[11,21],
-                [8,22],[9,22],[10,22]
-            ]),
-            'italy': generateExpandedPixels([
-                [20,20],[21,20],[22,20],[23,20],
-                [20,21],[21,21],[22,21],[23,21],[24,21],
-                [20,22],[21,22],[22,22],[23,22],[24,22],
-                [21,23],[22,23],[23,23],[24,23],
-                [22,24],[23,24]
-            ])
+            // Великобритания и Ирландия
+            'united_kingdom': generateRectangle(15, 5, 8, 6),
+            'ireland': generateRectangle(12, 7, 5, 4),
+
+            // Скандинавия
+            'norway': generateRectangle(25, 2, 6, 12),
+            'sweden': generateRectangle(28, 5, 8, 10),
+            'finland': generateRectangle(32, 2, 10, 8),
+            'denmark': generateRectangle(26, 12, 4, 3),
+
+            // Западная Европа
+            'france': generateRectangle(18, 15, 10, 8),
+            'germany': generateRectangle(24, 13, 8, 7),
+            'netherlands': generateRectangle(23, 12, 3, 2),
+            'belgium': generateRectangle(22, 13, 3, 2),
+            'luxembourg': [[23, 14]],
+
+            // Южная Европа
+            'spain': generateRectangle(15, 20, 10, 8),
+            'portugal': generateRectangle(14, 20, 4, 6),
+            'italy': generateRectangle(26, 20, 5, 10),
+            'switzerland': generateRectangle(23, 16, 3, 2),
+            'austria': generateRectangle(25, 15, 4, 3),
+
+            // Восточная Европа
+            'poland': generateRectangle(28, 12, 6, 5),
+            'czechia': generateRectangle(26, 14, 4, 3),
+            'slovakia': generateRectangle(28, 15, 3, 2),
+            'hungary': generateRectangle(28, 17, 4, 3),
+            'romania': generateRectangle(30, 17, 5, 4),
+            'bulgaria': generateRectangle(30, 21, 4, 3),
+
+            // Балканы
+            'slovenia': generateRectangle(26, 17, 2, 2),
+            'croatia': generateRectangle(26, 19, 4, 3),
+            'bosnia': generateRectangle(27, 20, 3, 2),
+            'serbia': generateRectangle(28, 19, 3, 3),
+            'montenegro': [[29, 21]],
+            'albania': [[30, 22]],
+            'macedonia': [[31, 21]],
+            'greece': generateRectangle(29, 23, 6, 5),
+
+            // Балтийские страны
+            'estonia': generateRectangle(30, 8, 3, 2),
+            'latvia': generateRectangle(29, 10, 3, 2),
+            'lithuania': generateRectangle(28, 10, 3, 2),
+
+            // Другие страны
+            'belarus': generateRectangle(32, 10, 6, 4),
+            'ukraine': generateRectangle(32, 14, 8, 8),
+            'moldova': generateRectangle(33, 17, 2, 2),
+            'iceland': generateRectangle(8, 2, 6, 4),
+            'cyprus': generateRectangle(38, 26, 2, 2),
+            'malta': [[25, 25]],
+            'andorra': [[20, 19]],
+            'monaco': [[22, 18]],
+            'san_marino': [[26, 19]],
+            'liechtenstein': [[24, 16]],
+            'kosovo': [[29, 20]]
         };
 
-        // Вспомогательная функция для расширения координат
-        function generateExpandedPixels(originalPixels) {
-            const expanded = [];
-            originalPixels.forEach(([x, y]) => {
-                // Создаем кластер из 4 пикселей для каждого оригинального пикселя
-                expanded.push([x*2, y*2], [x*2 + 1, y*2], [x*2, y*2 + 1], [x*2 + 1, y*2 + 1]);
-            });
-            return expanded;
+        // Вспомогательная функция для создания прямоугольной области
+        function generateRectangle(startX, startY, width, height) {
+            const pixels = [];
+            for (let x = startX; x < startX + width; x++) {
+                for (let y = startY; y < startY + height; y++) {
+                    pixels.push([x, y]);
+                }
+            }
+            return pixels;
         }
 
         // Инициализация Firebase
@@ -632,10 +670,10 @@
             const pixelMap = document.getElementById('pixel-map');
             pixelMap.innerHTML = '';
 
-            // Создаем увеличенную сетку 48x40
-            const gridSizeX = 48;
-            const gridSizeY = 40;
-            const pixelSize = 25; // Размер пикселя в пикселях
+            // Создаем увеличенную сетку 60x50
+            const gridSizeX = 60;
+            const gridSizeY = 50;
+            const pixelSize = 20; // Размер пикселя в пикселях
 
             pixelMap.style.gridTemplateColumns = `repeat(${gridSizeX}, ${pixelSize}px)`;
             pixelMap.style.gridTemplateRows = `repeat(${gridSizeY}, ${pixelSize}px)`;
@@ -774,7 +812,7 @@
             });
         }
 
-        // Остальные функции остаются похожими, но адаптированы под увеличенную карту
+        // Добавление границ между странами
         function addCountryBorders() {
             const pixels = document.querySelectorAll('.pixel:not(.empty)');
             
@@ -812,7 +850,7 @@
         }
 
         function isValidCoordinate(x, y) {
-            return x >= 0 && x < 48 && y >= 0 && y < 40;
+            return x >= 0 && x < 60 && y >= 0 && y < 50;
         }
 
         function findCountryForPixel(x, y) {
@@ -826,8 +864,17 @@
 
         function getCountryCode(countryId) {
             const codes = {
-                'france': 'FR', 'germany': 'DE', 'united_kingdom': 'UK',
-                'spain': 'ES', 'italy': 'IT', 'sweden': 'SE', 'norway': 'NO'
+                'france': 'FR', 'germany': 'DE', 'united_kingdom': 'UK', 'spain': 'ES', 
+                'portugal': 'PT', 'italy': 'IT', 'netherlands': 'NL', 'belgium': 'BE', 
+                'luxembourg': 'LU', 'ireland': 'IE', 'switzerland': 'CH', 'austria': 'AT',
+                'sweden': 'SE', 'norway': 'NO', 'denmark': 'DK', 'finland': 'FI', 
+                'iceland': 'IS', 'poland': 'PL', 'czechia': 'CZ', 'slovakia': 'SK',
+                'hungary': 'HU', 'romania': 'RO', 'bulgaria': 'BG', 'slovenia': 'SI',
+                'croatia': 'HR', 'bosnia': 'BA', 'serbia': 'RS', 'montenegro': 'ME',
+                'albania': 'AL', 'macedonia': 'MK', 'greece': 'GR', 'estonia': 'EE',
+                'latvia': 'LV', 'lithuania': 'LT', 'belarus': 'BY', 'ukraine': 'UA',
+                'moldova': 'MD', 'cyprus': 'CY', 'malta': 'MT', 'andorra': 'AD',
+                'monaco': 'MC', 'san_marino': 'SM', 'liechtenstein': 'LI', 'kosovo': 'XK'
             };
             return codes[countryId] || countryId.substring(0, 2).toUpperCase();
         }
@@ -835,13 +882,26 @@
         function getCountryName(countryId) {
             const names = {
                 'france': 'Франция', 'germany': 'Германия', 'united_kingdom': 'Великобритания',
-                'spain': 'Испания', 'italy': 'Италия', 'sweden': 'Швеция', 'norway': 'Норвегия'
+                'spain': 'Испания', 'portugal': 'Португалия', 'italy': 'Италия',
+                'netherlands': 'Нидерланды', 'belgium': 'Бельгия', 'luxembourg': 'Люксембург',
+                'ireland': 'Ирландия', 'switzerland': 'Швейцария', 'austria': 'Австрия',
+                'sweden': 'Швеция', 'norway': 'Норвегия', 'denmark': 'Дания',
+                'finland': 'Финляндия', 'iceland': 'Исландия', 'poland': 'Польша',
+                'czechia': 'Чехия', 'slovakia': 'Словакия', 'hungary': 'Венгрия',
+                'romania': 'Румыния', 'bulgaria': 'Болгария', 'slovenia': 'Словения',
+                'croatia': 'Хорватия', 'bosnia': 'Босния и Герцеговина', 'serbia': 'Сербия',
+                'montenegro': 'Черногория', 'albania': 'Албания', 'macedonia': 'Северная Македония',
+                'greece': 'Греция', 'estonia': 'Эстония', 'latvia': 'Латвия',
+                'lithuania': 'Литва', 'belarus': 'Беларусь', 'ukraine': 'Украина',
+                'moldova': 'Молдова', 'cyprus': 'Кипр', 'malta': 'Мальта',
+                'andorra': 'Андорра', 'monaco': 'Монако', 'san_marino': 'Сан-Марино',
+                'liechtenstein': 'Лихтенштейн', 'kosovo': 'Косово'
             };
             return names[countryId] || countryId;
         }
 
         function updateStatistics() {
-            const countriesCount = Object.keys(countriesData).length;
+            const countriesCount = Object.keys(countryPixels).length;
             const regionsCount = Object.values(countryPixels).reduce((acc, pixels) => acc + pixels.length, 0);
             
             document.getElementById('countries-count').textContent = countriesCount;

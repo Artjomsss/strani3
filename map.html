@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пиксельная карта Европы</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <title>Карта для Латвии</title>
     <style>
         * {
             margin: 0;
@@ -14,873 +12,336 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0c0c1a, #1a1a2e);
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
             color: white;
             min-height: 100vh;
             padding: 20px;
-            overflow: hidden;
         }
 
         .container {
-            max-width: 95vw;
+            max-width: 1200px;
             margin: 0 auto;
-            height: 95vh;
         }
 
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             padding: 20px;
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.25), rgba(39, 174, 96, 0.2));
+            background: rgba(255,255,255,0.1);
             border-radius: 15px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
         }
 
         h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #3498db, #2ecc71, #9b59b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
-            height: calc(95vh - 150px);
+            color: #fff;
         }
 
         .map-container {
             background: rgba(255,255,255,0.05);
             border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .map-wrapper {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            border-radius: 10px;
-            position: relative;
-            cursor: grab;
-        }
-
-        .map-wrapper:active {
-            cursor: grabbing;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
         .pixel-map {
             display: grid;
-            position: absolute;
-            top: 0;
-            left: 0;
-            transform-origin: 0 0;
-            transition: transform 0.1s ease;
+            grid-template-columns: repeat(40, 20px);
+            grid-template-rows: repeat(30, 20px);
+            gap: 1px;
             background: #2a2a40;
-            padding: 30px;
+            padding: 20px;
             border-radius: 10px;
+            margin: 0 auto;
+            max-width: fit-content;
         }
 
         .pixel {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            width: 20px;
+            height: 20px;
+            background: #7f8c8d;
             border: 1px solid rgba(0,0,0,0.3);
-            user-select: none;
+            border-radius: 2px;
+            transition: all 0.3s ease;
         }
 
         .pixel:hover {
-            transform: scale(1.1);
+            transform: scale(1.2);
             z-index: 10;
-            box-shadow: 0 0 0 2px #f39c12, 0 0 15px rgba(243, 156, 18, 0.5);
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
-        .pixel.empty {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.1);
+        .pixel.latvia {
+            background: #e74c3c;
         }
 
-        .country-border {
-            position: absolute;
-            background: #000000;
-            z-index: 10;
-            pointer-events: none;
+        .pixel.occupied {
+            background: #27ae60;
         }
 
-        .border-top { top: -1px; left: 0; width: 100%; height: 2px; }
-        .border-right { top: 0; right: -1px; width: 2px; height: 100%; }
-        .border-bottom { bottom: -1px; left: 0; width: 100%; height: 2px; }
-        .border-left { top: 0; left: -1px; width: 2px; height: 100%; }
-
-        .thick-border {
-            background: #000000;
-            box-shadow: 0 0 3px rgba(0,0,0,0.8);
-        }
-
-        /* Элементы управления зумом */
-        .zoom-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .zoom-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(52, 152, 219, 0.8);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .zoom-btn:hover {
-            background: rgba(52, 152, 219, 1);
-            transform: scale(1.1);
-        }
-
-        .zoom-display {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            backdrop-filter: blur(10px);
+        .pixel.available {
+            background: #3498db;
         }
 
         .controls {
             background: rgba(255,255,255,0.05);
             border-radius: 15px;
             padding: 20px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            overflow-y: auto;
+            margin-top: 20px;
         }
 
-        .control-group {
+        .country-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .country-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .country-item.occupied {
+            border-left-color: #27ae60;
+        }
+
+        .country-item.available {
+            border-left-color: #3498db;
+        }
+
+        .country-item.latvia {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        .back-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
             margin-bottom: 20px;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        h2 {
-            color: #3498db;
-            margin-bottom: 12px;
-            font-size: 1.3em;
-        }
-
-        h3 {
-            color: #2ecc71;
-            margin-bottom: 8px;
-            font-size: 1.1em;
+        .back-btn:hover {
+            background: #2980b9;
         }
 
         .legend {
-            display: grid;
-            grid-template-columns: 20px 1fr;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 6px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
         }
 
-        .color-box {
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
             width: 20px;
             height: 20px;
             border-radius: 4px;
             border: 1px solid rgba(255,255,255,0.3);
-            cursor: pointer;
-        }
-
-        .color-picker {
-            width: 100%;
-            height: 30px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: transparent;
-        }
-
-        .status-info {
-            background: rgba(52, 152, 219, 0.15);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border-left: 4px solid #3498db;
-        }
-
-        .region-details {
-            background: rgba(39, 174, 96, 0.15);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border-left: 4px solid #27ae60;
-        }
-
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .detail-label {
-            font-weight: bold;
-            color: #bdc3c7;
-            font-size: 0.9em;
-        }
-
-        .detail-value {
-            color: #ecf0f1;
-            font-weight: 500;
-            font-size: 0.9em;
-        }
-
-        .country-colors-legend {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 8px;
-        }
-
-        .country-color-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px;
-            font-size: 0.8em;
-            background: rgba(255,255,255,0.05);
-            border-radius: 4px;
-            margin-bottom: 2px;
-        }
-
-        .color-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .reset-colors {
-            background: rgba(231, 76, 60, 0.3);
-            border: 1px solid #e74c3c;
-            color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.8em;
-            margin-top: 8px;
-        }
-
-        .reset-colors:hover {
-            background: #e74c3c;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="latvia.html" class="back-btn">⬅️ Назад к Латвии</a>
+        
         <header>
-            <h1>🧱 Интерактивная карта Европы</h1>
-            <div style="opacity: 0.9;">Увеличьте масштаб, перемещайте и меняйте цвета • Используйте колесо мыши для зума</div>
+            <h1>🗺️ Карта Европы</h1>
+            <p>Карта для игроков Латвии</p>
         </header>
 
-        <div class="content">
-            <div class="map-container">
-                <div class="map-wrapper" id="map-wrapper">
-                    <div class="pixel-map" id="pixel-map">
-                        <!-- Пиксели будут созданы через JavaScript -->
-                    </div>
-                </div>
-                
-                <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()">+</button>
-                    <button class="zoom-btn" onclick="zoomOut()">-</button>
-                    <button class="zoom-btn" onclick="resetZoom()">⟲</button>
-                </div>
-                
-                <div class="zoom-display" id="zoom-display">Масштаб: 100%</div>
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span>Латвия (ваша страна)</span>
             </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #27ae60;"></div>
+                <span>Занятые страны</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3498db;"></div>
+                <span>Свободные страны</span>
+            </div>
+        </div>
 
-            <div class="controls">
-                <div class="control-group">
-                    <h2>🎨 Настройка цветов</h2>
-                    <div class="color-control">
-                        <input type="color" id="color-picker" class="color-picker" value="#3498db">
-                        <span>Выберите цвет</span>
-                    </div>
-                    <button class="reset-colors" onclick="resetAllColors()">Сбросить все цвета</button>
-                </div>
+        <div class="map-container">
+            <div class="pixel-map" id="pixel-map">
+                <!-- Карта будет создана через JavaScript -->
+            </div>
+        </div>
 
-                <div class="control-group">
-                    <h2>🌍 Цвета стран</h2>
-                    <div class="country-colors-legend" id="country-colors-legend">
-                        <!-- Легенда цветов будет создана через JavaScript -->
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <h2>📊 Статистика</h2>
-                    <div class="status-info">
-                        <div class="detail-item">
-                            <span class="detail-label">Статус:</span>
-                            <span class="detail-value" id="sync-status">🔄 Загрузка...</span>
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="stat-value" id="regions-count">0</div>
-                                <div class="stat-label">Регионов</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" id="countries-count">0</div>
-                                <div class="stat-label">Стран</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <h2>📍 Детали региона</h2>
-                    <div class="region-details" id="region-details">
-                        <div style="text-align: center; padding: 15px;">
-                            <div style="font-size: 2em; margin-bottom: 8px;">🧱</div>
-                            <h3>Выберите регион</h3>
-                            <p style="font-size: 0.8em;">Кликните на любой квадрат на карте</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="controls">
+            <h2>Список стран</h2>
+            <div class="country-list" id="country-list">
+                <!-- Список стран будет создан через JavaScript -->
             </div>
         </div>
     </div>
 
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
-            authDomain: "strani3.firebaseapp.com",
-            databaseURL: "https://strani3-default-rtdb.europe-west1.firebasedatabase.app/",
-            projectId: "strani3",
-            storageBucket: "strani3.firebasestorage.app",
-            messagingSenderId: "225168183800",
-            appId: "1:225168183800:web:825e782a35bccca89d460d",
-            measurementId: "G-3NKBET5R9J"
+        // Данные стран
+        const countries = {
+            'latvia': { name: 'Латвия', player: 'не занято', color: '#e74c3c', status: 'latvia' },
+            
+            // Занятые страны
+            'austria': { name: 'Австрия', player: 'Коля', color: '#27ae60', status: 'occupied' },
+            'belarus': { name: 'Беларусь', player: 'Эля', color: '#27ae60', status: 'occupied' },
+            'bulgaria': { name: 'Болгария', player: 'Костя', color: '#27ae60', status: 'occupied' },
+            'croatia': { name: 'Хорватия', player: 'Вика Дру', color: '#27ae60', status: 'occupied' },
+            'finland': { name: 'Финляндия', player: 'Лёша', color: '#27ae60', status: 'occupied' },
+            'france': { name: 'Франция', player: 'Полина', color: '#27ae60', status: 'occupied' },
+            'germany': { name: 'Германия', player: 'Никита И.', color: '#27ae60', status: 'occupied' },
+            'greece': { name: 'Греция', player: 'Милана', color: '#27ae60', status: 'occupied' },
+            'italy': { name: 'Италия', player: 'Эвелина', color: '#27ae60', status: 'occupied' },
+            'luxembourg': { name: 'Люксембург', player: 'Карпович', color: '#27ae60', status: 'occupied' },
+            'malta': { name: 'Мальта', player: 'Арина', color: '#27ae60', status: 'occupied' },
+            'monaco': { name: 'Монако', player: 'Катрина', color: '#27ae60', status: 'occupied' },
+            'montenegro': { name: 'Черногория', player: 'Кира', color: '#27ae60', status: 'occupied' },
+            'poland': { name: 'Польша', player: 'Даник', color: '#27ae60', status: 'occupied' },
+            'norway': { name: 'Норвегия', player: 'Вероника', color: '#27ae60', status: 'occupied' },
+            
+            // Свободные страны
+            'albania': { name: 'Албания', player: 'не занято', color: '#3498db', status: 'available' },
+            'andorra': { name: 'Андорра', player: 'не занято', color: '#3498db', status: 'available' },
+            'belgium': { name: 'Бельгия', player: 'не занято', color: '#3498db', status: 'available' },
+            'czechia': { name: 'Чехия', player: 'не занято', color: '#3498db', status: 'available' },
+            'denmark': { name: 'Дания', player: 'не занято', color: '#3498db', status: 'available' },
+            'estonia': { name: 'Эстония', player: 'не занято', color: '#3498db', status: 'available' },
+            'hungary': { name: 'Венгрия', player: 'не занято', color: '#3498db', status: 'available' },
+            'iceland': { name: 'Исландия', player: 'не занято', color: '#3498db', status: 'available' },
+            'ireland': { name: 'Ирландия', player: 'не занято', color: '#3498db', status: 'available' },
+            'lithuania': { name: 'Литва', player: 'не занято', color: '#3498db', status: 'available' },
+            'moldova': { name: 'Молдавия', player: 'не занято', color: '#3498db', status: 'available' },
+            'netherlands': { name: 'Нидерланды', player: 'не занято', color: '#3498db', status: 'available' },
+            'north_macedonia': { name: 'Северная Македония', player: 'не занято', color: '#3498db', status: 'available' },
+            'portugal': { name: 'Португалия', player: 'не занято', color: '#3498db', status: 'available' }
         };
 
-        let db;
-        let countriesData = {};
-        let selectedPixel = null;
-        let currentScale = 1.0;
-        let currentTranslate = { x: 0, y: 0 };
-        let isDragging = false;
-        let lastMousePos = { x: 0, y: 0 };
-        let selectedCountryForColor = null;
-
-        // Уникальные цвета для каждой страны
-        const defaultCountryColors = {
-            // Западная Европа
-            'france': '#1f77b4', 'germany': '#ff7f0e', 'united_kingdom': '#2ca02c',
-            'spain': '#d62728', 'portugal': '#9467bd', 'italy': '#8c564b',
-            'netherlands': '#e377c2', 'belgium': '#7f7f7f', 'luxembourg': '#bcbd22',
-            'ireland': '#17becf', 'switzerland': '#aec7e8', 'austria': '#ffbb78',
-            
-            // Северная Европа
-            'sweden': '#98df8a', 'norway': '#ff9896', 'denmark': '#c5b0d5',
-            'finland': '#c49c94', 'iceland': '#f7b6d2',
-            
-            // Восточная Европа
-            'poland': '#393b79', 'czechia': '#637939', 'slovakia': '#8c6d31',
-            'hungary': '#843c39', 'romania': '#7b4173', 'bulgaria': '#5254a3',
-            'slovenia': '#8ca252', 'croatia': '#bd9e39', 'bosnia': '#ad494a',
-            'serbia': '#a55194', 'montenegro': '#6b6ecf', 'albania': '#b5cf6b',
-            'macedonia': '#e7ba52', 'kosovo': '#ce6dbd',
+        // Расположение стран на карте (упрощенное)
+        const countryPositions = {
+            'latvia': [[15, 10], [16, 10], [15, 11], [16, 11]],
             
             // Балтийские страны
-            'estonia': '#9c9ede', 'latvia': '#cedb9c', 'lithuania': '#e7cb94',
+            'estonia': [[15, 8], [16, 8], [15, 9], [16, 9]],
+            'lithuania': [[14, 10], [14, 11], [13, 10], [13, 11]],
             
-            // Другие
-            'greece': '#e7969c', 'cyprus': '#7b4173', 'malta': '#843c39',
-            'andorra': '#8c6d31', 'monaco': '#637939', 'san_marino': '#393b79',
-            'liechtenstein': '#637939', 'moldova': '#8ca252', 'belarus': '#bd9e39',
-            'ukraine': '#ad494a'
-        };
-
-        let countryColors = {...defaultCountryColors};
-
-        // Правильное расположение стран Европы с ровными границами
-        const countryPixels = {
-            // Великобритания и Ирландия
-            'united_kingdom': generateRectangle(10, 5, 8, 6),
-            'ireland': generateRectangle(8, 8, 5, 4),
-
             // Скандинавия
-            'norway': generateRectangle(25, 2, 4, 8),
-            'sweden': generateRectangle(25, 10, 6, 8),
-            'finland': generateRectangle(32, 2, 8, 8),
-            'denmark': generateRectangle(24, 12, 3, 2),
-
+            'finland': [[18, 5], [19, 5], [18, 6], [19, 6], [18, 7], [19, 7]],
+            'norway': [[16, 5], [17, 5], [16, 6], [17, 6], [16, 7], [17, 7]],
+            'denmark': [[14, 8], [15, 8], [14, 9]],
+            'iceland': [[10, 3], [11, 3], [10, 4], [11, 4]],
+            
             // Западная Европа
-            'france': generateRectangle(15, 15, 10, 8),
-            'germany': generateRectangle(22, 13, 8, 6),
-            'netherlands': generateRectangle(21, 12, 3, 2),
-            'belgium': generateRectangle(20, 14, 3, 2),
-            'luxembourg': [[21, 15]],
-
+            'ireland': [[8, 8], [9, 8], [8, 9], [9, 9]],
+            'france': [[12, 12], [13, 12], [12, 13], [13, 13], [14, 12], [14, 13]],
+            'belgium': [[13, 10], [13, 11]],
+            'netherlands': [[14, 9], [14, 10]],
+            'germany': [[14, 11], [15, 11], [14, 12], [15, 12], [16, 11], [16, 12]],
+            'austria': [[16, 13], [17, 13], [16, 14], [17, 14]],
+            'switzerland': [[15, 13], [15, 14]],
+            
             // Южная Европа
-            'spain': generateRectangle(12, 20, 9, 8),
-            'portugal': generateRectangle(11, 20, 4, 6),
-            'italy': generateRectangle(23, 20, 4, 8),
-            'switzerland': generateRectangle(21, 17, 2, 2),
-            'austria': generateRectangle(23, 15, 3, 3),
-
+            'italy': [[16, 15], [17, 15], [16, 16], [17, 16], [18, 15]],
+            'greece': [[20, 16], [21, 16], [20, 17], [21, 17]],
+            'croatia': [[17, 14], [18, 14], [17, 15]],
+            'bulgaria': [[19, 14], [20, 14], [19, 15], [20, 15]],
+            'albania': [[18, 16], [19, 16]],
+            'montenegro': [[17, 16], [18, 16]],
+            'north_macedonia': [[18, 15], [19, 15]],
+            'hungary': [[17, 13], [18, 13], [17, 14]],
+            'czechia': [[16, 12], [17, 12], [16, 13]],
+            
             // Восточная Европа
-            'poland': generateRectangle(26, 12, 6, 5),
-            'czechia': generateRectangle(23, 14, 3, 3),
-            'slovakia': generateRectangle(26, 15, 2, 2),
-            'hungary': generateRectangle(25, 17, 4, 3),
-            'romania': generateRectangle(28, 17, 5, 4),
-            'bulgaria': generateRectangle(28, 21, 4, 3),
-
-            // Балканы
-            'slovenia': generateRectangle(23, 17, 2, 2),
-            'croatia': generateRectangle(23, 19, 4, 3),
-            'bosnia': generateRectangle(24, 20, 3, 2),
-            'serbia': generateRectangle(25, 19, 3, 3),
-            'montenegro': [[26, 22]],
-            'albania': [[27, 22]],
-            'macedonia': [[27, 21]],
-            'greece': generateRectangle(26, 23, 6, 4),
-
-            // Балтийские страны
-            'estonia': generateRectangle(28, 8, 3, 2),
-            'latvia': generateRectangle(27, 10, 3, 2),
-            'lithuania': generateRectangle(26, 10, 3, 2),
-
-            // Другие страны
-            'belarus': generateRectangle(29, 10, 6, 4),
-            'ukraine': generateRectangle(29, 14, 8, 8),
-            'moldova': generateRectangle(30, 17, 2, 2),
-            'iceland': generateRectangle(5, 2, 4, 3),
-            'cyprus': generateRectangle(35, 26, 2, 1),
-            'malta': [[22, 25]],
-            'andorra': [[17, 19]],
-            'monaco': [[19, 18]],
-            'san_marino': [[24, 20]],
-            'liechtenstein': [[22, 16]],
-            'kosovo': [[26, 20]]
+            'poland': [[17, 10], [18, 10], [17, 11], [18, 11], [17, 12], [18, 12]],
+            'belarus': [[19, 9], [20, 9], [19, 10], [20, 10], [19, 11], [20, 11]],
+            'moldova': [[20, 12], [21, 12], [20, 13], [21, 13]],
+            
+            // Микрогосударства
+            'andorra': [[13, 14]],
+            'monaco': [[14, 14]],
+            'luxembourg': [[14, 11]],
+            'malta': [[16, 18]],
+            
+            // Пиренейский полуостров
+            'portugal': [[10, 14], [11, 14], [10, 15], [11, 15], [10, 16], [11, 16]],
+            'spain': [[12, 14], [13, 14], [12, 15], [13, 15], [12, 16], [13, 16]]
         };
 
-        // Вспомогательная функция для создания прямоугольной области
-        function generateRectangle(startX, startY, width, height) {
-            const pixels = [];
-            for (let x = startX; x < startX + width; x++) {
-                for (let y = startY; y < startY + height; y++) {
-                    pixels.push([x, y]);
-                }
-            }
-            return pixels;
-        }
-
-        // Инициализация Firebase
-        function initializeFirebase() {
-            try {
-                const app = firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-                updateStatus("✅ Firebase подключен");
-                return true;
-            } catch (error) {
-                updateStatus("❌ Ошибка Firebase: " + error.message);
-                return false;
-            }
-        }
-
-        // Обновление статуса
-        function updateStatus(message) {
-            document.getElementById('sync-status').textContent = message;
-        }
-
-        // Загрузка данных стран
-        function loadCountriesData() {
-            if (!db) return;
-
-            updateStatus("🔄 Загрузка данных стран...");
-            
-            db.ref("countries").on("value", (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    countriesData = data;
-                    updateStatus(`✅ Загружено ${Object.keys(data).length} стран`);
-                    createPixelMap();
-                    updateStatistics();
-                    createCountryColorsLegend();
-                } else {
-                    updateStatus("⚠️ Данные стран не найдены");
-                }
-            });
-        }
-
-        // Создание легенды цветов стран
-        function createCountryColorsLegend() {
-            const legendElement = document.getElementById('country-colors-legend');
-            legendElement.innerHTML = '';
-
-            Object.entries(countryColors).forEach(([countryId, color]) => {
-                if (countryPixels[countryId]) {
-                    const countryName = getCountryName(countryId);
-                    const item = document.createElement('div');
-                    item.className = 'country-color-item';
-                    item.innerHTML = `
-                        <div class="color-box" style="background-color: ${color};" 
-                             onclick="selectCountryForColor('${countryId}')"></div>
-                        <span>${countryName}</span>
-                        <input type="color" value="${color}" 
-                               onchange="changeCountryColor('${countryId}', this.value)" 
-                               style="margin-left: auto; width: 25px; height: 20px;">
-                    `;
-                    legendElement.appendChild(item);
-                }
-            });
-        }
-
-        // Выбор страны для смены цвета
-        function selectCountryForColor(countryId) {
-            selectedCountryForColor = countryId;
-            const colorPicker = document.getElementById('color-picker');
-            colorPicker.value = countryColors[countryId];
-            
-            // Подсветка выбранной страны
-            document.querySelectorAll('.pixel').forEach(pixel => {
-                if (pixel.dataset.country === countryId) {
-                    pixel.style.boxShadow = '0 0 0 2px #f39c12, 0 0 10px rgba(243, 156, 18, 0.5)';
-                } else {
-                    pixel.style.boxShadow = 'none';
-                }
-            });
-        }
-
-        // Смена цвета страны
-        function changeCountryColor(countryId, newColor) {
-            countryColors[countryId] = newColor;
-            
-            // Обновляем цвет на карте
-            document.querySelectorAll(`.pixel[data-country="${countryId}"]`).forEach(pixel => {
-                pixel.style.background = newColor;
-            });
-            
-            // Обновляем легенду
-            createCountryColorsLegend();
-        }
-
-        // Сброс всех цветов
-        function resetAllColors() {
-            countryColors = {...defaultCountryColors};
-            createCountryColorsLegend();
-            updatePixelColors();
-        }
-
-        // Создание пиксельной карты
-        function createPixelMap() {
+        // Создание карты
+        function createMap() {
             const pixelMap = document.getElementById('pixel-map');
             pixelMap.innerHTML = '';
 
-            // Создаем увеличенную сетку 60x50
-            const gridSizeX = 60;
-            const gridSizeY = 50;
-            const pixelSize = 20;
-
-            pixelMap.style.gridTemplateColumns = `repeat(${gridSizeX}, ${pixelSize}px)`;
-            pixelMap.style.gridTemplateRows = `repeat(${gridSizeY}, ${pixelSize}px)`;
-
-            for (let y = 0; y < gridSizeY; y++) {
-                for (let x = 0; x < gridSizeX; x++) {
+            // Создаем сетку 40x30
+            for (let y = 0; y < 30; y++) {
+                for (let x = 0; x < 40; x++) {
                     const pixel = document.createElement('div');
-                    pixel.className = 'pixel empty';
+                    pixel.className = 'pixel';
                     pixel.dataset.x = x;
                     pixel.dataset.y = y;
                     
+                    // Находим страну для этого пикселя
                     const country = findCountryForPixel(x, y);
                     if (country) {
-                        pixel.dataset.country = country;
-                        pixel.dataset.region = `${country}_${x}_${y}`;
-                        pixel.textContent = getCountryCode(country);
-                        pixel.style.background = countryColors[country];
-                        // Убираем внутренние границы для пикселей одной страны
-                        pixel.style.border = 'none';
+                        pixel.classList.add(country);
+                        pixel.style.background = countries[country].color;
+                        pixel.title = `${countries[country].name} (${countries[country].player})`;
                     }
-                    
-                    pixel.addEventListener('click', handlePixelClick);
                     
                     pixelMap.appendChild(pixel);
                 }
             }
-            
-            addSmoothCountryBorders();
-            setupZoomAndPan();
         }
 
-        // Добавление ровных границ между странами
-        function addSmoothCountryBorders() {
-            const pixels = document.querySelectorAll('.pixel:not(.empty)');
-            
-            pixels.forEach(pixel => {
-                const x = parseInt(pixel.dataset.x);
-                const y = parseInt(pixel.dataset.y);
-                const country = pixel.dataset.country;
-
-                const neighbors = [
-                    {dx: 0, dy: -1, border: 'top'},
-                    {dx: 1, dy: 0, border: 'right'},
-                    {dx: 0, dy: 1, border: 'bottom'},
-                    {dx: -1, dy: 0, border: 'left'}
-                ];
-
-                neighbors.forEach(neighbor => {
-                    const nx = x + neighbor.dx;
-                    const ny = y + neighbor.dy;
-                    
-                    if (isValidCoordinate(nx, ny)) {
-                        const neighborCountry = findCountryForPixel(nx, ny);
-                        if (neighborCountry !== country) {
-                            // Добавляем границу только если соседняя страна отличается
-                            const border = document.createElement('div');
-                            border.className = `country-border border-${neighbor.border} thick-border`;
-                            pixel.appendChild(border);
-                        }
-                    } else {
-                        // Граница карты
-                        const border = document.createElement('div');
-                        border.className = `country-border border-${neighbor.border}`;
-                        pixel.appendChild(border);
-                    }
-                });
-            });
-        }
-
-        // Настройка зума и панорамирования
-        function setupZoomAndPan() {
-            const mapWrapper = document.getElementById('map-wrapper');
-            const pixelMap = document.getElementById('pixel-map');
-
-            // Зум колесом мыши
-            mapWrapper.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const zoomIntensity = 0.1;
-                const wheel = e.deltaY < 0 ? 1 : -1;
-                const zoom = Math.exp(wheel * zoomIntensity);
-                
-                const rect = mapWrapper.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                
-                currentTranslate.x -= (mouseX - currentTranslate.x) * (zoom - 1);
-                currentTranslate.y -= (mouseY - currentTranslate.y) * (zoom - 1);
-                currentScale *= zoom;
-                
-                updateMapTransform();
-            });
-
-            // Панорамирование
-            mapWrapper.addEventListener('mousedown', (e) => {
-                if (e.button === 0) {
-                    isDragging = true;
-                    lastMousePos = { x: e.clientX, y: e.clientY };
-                    mapWrapper.style.cursor = 'grabbing';
-                }
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    const deltaX = e.clientX - lastMousePos.x;
-                    const deltaY = e.clientY - lastMousePos.y;
-                    
-                    currentTranslate.x += deltaX;
-                    currentTranslate.y += deltaY;
-                    
-                    lastMousePos = { x: e.clientX, y: e.clientY };
-                    updateMapTransform();
-                }
-            });
-
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                mapWrapper.style.cursor = 'grab';
-            });
-
-            // Сенсорные события
-            let touchStart = null;
-            mapWrapper.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                }
-            });
-
-            mapWrapper.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && touchStart) {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    const deltaX = touch.clientX - touchStart.x;
-                    const deltaY = touch.clientY - touchStart.y;
-                    
-                    currentTranslate.x += deltaX;
-                    currentTranslate.y += deltaY;
-                    
-                    touchStart = { x: touch.clientX, y: touch.clientY };
-                    updateMapTransform();
-                }
-            });
-        }
-
-        // Обновление трансформации карты
-        function updateMapTransform() {
-            const pixelMap = document.getElementById('pixel-map');
-            pixelMap.style.transform = `translate(${currentTranslate.x}px, ${currentTranslate.y}px) scale(${currentScale})`;
-            document.getElementById('zoom-display').textContent = `Масштаб: ${Math.round(currentScale * 100)}%`;
-        }
-
-        // Управление зумом
-        function zoomIn() {
-            currentScale *= 1.2;
-            updateMapTransform();
-        }
-
-        function zoomOut() {
-            currentScale /= 1.2;
-            updateMapTransform();
-        }
-
-        function resetZoom() {
-            currentScale = 1.0;
-            currentTranslate = { x: 0, y: 0 };
-            updateMapTransform();
-        }
-
-        // Обновление цветов пикселей
-        function updatePixelColors() {
-            document.querySelectorAll('.pixel:not(.empty)').forEach(pixel => {
-                const countryId = pixel.dataset.country;
-                pixel.style.background = countryColors[countryId];
-            });
-        }
-
-        function isValidCoordinate(x, y) {
-            return x >= 0 && x < 60 && y >= 0 && y < 50;
-        }
-
+        // Поиск страны для пикселя
         function findCountryForPixel(x, y) {
-            for (const [country, pixels] of Object.entries(countryPixels)) {
-                if (pixels.some(([px, py]) => px === x && py === y)) {
+            for (const [country, positions] of Object.entries(countryPositions)) {
+                if (positions.some(([px, py]) => px === x && py === y)) {
                     return country;
                 }
             }
             return null;
         }
 
-        function getCountryCode(countryId) {
-            const codes = {
-                'france': 'FR', 'germany': 'DE', 'united_kingdom': 'UK', 'spain': 'ES', 
-                'portugal': 'PT', 'italy': 'IT', 'netherlands': 'NL', 'belgium': 'BE', 
-                'luxembourg': 'LU', 'ireland': 'IE', 'switzerland': 'CH', 'austria': 'AT',
-                'sweden': 'SE', 'norway': 'NO', 'denmark': 'DK', 'finland': 'FI', 
-                'iceland': 'IS', 'poland': 'PL', 'czechia': 'CZ', 'slovakia': 'SK',
-                'hungary': 'HU', 'romania': 'RO', 'bulgaria': 'BG', 'slovenia': 'SI',
-                'croatia': 'HR', 'bosnia': 'BA', 'serbia': 'RS', 'montenegro': 'ME',
-                'albania': 'AL', 'macedonia': 'MK', 'greece': 'GR', 'estonia': 'EE',
-                'latvia': 'LV', 'lithuania': 'LT', 'belarus': 'BY', 'ukraine': 'UA',
-                'moldova': 'MD', 'cyprus': 'CY', 'malta': 'MT', 'andorra': 'AD',
-                'monaco': 'MC', 'san_marino': 'SM', 'liechtenstein': 'LI', 'kosovo': 'XK'
-            };
-            return codes[countryId] || countryId.substring(0, 2).toUpperCase();
+        // Создание списка стран
+        function createCountryList() {
+            const countryList = document.getElementById('country-list');
+            countryList.innerHTML = '';
+
+            Object.entries(countries).forEach(([id, data]) => {
+                const item = document.createElement('div');
+                item.className = `country-item ${data.status}`;
+                item.innerHTML = `
+                    <strong>${data.name}</strong>
+                    <div>Игрок: ${data.player}</div>
+                    <div style="font-size: 0.8em; opacity: 0.8;">ID: ${id}</div>
+                `;
+                countryList.appendChild(item);
+            });
         }
 
-        function getCountryName(countryId) {
-            const names = {
-                'france': 'Франция', 'germany': 'Германия', 'united_kingdom': 'Великобритания',
-                'spain': 'Испания', 'portugal': 'Португалия', 'italy': 'Италия',
-                'netherlands': 'Нидерланды', 'belgium': 'Бельгия', 'luxembourg': 'Люксембург',
-                'ireland': 'Ирландия', 'switzerland': 'Швейцария', 'austria': 'Австрия',
-                'sweden': 'Швеция', 'norway': 'Норвегия', 'denmark': 'Дания',
-                'finland': 'Финляндия', 'iceland': 'Исландия', 'poland': 'Польша',
-                'czechia': 'Чехия', 'slovakia': 'Словакия', 'hungary': 'Венгрия',
-                'romania': 'Румыния', 'bulgaria': 'Болгария', 'slovenia': 'Словения',
-                'croatia': 'Хорватия', 'bosnia': 'Босния и Герцеговина', 'serbia': 'Сербия',
-                'montenegro': 'Черногория', 'albania': 'Албания', 'macedonia': 'Северная Македония',
-                'greece': 'Греция', 'estonia': 'Эстония', 'latvia': 'Латвия',
-                'lithuania': 'Литва', 'belarus': 'Беларусь', 'ukraine': 'Украина',
-                'moldova': 'Молдова', 'cyprus': 'Кипр', 'malta': 'Мальта',
-                'andorra': 'Андорра', 'monaco': 'Монако', 'san_marino': 'Сан-Марино',
-                'liechtenstein': 'Лихтенштейн', 'kosovo': 'Косово'
-            };
-            return names[countryId] || countryId;
-        }
-
-        function updateStatistics() {
-            const countriesCount = Object.keys(countryPixels).length;
-            const regionsCount = Object.values(countryPixels).reduce((acc, pixels) => acc + pixels.length, 0);
-            
-            document.getElementById('countries-count').textContent = countriesCount;
-            document.getElementById('regions-count').textContent = regionsCount;
-        }
-
-        function handlePixelClick(event) {
-            const pixel = event.target;
-            const countryId = pixel.dataset.country;
-            const x = parseInt(pixel.dataset.x);
-            const y = parseInt(pixel.dataset.y);
-            
-            if (countryId) {
-                showRegionInfo(countryId, x, y);
-            }
-        }
-
-        function showRegionInfo(countryId, x, y) {
-            const detailsElement = document.getElementById('region-details');
-            detailsElement.innerHTML = `
-                <div class="country-name">${getCountryName(countryId)}</div>
-                <div class="coordinates">Координаты: [${x}, ${y}]</div>
-                <div style="margin-top: 10px; font-size: 0.8em; opacity: 0.8;">
-                    🎨 Нажмите на цвет страны в легенде чтобы изменить его
-                </div>
-            `;
-
-            if (selectedPixel) {
-                selectedPixel.style.boxShadow = 'none';
-            }
-            
-            selectedPixel = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-            if (selectedPixel) {
-                selectedPixel.style.boxShadow = '0 0 0 3px #f39c12, 0 0 20px rgba(243, 156, 18, 0.7)';
-            }
-        }
-
-        // Основная инициализация
+        // Инициализация
         function initialize() {
-            if (initializeFirebase()) {
-                loadCountriesData();
-            }
+            createMap();
+            createCountryList();
         }
 
         document.addEventListener('DOMContentLoaded', initialize);

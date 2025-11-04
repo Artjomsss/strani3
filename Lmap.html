@@ -424,63 +424,63 @@
             'andorra': { name: 'Андорра', player: 'не занято', color: countryColors.andorra }
         };
 
-        // Обновленное расположение стран
+        // Обновленное расположение стран с исправлениями
         const countryPixels = {
             // Балтийские страны (вертикально: Эстония -> Латвия -> Литва)
             'estonia': generateRectangle(25, 8, 4, 3),
             'latvia': generateRectangle(25, 11, 4, 3),
             'lithuania': generateRectangle(25, 14, 4, 3),
             
-            // Скандинавия (более тонкие)
-            'finland': generateRectangle(20, 5, 3, 6),  // Тонкая Финляндия
-            'norway': generateRectangle(17, 5, 2, 8),   // Очень тонкая Норвегия
+            // Скандинавия - Финляндия правее и выше, Норвегия слева от Финляндии
+            'finland': generateRectangle(22, 5, 4, 5),  // Финляндия правее
+            'norway': generateRectangle(17, 5, 4, 6),   // Норвегия слева от Финляндии
             'denmark': generateRectangle(18, 13, 3, 2),
             'iceland': generateRectangle(10, 5, 3, 2),
-            'sweden': generateRectangle(20, 8, 4, 5),
+            'sweden': generateRectangle(20, 8, 5, 5),
             
             // Западная Европа
             'ireland': generateRectangle(12, 10, 3, 3),
             'united_kingdom': generateRectangle(15, 10, 4, 4),
-            'france': generateRectangle(15, 14, 5, 4),
-            'belgium': generateRectangle(18, 14, 2, 2),
-            'netherlands': generateRectangle(18, 12, 2, 2),
-            'germany': generateRectangle(18, 16, 5, 4),
+            'france': generateRectangle(15, 16, 5, 4),  // Франция ниже
+            'belgium': generateRectangle(18, 16, 2, 2),
+            'netherlands': generateRectangle(18, 14, 2, 2),
+            'germany': generateRectangle(18, 18, 5, 4), // Германия тоже ниже
             
             // Центральная Европа
-            'austria': generateRectangle(21, 18, 3, 3),
-            'switzerland': generateRectangle(19, 18, 2, 2),
-            'czechia': generateRectangle(21, 16, 3, 2),
+            'austria': generateRectangle(21, 20, 3, 3),
+            'switzerland': generateRectangle(19, 20, 2, 2),
+            'czechia': generateRectangle(21, 18, 3, 2),
             
-            // Польша справа от Германии
+            // Польша и Беларусь
             'poland': generateRectangle(23, 16, 4, 4),
+            'belarus': generateRectangle(27, 16, 4, 4), // Беларусь справа от Польши
             
             // Восточная Европа
-            'belarus': generateRectangle(25, 18, 5, 4),
-            'moldova': generateRectangle(27, 22, 3, 2),
+            'moldova': generateRectangle(28, 22, 3, 2),
             'ukraine': generateRectangle(26, 20, 6, 5),
             'romania': generateRectangle(24, 22, 4, 3),
-            'hungary': generateRectangle(22, 20, 3, 3),
+            'hungary': generateRectangle(22, 22, 3, 3),
             
             // Южная Европа
             'portugal': generateRectangle(10, 18, 3, 3),
             'spain': generateRectangle(13, 18, 5, 4),
-            'italy': generateRectangle(20, 22, 3, 5),
+            'italy': generateRectangle(20, 24, 3, 5),
             
             // Балканы
             'greece': generateRectangle(24, 25, 4, 3),
-            'croatia': generateRectangle(21, 22, 3, 3),
-            'bulgaria': generateRectangle(24, 22, 4, 3),
-            'albania': generateRectangle(22, 25, 2, 2),
-            'montenegro': generateRectangle(21, 24, 2, 2),
-            'north_macedonia': generateRectangle(23, 24, 2, 2),
+            'croatia': generateRectangle(21, 24, 3, 3),
+            'bulgaria': generateRectangle(25, 25, 4, 3), // Болгария под Молдовой
+            'albania': generateRectangle(22, 27, 2, 2),
+            'montenegro': generateRectangle(21, 26, 2, 2),
+            'north_macedonia': generateRectangle(23, 26, 2, 2),
             
             // Микрогосударства
-            'andorra': generateRectangle(17, 19, 2, 2),
-            'monaco': generateRectangle(18, 19, 2, 2),
-            'luxembourg': generateRectangle(19, 16, 2, 2),
-            'malta': generateRectangle(21, 27, 2, 2),
-            'liechtenstein': generateRectangle(20, 19, 2, 2),
-            'san_marino': generateRectangle(21, 23, 2, 2)
+            'andorra': generateRectangle(17, 21, 2, 2),
+            'monaco': generateRectangle(18, 21, 2, 2),
+            'luxembourg': generateRectangle(19, 18, 2, 2),
+            'malta': generateRectangle(21, 29, 2, 2),
+            'liechtenstein': generateRectangle(20, 21, 2, 2),
+            'san_marino': generateRectangle(21, 25, 2, 2)
         };
 
         // Простая функция для создания прямоугольников

@@ -61,8 +61,8 @@
 
         .pixel-map {
             display: grid;
-            grid-template-columns: repeat(60, 20px);
-            grid-template-rows: repeat(40, 20px);
+            grid-template-columns: repeat(40, 30px);
+            grid-template-rows: repeat(30, 30px);
             gap: 1px;
             background: #2a2a40;
             padding: 20px;
@@ -74,23 +74,24 @@
         }
 
         .pixel {
-            width: 20px;
-            height: 20px;
+            width: 30px;
+            height: 30px;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 8px;
+            font-size: 10px;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
             border: 1px solid rgba(0,0,0,0.3);
             user-select: none;
+            background: #3498db;
         }
 
         .pixel:hover {
-            transform: scale(1.2);
+            transform: scale(1.15);
             z-index: 10;
             box-shadow: 0 0 0 2px #f39c12, 0 0 15px rgba(243, 156, 18, 0.5);
         }
@@ -98,6 +99,11 @@
         .pixel.empty {
             background: transparent;
             border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .pixel.latvia {
+            background: #e74c3c;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
         }
 
         .country-border {
@@ -263,10 +269,6 @@
             border-left: 4px solid #3498db;
         }
 
-        .country-item.occupied {
-            border-left-color: #27ae60;
-        }
-
         .country-item.latvia {
             border-left-color: #e74c3c;
             background: rgba(231, 76, 60, 0.1);
@@ -302,12 +304,8 @@
                         <span>Латвия (ваша страна)</span>
                     </div>
                     <div class="legend">
-                        <div class="color-box" style="background-color: #27ae60;"></div>
-                        <span>Занятые страны</span>
-                    </div>
-                    <div class="legend">
                         <div class="color-box" style="background-color: #3498db;"></div>
-                        <span>Свободные страны</span>
+                        <span>Остальные страны</span>
                     </div>
                 </div>
 
@@ -321,14 +319,14 @@
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value" id="occupied-countries">15</div>
-                                <div class="stat-label">Занято</div>
+                                <div class="stat-label">С игроками</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value" id="available-countries">14</div>
                                 <div class="stat-label">Свободно</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value" id="your-country">1</div>
+                                <div class="stat-value">1</div>
                                 <div class="stat-label">Ваша страна</div>
                             </div>
                         </div>
@@ -360,91 +358,91 @@
         // Данные стран из вашего списка
         const countriesData = {
             // Латвия (особый статус)
-            'latvia': { name: 'Латвия', player: 'не занято', color: '#e74c3c', status: 'latvia' },
+            'latvia': { name: 'Латвия', player: 'не занято', status: 'latvia' },
             
-            // Занятые страны
-            'austria': { name: 'Австрия', player: 'Коля', color: '#27ae60', status: 'occupied' },
-            'belarus': { name: 'Беларусь', player: 'Эля', color: '#27ae60', status: 'occupied' },
-            'belgium': { name: 'Бельгия', player: 'не занято', color: '#3498db', status: 'available' },
-            'bulgaria': { name: 'Болгария', player: 'Костя', color: '#27ae60', status: 'occupied' },
-            'croatia': { name: 'Хорватия', player: 'Вика Дру', color: '#27ae60', status: 'occupied' },
-            'czechia': { name: 'Чехия', player: 'не занято', color: '#3498db', status: 'available' },
-            'denmark': { name: 'Дания', player: 'не занято', color: '#3498db', status: 'available' },
-            'estonia': { name: 'Эстония', player: 'не занято', color: '#3498db', status: 'available' },
-            'finland': { name: 'Финляндия', player: 'Лёша', color: '#27ae60', status: 'occupied' },
-            'france': { name: 'Франция', player: 'Полина', color: '#27ae60', status: 'occupied' },
-            'germany': { name: 'Германия', player: 'Никита И.', color: '#27ae60', status: 'occupied' },
-            'greece': { name: 'Греция', player: 'Милана', color: '#27ae60', status: 'occupied' },
-            'hungary': { name: 'Венгрия', player: 'не занято', color: '#3498db', status: 'available' },
-            'iceland': { name: 'Исландия', player: 'не занято', color: '#3498db', status: 'available' },
-            'ireland': { name: 'Ирландия', player: 'не занято', color: '#3498db', status: 'available' },
-            'italy': { name: 'Италия', player: 'Эвелина', color: '#27ae60', status: 'occupied' },
-            'lithuania': { name: 'Литва', player: 'не занято', color: '#3498db', status: 'available' },
-            'luxembourg': { name: 'Люксембург', player: 'Карпович', color: '#27ae60', status: 'occupied' },
-            'malta': { name: 'Мальта', player: 'Арина', color: '#27ae60', status: 'occupied' },
-            'moldova': { name: 'Молдавия', player: 'не занято', color: '#3498db', status: 'available' },
-            'monaco': { name: 'Монако', player: 'Катрина', color: '#27ae60', status: 'occupied' },
-            'montenegro': { name: 'Черногория', player: 'Кира', color: '#27ae60', status: 'occupied' },
-            'netherlands': { name: 'Нидерланды', player: 'не занято', color: '#3498db', status: 'available' },
-            'north_macedonia': { name: 'Северная Македония', player: 'не занято', color: '#3498db', status: 'available' },
-            'norway': { name: 'Норвегия', player: 'Вероника', color: '#27ae60', status: 'occupied' },
-            'poland': { name: 'Польша', player: 'Даник', color: '#27ae60', status: 'occupied' },
-            'portugal': { name: 'Португалия', player: 'не занято', color: '#3498db', status: 'available' },
-            'albania': { name: 'Албания', player: 'не занято', color: '#3498db', status: 'available' },
-            'andorra': { name: 'Андорра', player: 'не занято', color: '#3498db', status: 'available' }
+            // Остальные страны (все синие)
+            'austria': { name: 'Австрия', player: 'Коля', status: 'other' },
+            'belarus': { name: 'Беларусь', player: 'Эля', status: 'other' },
+            'belgium': { name: 'Бельгия', player: 'не занято', status: 'other' },
+            'bulgaria': { name: 'Болгария', player: 'Костя', status: 'other' },
+            'croatia': { name: 'Хорватия', player: 'Вика Дру', status: 'other' },
+            'czechia': { name: 'Чехия', player: 'не занято', status: 'other' },
+            'denmark': { name: 'Дания', player: 'не занято', status: 'other' },
+            'estonia': { name: 'Эстония', player: 'не занято', status: 'other' },
+            'finland': { name: 'Финляндия', player: 'Лёша', status: 'other' },
+            'france': { name: 'Франция', player: 'Полина', status: 'other' },
+            'germany': { name: 'Германия', player: 'Никита И.', status: 'other' },
+            'greece': { name: 'Греция', player: 'Милана', status: 'other' },
+            'hungary': { name: 'Венгрия', player: 'не занято', status: 'other' },
+            'iceland': { name: 'Исландия', player: 'не занято', status: 'other' },
+            'ireland': { name: 'Ирландия', player: 'не занято', status: 'other' },
+            'italy': { name: 'Италия', player: 'Эвелина', status: 'other' },
+            'lithuania': { name: 'Литва', player: 'не занято', status: 'other' },
+            'luxembourg': { name: 'Люксембург', player: 'Карпович', status: 'other' },
+            'malta': { name: 'Мальта', player: 'Арина', status: 'other' },
+            'moldova': { name: 'Молдавия', player: 'не занято', status: 'other' },
+            'monaco': { name: 'Монако', player: 'Катрина', status: 'other' },
+            'montenegro': { name: 'Черногория', player: 'Кира', status: 'other' },
+            'netherlands': { name: 'Нидерланды', player: 'не занято', status: 'other' },
+            'north_macedonia': { name: 'Северная Македония', player: 'не занято', status: 'other' },
+            'norway': { name: 'Норвегия', player: 'Вероника', status: 'other' },
+            'poland': { name: 'Польша', player: 'Даник', status: 'other' },
+            'portugal': { name: 'Португалия', player: 'не занято', status: 'other' },
+            'albania': { name: 'Албания', player: 'не занято', status: 'other' },
+            'andorra': { name: 'Андорра', player: 'не занято', status: 'other' }
         };
 
-        // Улучшенное расположение стран (более реалистичное)
+        // Улучшенное расположение стран (большие территории)
         const countryPixels = {
-            // Балтийские страны
-            'latvia': generateRectangle(28, 10, 4, 3),
-            'lithuania': generateRectangle(26, 10, 4, 3),
-            'estonia': generateRectangle(28, 7, 4, 3),
+            // Балтийские страны (большие)
+            'latvia': generateRectangle(15, 12, 6, 5),
+            'lithuania': generateRectangle(12, 12, 6, 5),
+            'estonia': generateRectangle(15, 7, 6, 5),
             
-            // Скандинавия
-            'finland': generateRectangle(25, 3, 6, 6),
-            'norway': generateRectangle(20, 3, 6, 8),
-            'denmark': generateRectangle(22, 10, 3, 2),
-            'iceland': generateRectangle(12, 3, 4, 3),
-            'sweden': generateRectangle(22, 5, 5, 5),
+            // Скандинавия (большие)
+            'finland': generateRectangle(12, 3, 8, 8),
+            'norway': generateRectangle(8, 3, 8, 10),
+            'denmark': generateRectangle(10, 10, 4, 3),
+            'iceland': generateRectangle(3, 3, 5, 4),
+            'sweden': generateRectangle(10, 5, 6, 6),
             
-            // Западная Европа
-            'ireland': generateRectangle(15, 8, 3, 3),
-            'united_kingdom': generateRectangle(17, 8, 4, 4),
-            'france': generateRectangle(20, 12, 6, 5),
-            'belgium': generateRectangle(22, 11, 2, 2),
-            'netherlands': generateRectangle(22, 9, 2, 2),
-            'germany': generateRectangle(24, 10, 5, 4),
-            'austria': generateRectangle(26, 12, 3, 3),
-            'switzerland': generateRectangle(23, 13, 2, 2),
+            // Западная Европа (большие)
+            'ireland': generateRectangle(5, 8, 4, 4),
+            'united_kingdom': generateRectangle(7, 8, 5, 5),
+            'france': generateRectangle(8, 12, 7, 6),
+            'belgium': generateRectangle(10, 11, 3, 3),
+            'netherlands': generateRectangle(10, 9, 3, 3),
+            'germany': generateRectangle(12, 10, 6, 5),
+            'austria': generateRectangle(14, 12, 4, 4),
+            'switzerland': generateRectangle(11, 13, 3, 3),
             
-            // Южная Европа
-            'portugal': generateRectangle(16, 15, 3, 4),
-            'spain': generateRectangle(19, 15, 5, 4),
-            'italy': generateRectangle(26, 15, 3, 6),
-            'greece': generateRectangle(30, 16, 3, 3),
-            'croatia': generateRectangle(27, 13, 3, 2),
-            'bulgaria': generateRectangle(30, 13, 3, 3),
-            'albania': [[29, 15]],
-            'montenegro': [[28, 15]],
-            'north_macedonia': [[29, 14]],
-            'hungary': generateRectangle(28, 12, 3, 2),
-            'czechia': generateRectangle(25, 11, 3, 2),
+            // Южная Европа (большие)
+            'portugal': generateRectangle(6, 15, 4, 5),
+            'spain': generateRectangle(8, 15, 6, 5),
+            'italy': generateRectangle(14, 15, 4, 7),
+            'greece': generateRectangle(18, 16, 4, 4),
+            'croatia': generateRectangle(15, 13, 4, 3),
+            'bulgaria': generateRectangle(18, 13, 4, 4),
+            'albania': generateRectangle(17, 15, 2, 2),
+            'montenegro': generateRectangle(16, 15, 2, 2),
+            'north_macedonia': generateRectangle(17, 14, 2, 2),
+            'hungary': generateRectangle(16, 12, 4, 3),
+            'czechia': generateRectangle(13, 11, 4, 3),
             
-            // Восточная Европа
-            'poland': generateRectangle(26, 9, 4, 3),
-            'belarus': generateRectangle(29, 8, 4, 4),
-            'moldova': generateRectangle(31, 12, 2, 2),
-            'ukraine': generateRectangle(31, 9, 6, 5),
-            'romania': generateRectangle(29, 12, 4, 3),
+            // Восточная Европа (большие)
+            'poland': generateRectangle(14, 9, 5, 4),
+            'belarus': generateRectangle(17, 8, 5, 5),
+            'moldova': generateRectangle(19, 12, 3, 3),
+            'ukraine': generateRectangle(19, 9, 7, 6),
+            'romania': generateRectangle(17, 12, 5, 4),
             
-            // Микрогосударства
-            'andorra': [[21, 14]],
-            'monaco': [[23, 14]],
-            'luxembourg': [[23, 11]],
-            'malta': [[26, 18]],
-            'liechtenstein': [[24, 12]],
-            'san_marino': [[26, 14]]
+            // Микрогосударства (маленькие, но видимые)
+            'andorra': generateRectangle(9, 14, 2, 2),
+            'monaco': generateRectangle(11, 14, 2, 2),
+            'luxembourg': generateRectangle(11, 11, 2, 2),
+            'malta': generateRectangle(14, 18, 2, 2),
+            'liechtenstein': generateRectangle(12, 12, 2, 2),
+            'san_marino': generateRectangle(14, 14, 2, 2)
         };
 
         // Вспомогательная функция для создания прямоугольной области
@@ -463,11 +461,11 @@
             const pixelMap = document.getElementById('pixel-map');
             pixelMap.innerHTML = '';
 
-            // Создаем сетку 60x40
-            for (let y = 0; y < 40; y++) {
-                for (let x = 0; x < 60; x++) {
+            // Создаем сетку 40x30 с большими пикселями
+            for (let y = 0; y < 30; y++) {
+                for (let x = 0; x < 40; x++) {
                     const pixel = document.createElement('div');
-                    pixel.className = 'pixel empty';
+                    pixel.className = 'pixel';
                     pixel.dataset.x = x;
                     pixel.dataset.y = y;
                     
@@ -475,7 +473,12 @@
                     const country = findCountryForPixel(x, y);
                     if (country && countriesData[country]) {
                         pixel.dataset.country = country;
-                        pixel.style.background = countriesData[country].color;
+                        
+                        // Только Латвия выделяется цветом
+                        if (country === 'latvia') {
+                            pixel.classList.add('latvia');
+                        }
+                        
                         pixel.textContent = getCountryCode(country);
                     }
                     
@@ -529,7 +532,7 @@
 
         // Проверка валидности координат
         function isValidCoordinate(x, y) {
-            return x >= 0 && x < 60 && y >= 0 && y < 40;
+            return x >= 0 && x < 40 && y >= 0 && y < 30;
         }
 
         // Поиск страны для пикселя
@@ -550,12 +553,12 @@
                 'france': 'FR', 'germany': 'DE', 'italy': 'IT', 'spain': 'ES',
                 'poland': 'PL', 'belarus': 'BY', 'ukraine': 'UA', 'czechia': 'CZ',
                 'austria': 'AT', 'hungary': 'HU', 'romania': 'RO', 'bulgaria': 'BG',
-                'greece': 'GR', 'croatia': 'HR', 'serbia': 'RS', 'albania': 'AL',
-                'montenegro': 'ME', 'north_macedonia': 'MK', 'bosnia': 'BA',
-                'slovenia': 'SI', 'slovakia': 'SK', 'belgium': 'BE', 'netherlands': 'NL',
-                'portugal': 'PT', 'ireland': 'IE', 'sweden': 'SE', 'switzerland': 'CH',
-                'andorra': 'AD', 'monaco': 'MC', 'liechtenstein': 'LI', 'san_marino': 'SM',
-                'malta': 'MT', 'moldova': 'MD'
+                'greece': 'GR', 'croatia': 'HR', 'albania': 'AL',
+                'montenegro': 'ME', 'north_macedonia': 'MK',
+                'belgium': 'BE', 'netherlands': 'NL', 'portugal': 'PT', 
+                'ireland': 'IE', 'sweden': 'SE', 'switzerland': 'CH',
+                'andorra': 'AD', 'monaco': 'MC', 'liechtenstein': 'LI', 
+                'san_marino': 'SM', 'malta': 'MT', 'moldova': 'MD'
             };
             return codes[countryId] || countryId.substring(0, 2).toUpperCase();
         }
@@ -563,14 +566,12 @@
         // Обновление статистики
         function updateStatistics() {
             const total = Object.keys(countriesData).length;
-            const occupied = Object.values(countriesData).filter(c => c.status === 'occupied').length;
-            const available = Object.values(countriesData).filter(c => c.status === 'available').length;
-            const latvia = Object.values(countriesData).filter(c => c.status === 'latvia').length;
+            const occupied = Object.values(countriesData).filter(c => c.player !== 'не занято').length;
+            const available = Object.values(countriesData).filter(c => c.player === 'не занято').length - 1; // минус Латвия
             
             document.getElementById('total-countries').textContent = total;
             document.getElementById('occupied-countries').textContent = occupied;
             document.getElementById('available-countries').textContent = available;
-            document.getElementById('your-country').textContent = latvia;
         }
 
         // Создание списка стран
@@ -608,7 +609,7 @@
                         <span class="detail-label">Статус:</span>
                         <span class="detail-value">${
                             country.status === 'latvia' ? 'Ваша страна' : 
-                            country.status === 'occupied' ? 'Занята' : 'Свободна'
+                            country.player !== 'не занято' ? 'Занята' : 'Свободна'
                         }</span>
                     </div>
                     <div class="detail-item">

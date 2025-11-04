@@ -424,61 +424,61 @@
             'andorra': { name: 'Андорра', player: 'не занято', color: countryColors.andorra }
         };
 
-        // Уникальные формы и расположение стран
+        // Старые проверенные формы стран (прямоугольные)
         const countryPixels = {
-            // Балтийские страны (уникальные формы)
-            'latvia': createLShape(20, 15, 6, 4),
-            'lithuania': createRectangle(15, 15, 5, 4),
-            'estonia': createTShape(20, 10, 5, 4),
+            // Балтийские страны
+            'latvia': generateRectangle(20, 15, 5, 4),
+            'lithuania': generateRectangle(15, 15, 5, 4),
+            'estonia': generateRectangle(20, 10, 5, 4),
             
-            // Скандинавия (большие с уникальными формами)
-            'finland': createLShape(10, 5, 8, 7),
-            'norway': createVerticalStrip(5, 3, 4, 12),
-            'denmark': createCrossShape(12, 12, 3, 3),
-            'iceland': createRectangle(2, 3, 4, 3),
-            'sweden': createRectangle(8, 8, 6, 5),
+            // Скандинавия
+            'finland': generateRectangle(12, 5, 7, 6),
+            'norway': generateRectangle(8, 5, 6, 8),
+            'denmark': generateRectangle(12, 12, 3, 3),
+            'iceland': generateRectangle(5, 5, 4, 3),
+            'sweden': generateRectangle(10, 8, 6, 5),
             
             // Западная Европа
-            'ireland': createSquare(5, 10, 4),
-            'united_kingdom': createLShape(8, 10, 5, 4),
-            'france': createHexagon(12, 15, 6),
-            'belgium': createTriangle(15, 12, 3),
-            'netherlands': createRectangle(13, 10, 3, 2),
-            'germany': createRectangle(16, 12, 6, 4),
-            'austria': createSquare(20, 14, 3),
-            'switzerland': createDiamond(18, 13, 3),
+            'ireland': generateRectangle(7, 10, 4, 3),
+            'united_kingdom': generateRectangle(9, 10, 5, 4),
+            'france': generateRectangle(10, 14, 6, 5),
+            'belgium': generateRectangle(12, 13, 3, 2),
+            'netherlands': generateRectangle(12, 11, 3, 2),
+            'germany': generateRectangle(14, 12, 6, 4),
+            'austria': generateRectangle(16, 14, 4, 3),
+            'switzerland': generateRectangle(15, 15, 3, 2),
             
             // Южная Европа
-            'portugal': createVerticalStrip(8, 18, 3, 5),
-            'spain': createRectangle(11, 18, 6, 5),
-            'italy': createBootShape(20, 18, 4, 8),
-            'greece': createCrossShape(25, 20, 3, 3),
-            'croatia': createLShape(22, 15, 3, 3),
-            'bulgaria': createRectangle(24, 17, 4, 3),
-            'albania': createTriangle(23, 19, 2),
-            'montenegro': createSquare(22, 18, 2),
-            'north_macedonia': createDiamond(24, 19, 2),
-            'hungary': createRectangle(21, 16, 4, 3),
-            'czechia': createSquare(18, 14, 3),
+            'portugal': generateRectangle(8, 17, 3, 4),
+            'spain': generateRectangle(11, 17, 6, 4),
+            'italy': generateRectangle(17, 16, 3, 6),
+            'greece': generateRectangle(21, 18, 4, 3),
+            'croatia': generateRectangle(17, 15, 3, 3),
+            'bulgaria': generateRectangle(20, 16, 4, 3),
+            'albania': generateRectangle(19, 17, 2, 2),
+            'montenegro': generateRectangle(18, 17, 2, 2),
+            'north_macedonia': generateRectangle(19, 16, 2, 2),
+            'hungary': generateRectangle(17, 14, 4, 3),
+            'czechia': generateRectangle(15, 13, 4, 3),
             
             // Восточная Европа
-            'poland': createRectangle(17, 10, 5, 4),
-            'belarus': createRectangle(20, 8, 6, 4),
-            'moldova': createHorizontalStrip(24, 15, 5, 2),
-            'ukraine': createLargeRectangle(22, 6, 8, 6),
-            'romania': createRectangle(23, 13, 5, 4),
+            'poland': generateRectangle(16, 11, 5, 4),
+            'belarus': generateRectangle(19, 10, 6, 4),
+            'moldova': generateRectangle(21, 15, 3, 2),
+            'ukraine': generateRectangle(20, 12, 7, 5),
+            'romania': generateRectangle(19, 15, 5, 3),
             
             // Микрогосударства
-            'andorra': createSinglePixel(14, 17),
-            'monaco': createSinglePixel(16, 16),
-            'luxembourg': createSinglePixel(16, 13),
-            'malta': createSinglePixel(20, 22),
-            'liechtenstein': createSinglePixel(19, 14),
-            'san_marino': createSinglePixel(21, 17)
+            'andorra': generateRectangle(13, 16, 2, 2),
+            'monaco': generateRectangle(13, 15, 2, 2),
+            'luxembourg': generateRectangle(13, 13, 2, 2),
+            'malta': generateRectangle(17, 20, 2, 2),
+            'liechtenstein': generateRectangle(15, 14, 2, 2),
+            'san_marino': generateRectangle(17, 17, 2, 2)
         };
 
-        // Функции для создания различных форм
-        function createRectangle(startX, startY, width, height) {
+        // Простая функция для создания прямоугольников
+        function generateRectangle(startX, startY, width, height) {
             const pixels = [];
             for (let x = startX; x < startX + width; x++) {
                 for (let y = startY; y < startY + height; y++) {
@@ -486,141 +486,6 @@
                 }
             }
             return pixels;
-        }
-
-        function createSquare(startX, startY, size) {
-            return createRectangle(startX, startY, size, size);
-        }
-
-        function createLShape(startX, startY, width, height) {
-            const pixels = [];
-            // Вертикальная часть
-            for (let y = startY; y < startY + height; y++) {
-                pixels.push([startX, y]);
-            }
-            // Горизонтальная часть
-            for (let x = startX; x < startX + width; x++) {
-                pixels.push([x, startY + height - 1]);
-            }
-            return pixels;
-        }
-
-        function createTShape(startX, startY, width, height) {
-            const pixels = [];
-            // Вертикальная часть
-            for (let y = startY; y < startY + height; y++) {
-                pixels.push([startX + Math.floor(width/2), y]);
-            }
-            // Горизонтальная часть
-            for (let x = startX; x < startX + width; x++) {
-                pixels.push([x, startY]);
-            }
-            return pixels;
-        }
-
-        function createCrossShape(startX, startY, width, height) {
-            const pixels = [];
-            const centerX = startX + Math.floor(width/2);
-            const centerY = startY + Math.floor(height/2);
-            
-            // Вертикальная линия
-            for (let y = startY; y < startY + height; y++) {
-                pixels.push([centerX, y]);
-            }
-            // Горизонтальная линия
-            for (let x = startX; x < startX + width; x++) {
-                pixels.push([x, centerY]);
-            }
-            return pixels;
-        }
-
-        function createDiamond(startX, startY, size) {
-            const pixels = [];
-            const centerX = startX + Math.floor(size/2);
-            const centerY = startY + Math.floor(size/2);
-            
-            for (let x = startX; x < startX + size; x++) {
-                for (let y = startY; y < startY + size; y++) {
-                    const dx = Math.abs(x - centerX);
-                    const dy = Math.abs(y - centerY);
-                    if (dx + dy <= Math.floor(size/2)) {
-                        pixels.push([x, y]);
-                    }
-                }
-            }
-            return pixels;
-        }
-
-        function createTriangle(startX, startY, size) {
-            const pixels = [];
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x <= y; x++) {
-                    pixels.push([startX + x, startY + y]);
-                }
-            }
-            return pixels;
-        }
-
-        function createVerticalStrip(startX, startY, width, height) {
-            const pixels = [];
-            for (let y = startY; y < startY + height; y++) {
-                for (let x = startX; x < startX + width; x++) {
-                    pixels.push([x, y]);
-                }
-            }
-            return pixels;
-        }
-
-        function createHorizontalStrip(startX, startY, width, height) {
-            const pixels = [];
-            for (let x = startX; x < startX + width; x++) {
-                for (let y = startY; y < startY + height; y++) {
-                    pixels.push([x, y]);
-                }
-            }
-            return pixels;
-        }
-
-        function createBootShape(startX, startY, width, height) {
-            const pixels = [];
-            // Основная часть
-            for (let y = startY; y < startY + height - 2; y++) {
-                for (let x = startX; x < startX + width; x++) {
-                    pixels.push([x, y]);
-                }
-            }
-            // "Носок" ботинка
-            for (let x = startX + 1; x < startX + width - 1; x++) {
-                pixels.push([x, startY + height - 2]);
-                pixels.push([x, startY + height - 1]);
-            }
-            return pixels;
-        }
-
-        function createHexagon(startX, startY, size) {
-            const pixels = [];
-            const centerX = startX + Math.floor(size/2);
-            const centerY = startY + Math.floor(size/2);
-            
-            for (let x = startX; x < startX + size; x++) {
-                for (let y = startY; y < startY + size; y++) {
-                    const dx = Math.abs(x - centerX);
-                    const dy = Math.abs(y - centerY);
-                    if (dx <= Math.floor(size/2) && dy <= Math.floor(size/2) && 
-                        dx + dy <= Math.floor(size * 0.8)) {
-                        pixels.push([x, y]);
-                    }
-                }
-            }
-            return pixels;
-        }
-
-        function createLargeRectangle(startX, startY, width, height) {
-            return createRectangle(startX, startY, width, height);
-        }
-
-        function createSinglePixel(x, y) {
-            return [[x, y]];
         }
 
         // Создание пиксельной карты

@@ -573,27 +573,28 @@
     </div>
 
     <script>
-        // Конфигурация Firebase (ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ)
-        const firebaseConfig = {
-            apiKey: "AIzaSyEXAMPLE1234567890",
-            authDomain: "your-project.firebaseapp.com",
-            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
-        };
+// Конфигурация Firebase (твои данные)
+const firebaseConfig = {
+    apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+    authDomain: "strani3.firebaseapp.com",
+    databaseURL: "https://strani3-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "strani3",
+    storageBucket: "strani3.firebasestorage.app",
+    messagingSenderId: "225168183800",
+    appId: "1:225168183800:web:825e782a35bccca89d460d",
+    measurementId: "G-3NKBET5R9J"
+};
 
-        // Инициализация Firebase
-        let database;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            document.getElementById('db-status').innerHTML = '✅ База данных подключена';
-        } catch (error) {
-            console.log("Firebase не настроен, используется локальное хранилище");
-            document.getElementById('db-status').innerHTML = '⚠️ Локальное хранилище (Firebase не настроен)';
-        }
+// Инициализация Firebase
+let database;
+try {
+    firebase.initializeApp(firebaseConfig);
+    database = firebase.database();
+    document.getElementById('db-status').innerHTML = '✅ База данных подключена';
+} catch (error) {
+    console.log("Firebase не настроен, используется локальное хранилище");
+    document.getElementById('db-status').innerHTML = '⚠️ Локальное хранилище (Firebase не настроен)';
+}
 
         // Уникальные цвета для каждой страны
         const countryColors = {

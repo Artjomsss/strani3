@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пиксельная карта Европы - Реалистичная система</title>
+    <title>Пиксельная карта Европы - База данных</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -390,6 +390,7 @@
             font-size: 10px;
             z-index: 25;
             pointer-events: none;
+            white-space: nowrap;
         }
 
         .army-controls {
@@ -442,6 +443,15 @@
         .water {
             background: linear-gradient(45deg, #3498db, #2980b9) !important;
         }
+
+        .db-status {
+            background: rgba(155, 89, 182, 0.15);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #9b59b6;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -450,7 +460,7 @@
         
         <header>
             <h1>🧱 Пиксельная карта Европы</h1>
-            <div style="opacity: 0.9;">Реалистичная система перемещения • Управление армиями</div>
+            <div style="opacity: 0.9;">База данных • Реальное время • Авто-сохранение</div>
         </header>
 
         <div class="content">
@@ -484,6 +494,10 @@
                         <div style="text-align: center; opacity: 0.7;">
                             Выберите армию для управления
                         </div>
+                    </div>
+
+                    <div class="db-status" id="db-status">
+                        🔄 Подключение к базе данных...
                     </div>
                 </div>
             </div>
@@ -559,6 +573,28 @@
     </div>
 
     <script>
+        // Конфигурация Firebase (ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ)
+        const firebaseConfig = {
+            apiKey: "AIzaSyEXAMPLE1234567890",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Инициализация Firebase
+        let database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            document.getElementById('db-status').innerHTML = '✅ База данных подключена';
+        } catch (error) {
+            console.log("Firebase не настроен, используется локальное хранилище");
+            document.getElementById('db-status').innerHTML = '⚠️ Локальное хранилище (Firebase не настроен)';
+        }
+
         // Уникальные цвета для каждой страны
         const countryColors = {
             'latvia': '#e74c3c',
@@ -605,7 +641,34 @@
         const countriesData = {
             'latvia': { name: 'Латвия', player: 'не занято', color: countryColors.latvia },
             'austria': { name: 'Австрия', player: 'Коля', color: countryColors.austria },
-            // ... остальные страны
+            'belarus': { name: 'Беларусь', player: 'Эля', color: countryColors.belarus },
+            'belgium': { name: 'Бельгия', player: 'не занято', color: countryColors.belgium },
+            'bulgaria': { name: 'Болгария', player: 'Костя', color: countryColors.bulgaria },
+            'croatia': { name: 'Хорватия', player: 'Вика Дру', color: countryColors.croatia },
+            'czechia': { name: 'Чехия', player: 'не занято', color: countryColors.czechia },
+            'denmark': { name: 'Дания', player: 'не занято', color: countryColors.denmark },
+            'estonia': { name: 'Эстония', player: 'не занято', color: countryColors.estonia },
+            'finland': { name: 'Финляндия', player: 'Лёша', color: countryColors.finland },
+            'france': { name: 'Франция', player: 'Полина', color: countryColors.france },
+            'germany': { name: 'Германия', player: 'Никита И.', color: countryColors.germany },
+            'greece': { name: 'Греция', player: 'Милана', color: countryColors.greece },
+            'hungary': { name: 'Венгрия', player: 'не занято', color: countryColors.hungary },
+            'iceland': { name: 'Исландия', player: 'не занято', color: countryColors.iceland },
+            'ireland': { name: 'Ирландия', player: 'не занято', color: countryColors.ireland },
+            'italy': { name: 'Италия', player: 'Эвелина', color: countryColors.italy },
+            'lithuania': { name: 'Литва', player: 'не занято', color: countryColors.lithuania },
+            'luxembourg': { name: 'Люксембург', player: 'Карпович', color: countryColors.luxembourg },
+            'malta': { name: 'Мальта', player: 'Арина', color: countryColors.malta },
+            'moldova': { name: 'Молдавия', player: 'не занято', color: countryColors.moldova },
+            'monaco': { name: 'Монако', player: 'Катрина', color: countryColors.monaco },
+            'montenegro': { name: 'Черногория', player: 'Кира', color: countryColors.montenegro },
+            'netherlands': { name: 'Нидерланды', player: 'не занято', color: countryColors.netherlands },
+            'north_macedonia': { name: 'Северная Македония', player: 'не занято', color: countryColors.north_macedonia },
+            'norway': { name: 'Норвегия', player: 'Вероника', color: countryColors.norway },
+            'poland': { name: 'Польша', player: 'Даник', color: countryColors.poland },
+            'portugal': { name: 'Португалия', player: 'не занято', color: countryColors.portugal },
+            'albania': { name: 'Албания', player: 'не занято', color: countryColors.albania },
+            'andorra': { name: 'Андорра', player: 'не занято', color: countryColors.andorra }
         };
 
         // Водные территории
@@ -622,7 +685,44 @@
 
         // Расположение стран
         const countryPixels = {
-            // ... существующее расположение стран
+            'estonia': generateRectangle(25, 8, 4, 3),
+            'latvia': generateRectangle(25, 11, 4, 3),
+            'lithuania': generateRectangle(25, 14, 4, 3),
+            'finland': generateRectangle(22, 5, 4, 5),
+            'norway': generateRectangle(17, 5, 4, 6),
+            'denmark': generateRectangle(18, 13, 3, 2),
+            'iceland': generateRectangle(10, 5, 2, 3),
+            'sweden': generateRectangle(20, 8, 5, 5),
+            'ireland': generateRectangle(12, 10, 3, 3),
+            'united_kingdom': generateRectangle(15, 10, 4, 4),
+            'france': generateRectangle(14, 20, 5, 4),
+            'belgium': generateRectangle(16, 18, 2, 2),
+            'netherlands': generateRectangle(16, 16, 2, 2),
+            'germany': generateRectangle(18, 18, 5, 4),
+            'austria': generateRectangle(21, 20, 3, 3),
+            'switzerland': generateRectangle(19, 20, 2, 2),
+            'czechia': generateRectangle(21, 18, 3, 2),
+            'poland': generateRectangle(23, 16, 4, 4),
+            'belarus': generateRectangle(27, 16, 4, 4),
+            'moldova': generateRectangle(28, 22, 3, 2),
+            'ukraine': generateRectangle(26, 20, 6, 5),
+            'romania': generateRectangle(24, 22, 4, 3),
+            'hungary': generateRectangle(22, 22, 3, 3),
+            'portugal': generateRectangle(10, 18, 3, 3),
+            'spain': generateRectangle(13, 18, 5, 4),
+            'italy': generateRectangle(20, 24, 3, 5),
+            'greece': generateRectangle(24, 25, 4, 3),
+            'croatia': generateRectangle(21, 24, 3, 3),
+            'bulgaria': generateRectangle(28, 25, 4, 3),
+            'albania': generateRectangle(22, 27, 2, 2),
+            'montenegro': generateRectangle(21, 26, 2, 2),
+            'north_macedonia': generateRectangle(23, 26, 2, 2),
+            'andorra': generateRectangle(15, 23, 2, 2),
+            'monaco': generateRectangle(18, 21, 2, 2),
+            'luxembourg': generateRectangle(19, 18, 2, 2),
+            'malta': generateRectangle(21, 32, 2, 2),
+            'liechtenstein': generateRectangle(20, 21, 2, 2),
+            'san_marino': generateRectangle(21, 25, 2, 2)
         };
 
         // Игровая система
@@ -636,18 +736,43 @@
 
         const unitTypes = {
             soldier: { 
-                speed: 1.0, // базовая скорость
+                speed: 1.0,
                 color: '#3498db',
                 symbol: '👥'
             },
             tank: { 
-                speed: 1.5, // танки быстрее
+                speed: 1.5,
                 color: '#e74c3c',
                 symbol: '🚗'
             }
         };
 
-        // Создание армии с указанным размером
+        // Функции для работы с базой данных
+        function saveToDatabase(path, data) {
+            if (database) {
+                database.ref(path).set(data)
+                    .then(() => console.log('✅ Данные сохранены:', path))
+                    .catch(error => console.error('❌ Ошибка сохранения:', error));
+            } else {
+                // Локальное сохранение
+                localStorage.setItem('game_' + path, JSON.stringify(data));
+            }
+        }
+
+        function loadFromDatabase(path, callback) {
+            if (database) {
+                database.ref(path).on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    callback(data);
+                });
+            } else {
+                // Локальная загрузка
+                const data = JSON.parse(localStorage.getItem('game_' + path) || 'null');
+                callback(data);
+            }
+        }
+
+        // Создание армии с сохранением в БД
         function createArmy(type, size) {
             const unit = {
                 id: 'unit_' + Date.now(),
@@ -656,15 +781,19 @@
                 position: { x: 25, y: 12 },
                 size: size,
                 isMoving: false,
-                movePath: [],
                 moveStartTime: null,
-                moveDuration: 0
+                moveDuration: 0,
+                targetPosition: null,
+                path: []
             };
 
             gameState.units.push(unit);
             renderUnit(unit);
             updateGameStats();
             setupDragAndDrop(unit);
+            
+            // Сохраняем в БД
+            saveToDatabase('units/' + unit.id, unit);
         }
 
         function createCustomArmy() {
@@ -672,18 +801,66 @@
             createArmy('soldier', size);
         }
 
+        // Загрузка данных из БД при старте
+        function loadGameData() {
+            loadFromDatabase('units', (units) => {
+                if (units) {
+                    gameState.units = Object.values(units);
+                    gameState.units.forEach(unit => {
+                        // Проверяем перемещения в реальном времени
+                        if (unit.isMoving && unit.moveStartTime && unit.targetPosition) {
+                            continueMovement(unit);
+                        } else {
+                            renderUnit(unit);
+                            setupDragAndDrop(unit);
+                        }
+                    });
+                }
+            });
+
+            loadFromDatabase('territories', (territories) => {
+                if (territories) {
+                    gameState.territories = territories;
+                    updateCapturedTerritories();
+                }
+            });
+        }
+
+        function continueMovement(unit) {
+            const elapsed = Date.now() - unit.moveStartTime;
+            const progress = Math.min(elapsed / unit.moveDuration, 1);
+            
+            if (progress < 1) {
+                // Продолжаем движение
+                unit.isMoving = true;
+                renderUnit(unit);
+                setupDragAndDrop(unit);
+                startMovementAnimation(unit, progress);
+            } else {
+                // Движение завершено
+                unit.isMoving = false;
+                unit.position = unit.targetPosition;
+                unit.targetPosition = null;
+                renderUnit(unit);
+                setupDragAndDrop(unit);
+                checkForCapture(unit);
+                saveToDatabase('units/' + unit.id, unit);
+            }
+        }
+
         // Настройка перетаскивания
         function setupDragAndDrop(unit) {
             const unitElement = document.getElementById(unit.id);
+            if (!unitElement) return;
             
             unitElement.addEventListener('mousedown', startDrag);
             unitElement.addEventListener('touchstart', startDrag);
             
             function startDrag(e) {
+                if (unit.isMoving) return;
                 e.preventDefault();
                 gameState.selectedUnit = unit;
                 
-                // Создаем призрачный юнит
                 createGhostUnit(unit);
                 
                 document.addEventListener('mousemove', drag);
@@ -708,7 +885,7 @@
                 
                 if (x >= 0 && x < 50 && y >= 0 && y < 35) {
                     updateGhostPosition(x, y);
-                    showMovementPath(unit.position, {x, y});
+                    showMovementPath(unit.position, {x, y}, unit.type);
                 }
             }
             
@@ -739,7 +916,7 @@
             ghost.style.left = (unit.position.x * 25 + 2) + 'px';
             ghost.style.top = (unit.position.y * 25 + 2) + 'px';
             ghost.style.background = unitTypes[unit.type].color;
-            ghost.innerHTML = unitTypes[unit.type].symbol;
+            ghost.innerHTML = `${unitTypes[unit.type].symbol}<div style="font-size:8px">${unit.size}</div>`;
             
             pixelMap.appendChild(ghost);
             gameState.ghostUnit = ghost;
@@ -752,100 +929,158 @@
             }
         }
 
-        function showMovementPath(start, end) {
-            // Очищаем предыдущий путь
+        function showMovementPath(start, end, unitType) {
             document.querySelectorAll('.movement-path, .movement-time').forEach(el => el.remove());
             
-            const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
-            const isWater = checkWaterPath(start, end);
-            const speedMultiplier = isWater ? 0.4 : 1.0; // Замедление на воде
-            const duration = calculateMoveDuration(distance, speedMultiplier);
+            const path = calculatePath(start, end);
+            const isWater = checkWaterPath(path);
+            const speedMultiplier = isWater ? 0.4 : 1.0;
+            const duration = calculateMoveDuration(path.length, speedMultiplier, unitType);
             
-            // Показываем время перемещения
-            const timeElement = document.createElement('div');
-            timeElement.className = 'movement-time';
-            timeElement.style.left = (end.x * 25 + 5) + 'px';
-            timeElement.style.top = (end.y * 25 - 15) + 'px';
-            timeElement.textContent = formatDuration(duration);
-            
-            document.getElementById('pixel-map').appendChild(timeElement);
+            // Рисуем путь
+            path.forEach((point, index) => {
+                if (index === 0) return;
+                
+                const prev = path[index - 1];
+                const pathElement = document.createElement('div');
+                pathElement.className = 'movement-path';
+                
+                const dx = point.x - prev.x;
+                const dy = point.y - prev.y;
+                const length = Math.sqrt(dx * dx + dy * dy) * 25;
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                pathElement.style.width = length + 'px';
+                pathElement.style.height = '3px';
+                pathElement.style.left = (prev.x * 25 + 12.5) + 'px';
+                pathElement.style.top = (prev.y * 25 + 12.5) + 'px';
+                pathElement.style.transform = `rotate(${angle}deg)`;
+                pathElement.style.transformOrigin = '0 0';
+                
+                document.getElementById('pixel-map').appendChild(pathElement);
+                
+                // Показываем оставшееся время на середине пути
+                if (index === Math.floor(path.length / 2)) {
+                    const timeElement = document.createElement('div');
+                    timeElement.className = 'movement-time';
+                    timeElement.style.left = (point.x * 25 + 5) + 'px';
+                    timeElement.style.top = (point.y * 25 - 15) + 'px';
+                    timeElement.textContent = formatDuration(duration);
+                    document.getElementById('pixel-map').appendChild(timeElement);
+                }
+            });
         }
 
-        function checkWaterPath(start, end) {
-            // Проверяем, проходит ли путь через воду
-            const steps = Math.max(Math.abs(end.x - start.x), Math.abs(end.y - start.y));
-            for (let i = 0; i <= steps; i++) {
-                const t = i / steps;
-                const x = Math.round(start.x + (end.x - start.x) * t);
-                const y = Math.round(start.y + (end.y - start.y) * t);
+        function calculatePath(start, end) {
+            const path = [start];
+            let current = {...start};
+            
+            while (current.x !== end.x || current.y !== end.y) {
+                if (current.x < end.x) current.x++;
+                else if (current.x > end.x) current.x--;
                 
-                if (isWaterPixel(x, y)) {
-                    return true;
-                }
+                if (current.y < end.y) current.y++;
+                else if (current.y > end.y) current.y--;
+                
+                path.push({...current});
             }
-            return false;
+            
+            return path;
+        }
+
+        function checkWaterPath(path) {
+            return path.some(point => isWaterPixel(point.x, point.y));
         }
 
         function isWaterPixel(x, y) {
             return waterPixels.some(([px, py]) => px === x && py === y);
         }
 
-        function calculateMoveDuration(distance, speedMultiplier) {
-            const baseHoursPerPixel = 2; // 2 часа на пиксель
-            return Math.round(distance * baseHoursPerPixel * speedMultiplier);
+        function calculateMoveDuration(steps, speedMultiplier, unitType) {
+            const baseMinutesPerStep = 5; // 5 минут на шаг
+            const unitSpeed = unitTypes[unitType].speed;
+            return Math.round(steps * baseMinutesPerStep * speedMultiplier / unitSpeed);
         }
 
-        function formatDuration(hours) {
-            if (hours < 24) {
-                return `${hours}ч`;
+        function formatDuration(minutes) {
+            if (minutes < 60) {
+                return `${minutes}м`;
             } else {
-                const days = Math.floor(hours / 24);
-                const remainingHours = hours % 24;
-                return `${days}д ${remainingHours}ч`;
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                return `${hours}ч ${remainingMinutes}м`;
             }
         }
 
         function moveUnit(unit, targetPos) {
-            const distance = Math.sqrt(Math.pow(targetPos.x - unit.position.x, 2) + Math.pow(targetPos.y - unit.position.y, 2));
-            const isWater = checkWaterPath(unit.position, targetPos);
+            const path = calculatePath(unit.position, targetPos);
+            const isWater = checkWaterPath(path);
             const speedMultiplier = isWater ? 0.4 : 1.0;
-            const duration = calculateMoveDuration(distance, speedMultiplier);
+            const duration = calculateMoveDuration(path.length, speedMultiplier, unit.type);
             
             unit.isMoving = true;
-            unit.movePath = [unit.position, targetPos];
             unit.moveStartTime = Date.now();
-            unit.moveDuration = duration * 3600000; // конвертируем в миллисекунды
+            unit.moveDuration = duration * 60000; // в миллисекундах
+            unit.targetPosition = targetPos;
+            unit.path = path;
             
-            // Визуализация перемещения
+            // Сохраняем в БД
+            saveToDatabase('units/' + unit.id, unit);
+            
+            // Визуализация
             const unitElement = document.getElementById(unit.id);
             unitElement.classList.add('moving');
             
-            // Запускаем анимацию перемещения
-            const startTime = Date.now();
-            const startPos = {...unit.position};
+            startMovementAnimation(unit, 0);
+        }
+
+        function startMovementAnimation(unit, startProgress = 0) {
+            const unitElement = document.getElementById(unit.id);
+            if (!unitElement) return;
+            
+            const startTime = Date.now() - (unit.moveDuration * startProgress);
+            const path = unit.path;
             
             function animateMove() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / unit.moveDuration, 1);
                 
                 if (progress < 1) {
-                    const currentX = startPos.x + (targetPos.x - startPos.x) * progress;
-                    const currentY = startPos.y + (targetPos.y - startPos.y) * progress;
+                    const pathIndex = Math.floor(progress * (path.length - 1));
+                    const currentPoint = path[Math.min(pathIndex, path.length - 1)];
                     
-                    unitElement.style.left = (currentX * 25 + 2) + 'px';
-                    unitElement.style.top = (currentY * 25 + 2) + 'px';
+                    unitElement.style.left = (currentPoint.x * 25 + 2) + 'px';
+                    unitElement.style.top = (currentPoint.y * 25 + 2) + 'px';
+                    
+                    // Обновляем оставшееся время
+                    updateRemainingTime(unit, progress);
                     
                     requestAnimationFrame(animateMove);
                 } else {
                     // Перемещение завершено
-                    unit.position = targetPos;
                     unit.isMoving = false;
+                    unit.position = unit.targetPosition;
+                    unit.targetPosition = null;
+                    unit.path = [];
                     unitElement.classList.remove('moving');
+                    
                     checkForCapture(unit);
+                    saveToDatabase('units/' + unit.id, unit);
+                    updateGameStats();
                 }
             }
             
             animateMove();
+        }
+
+        function updateRemainingTime(unit, progress) {
+            const remainingTime = unit.moveDuration * (1 - progress);
+            const remainingMinutes = Math.round(remainingTime / 60000);
+            
+            // Обновляем отображение времени на пути
+            document.querySelectorAll('.movement-time').forEach(el => {
+                el.textContent = formatDuration(remainingMinutes);
+            });
         }
 
         function cleanupDrag() {
@@ -883,25 +1118,33 @@
                 }
 
                 updateGameStats();
+                saveToDatabase('territories/' + territoryKey, gameState.territories[territoryKey]);
             }
         }
 
         function renderUnit(unit) {
-            const pixelMap = document.getElementById('pixel-map');
-            const unitElement = document.createElement('div');
+            let unitElement = document.getElementById(unit.id);
+            if (!unitElement) {
+                unitElement = document.createElement('div');
+                unitElement.id = unit.id;
+                document.getElementById('pixel-map').appendChild(unitElement);
+            }
             
-            unitElement.className = `unit ${unit.type}`;
-            unitElement.id = unit.id;
+            unitElement.className = `unit ${unit.type} ${unit.isMoving ? 'moving' : ''}`;
             unitElement.style.left = (unit.position.x * 25 + 2) + 'px';
             unitElement.style.top = (unit.position.y * 25 + 2) + 'px';
             unitElement.style.background = unitTypes[unit.type].color;
             unitElement.innerHTML = `${unitTypes[unit.type].symbol}<div style="font-size:8px">${unit.size}</div>`;
 
-            pixelMap.appendChild(unitElement);
+            unitElement.addEventListener('click', () => selectUnit(unit));
         }
 
         function selectUnit(unit) {
             const unitInfo = document.getElementById('unit-info');
+            const remainingTime = unit.isMoving ? 
+                formatDuration(Math.round((unit.moveDuration - (Date.now() - unit.moveStartTime)) / 60000)) : 
+                'На месте';
+                
             unitInfo.innerHTML = `
                 <strong>${getUnitName(unit.type)} армия</strong>
                 <div class="detail-item">
@@ -914,7 +1157,7 @@
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Статус:</span>
-                    <span class="detail-value">${unit.isMoving ? 'В движении' : 'На месте'}</span>
+                    <span class="detail-value">${unit.isMoving ? `В движении (${remainingTime})` : 'На месте'}</span>
                 </div>
                 <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
                     💡 Перетащите для перемещения
@@ -943,7 +1186,18 @@
             document.getElementById('total-tanks').textContent = totalTanks;
         }
 
-        // Остальные функции карты остаются без изменений
+        function updateCapturedTerritories() {
+            Object.keys(gameState.territories).forEach(coord => {
+                const [x, y] = coord.split(',').map(Number);
+                const pixel = findPixelByCoord(x, y);
+                if (pixel) {
+                    pixel.classList.add('captured-territory');
+                }
+            });
+            updateGameStats();
+        }
+
+        // Остальные функции карты
         function generateRectangle(startX, startY, width, height) {
             const pixels = [];
             for (let x = startX; x < startX + width; x++) {
@@ -965,7 +1219,6 @@
                     pixel.dataset.x = x;
                     pixel.dataset.y = y;
                     
-                    // Проверяем воду
                     if (isWaterPixel(x, y)) {
                         pixel.classList.add('water');
                         pixel.textContent = '~';
@@ -1012,17 +1265,143 @@
             return document.querySelector(`.pixel[data-x="${x}"][data-y="${y}"]`);
         }
 
-        // Остальные функции карты...
-        document.addEventListener('DOMContentLoaded', initialize);
+        function getCountryCode(countryId) {
+            const codes = {
+                'latvia': 'LV', 'lithuania': 'LT', 'estonia': 'EE',
+                'finland': 'FI', 'norway': 'NO', 'denmark': 'DK', 'iceland': 'IS',
+                'france': 'FR', 'germany': 'DE', 'italy': 'IT', 'spain': 'ES',
+                'poland': 'PL', 'belarus': 'BY', 'ukraine': 'UA', 'czechia': 'CZ',
+                'austria': 'AT', 'hungary': 'HU', 'romania': 'RO', 'bulgaria': 'BG',
+                'greece': 'GR', 'croatia': 'HR', 'albania': 'AL',
+                'montenegro': 'ME', 'north_macedonia': 'MK',
+                'belgium': 'BE', 'netherlands': 'NL', 'portugal': 'PT', 
+                'ireland': 'IE', 'sweden': 'SE', 'switzerland': 'CH',
+                'andorra': 'AD', 'monaco': 'MC', 'liechtenstein': 'LI', 
+                'san_marino': 'SM', 'malta': 'MT', 'moldova': 'MD'
+            };
+            return codes[countryId] || countryId.substring(0, 2).toUpperCase();
+        }
 
+        function addCountryBorders() {
+            const pixels = document.querySelectorAll('.pixel:not(.empty)');
+            
+            pixels.forEach(pixel => {
+                const x = parseInt(pixel.dataset.x);
+                const y = parseInt(pixel.dataset.y);
+                const country = pixel.dataset.country;
+
+                const neighbors = [
+                    {dx: 0, dy: -1, border: 'top'},
+                    {dx: 1, dy: 0, border: 'right'},
+                    {dx: 0, dy: 1, border: 'bottom'},
+                    {dx: -1, dy: 0, border: 'left'}
+                ];
+
+                neighbors.forEach(neighbor => {
+                    const nx = x + neighbor.dx;
+                    const ny = y + neighbor.dy;
+                    
+                    if (isValidCoordinate(nx, ny)) {
+                        const neighborCountry = findCountryForPixel(nx, ny);
+                        if (neighborCountry !== country) {
+                            const border = document.createElement('div');
+                            border.className = `country-border border-${neighbor.border}`;
+                            pixel.appendChild(border);
+                        }
+                    } else {
+                        const border = document.createElement('div');
+                        border.className = `country-border border-${neighbor.border}`;
+                        pixel.appendChild(border);
+                    }
+                });
+            });
+        }
+
+        function isValidCoordinate(x, y) {
+            return x >= 0 && x < 50 && y >= 0 && y < 35;
+        }
+
+        function updateStatistics() {
+            const total = Object.keys(countriesData).length;
+            const occupied = Object.values(countriesData).filter(c => c.player !== 'не занято').length;
+            const available = Object.values(countriesData).filter(c => c.player === 'не занято').length - 1;
+            
+            document.getElementById('total-countries').textContent = total;
+            document.getElementById('occupied-countries').textContent = occupied;
+            document.getElementById('available-countries').textContent = available;
+        }
+
+        function createCountryList() {
+            const countryList = document.getElementById('country-list');
+            countryList.innerHTML = '';
+
+            Object.entries(countriesData).forEach(([id, data]) => {
+                const item = document.createElement('div');
+                item.className = 'country-item';
+                item.style.borderLeftColor = data.color;
+                item.innerHTML = `
+                    <div>
+                        <strong>${data.name}</strong>
+                        <div class="player-name">${data.player}</div>
+                    </div>
+                    <div style="font-size: 0.8em; opacity: 0.7;">${getCountryCode(id)}</div>
+                `;
+                countryList.appendChild(item);
+            });
+        }
+
+        function handlePixelHover(event) {
+            const pixel = event.target;
+            const countryId = pixel.dataset.country;
+            
+            if (countryId && countriesData[countryId]) {
+                const country = countriesData[countryId];
+                const detailsElement = document.getElementById('region-details');
+                
+                detailsElement.innerHTML = `
+                    <div class="country-name">${country.name}</div>
+                    <div class="coordinates">Игрок: ${country.player}</div>
+                    <div class="detail-item">
+                        <span class="detail-label">Статус:</span>
+                        <span class="detail-value">${
+                            countryId === 'latvia' ? 'Ваша страна' : 
+                            country.player !== 'не занято' ? 'Занята' : 'Свободна'
+                        }</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Код:</span>
+                        <span class="detail-value">${getCountryCode(countryId)}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function handlePixelLeave(event) {
+            const detailsElement = document.getElementById('region-details');
+            detailsElement.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3em; margin-bottom: 10px;">🧱</div>
+                    <h3>Выберите страну</h3>
+                    <p>Наведите курсор на любую страну на карте</p>
+                </div>
+            `;
+        }
+
+        // Инициализация
         function initialize() {
             createPixelMap();
+            loadGameData();
+            
             // Создаем несколько начальных армий
             setTimeout(() => {
-                createArmy('soldier', 500);
-                createArmy('tank', 50);
+                if (gameState.units.length === 0) {
+                    createArmy('soldier', 500);
+                    createArmy('tank', 50);
+                }
             }, 1000);
         }
+
+        document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
 </html>

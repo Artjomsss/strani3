@@ -61,8 +61,8 @@
 
         .pixel-map {
             display: grid;
-            grid-template-columns: repeat(40, 30px);
-            grid-template-rows: repeat(30, 30px);
+            grid-template-columns: repeat(50, 25px);
+            grid-template-rows: repeat(35, 25px);
             gap: 1px;
             background: #2a2a40;
             padding: 20px;
@@ -74,24 +74,23 @@
         }
 
         .pixel {
-            width: 30px;
-            height: 30px;
+            width: 25px;
+            height: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
             border: 1px solid rgba(0,0,0,0.3);
             user-select: none;
-            background: #3498db;
         }
 
         .pixel:hover {
-            transform: scale(1.15);
+            transform: scale(1.2);
             z-index: 10;
             box-shadow: 0 0 0 2px #f39c12, 0 0 15px rgba(243, 156, 18, 0.5);
         }
@@ -102,8 +101,7 @@
         }
 
         .pixel.latvia {
-            background: #e74c3c;
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
         .country-border {
@@ -269,11 +267,6 @@
             border-left: 4px solid #3498db;
         }
 
-        .country-item.latvia {
-            border-left-color: #e74c3c;
-            background: rgba(231, 76, 60, 0.1);
-        }
-
         .player-name {
             font-size: 0.9em;
             opacity: 0.8;
@@ -355,98 +348,137 @@
     </div>
 
     <script>
+        // Уникальные цвета для каждой страны
+        const countryColors = {
+            'latvia': '#e74c3c',
+            'lithuania': '#1abc9c',
+            'estonia': '#9b59b6',
+            'finland': '#3498db',
+            'norway': '#e67e22',
+            'denmark': '#f1c40f',
+            'iceland': '#95a5a6',
+            'sweden': '#2ecc71',
+            'ireland': '#d35400',
+            'united_kingdom': '#c0392b',
+            'france': '#2980b9',
+            'belgium': '#8e44ad',
+            'netherlands': '#16a085',
+            'germany': '#f39c12',
+            'austria': '#27ae60',
+            'switzerland': '#e74c3c',
+            'portugal': '#9b59b6',
+            'spain': '#e67e22',
+            'italy': '#3498db',
+            'greece': '#1abc9c',
+            'croatia': '#d35400',
+            'bulgaria': '#2ecc71',
+            'albania': '#f39c12',
+            'montenegro': '#8e44ad',
+            'north_macedonia': '#16a085',
+            'hungary': '#c0392b',
+            'czechia': '#2980b9',
+            'poland': '#27ae60',
+            'belarus': '#95a5a6',
+            'moldova': '#f1c40f',
+            'ukraine': '#e74c3c',
+            'romania': '#9b59b6',
+            'andorra': '#3498db',
+            'monaco': '#1abc9c',
+            'luxembourg': '#e67e22',
+            'malta': '#2ecc71',
+            'liechtenstein': '#d35400',
+            'san_marino': '#8e44ad'
+        };
+
         // Данные стран из вашего списка
         const countriesData = {
-            // Латвия (особый статус)
-            'latvia': { name: 'Латвия', player: 'не занято', status: 'latvia' },
-            
-            // Остальные страны (все синие)
-            'austria': { name: 'Австрия', player: 'Коля', status: 'other' },
-            'belarus': { name: 'Беларусь', player: 'Эля', status: 'other' },
-            'belgium': { name: 'Бельгия', player: 'не занято', status: 'other' },
-            'bulgaria': { name: 'Болгария', player: 'Костя', status: 'other' },
-            'croatia': { name: 'Хорватия', player: 'Вика Дру', status: 'other' },
-            'czechia': { name: 'Чехия', player: 'не занято', status: 'other' },
-            'denmark': { name: 'Дания', player: 'не занято', status: 'other' },
-            'estonia': { name: 'Эстония', player: 'не занято', status: 'other' },
-            'finland': { name: 'Финляндия', player: 'Лёша', status: 'other' },
-            'france': { name: 'Франция', player: 'Полина', status: 'other' },
-            'germany': { name: 'Германия', player: 'Никита И.', status: 'other' },
-            'greece': { name: 'Греция', player: 'Милана', status: 'other' },
-            'hungary': { name: 'Венгрия', player: 'не занято', status: 'other' },
-            'iceland': { name: 'Исландия', player: 'не занято', status: 'other' },
-            'ireland': { name: 'Ирландия', player: 'не занято', status: 'other' },
-            'italy': { name: 'Италия', player: 'Эвелина', status: 'other' },
-            'lithuania': { name: 'Литва', player: 'не занято', status: 'other' },
-            'luxembourg': { name: 'Люксембург', player: 'Карпович', status: 'other' },
-            'malta': { name: 'Мальта', player: 'Арина', status: 'other' },
-            'moldova': { name: 'Молдавия', player: 'не занято', status: 'other' },
-            'monaco': { name: 'Монако', player: 'Катрина', status: 'other' },
-            'montenegro': { name: 'Черногория', player: 'Кира', status: 'other' },
-            'netherlands': { name: 'Нидерланды', player: 'не занято', status: 'other' },
-            'north_macedonia': { name: 'Северная Македония', player: 'не занято', status: 'other' },
-            'norway': { name: 'Норвегия', player: 'Вероника', status: 'other' },
-            'poland': { name: 'Польша', player: 'Даник', status: 'other' },
-            'portugal': { name: 'Португалия', player: 'не занято', status: 'other' },
-            'albania': { name: 'Албания', player: 'не занято', status: 'other' },
-            'andorra': { name: 'Андорра', player: 'не занято', status: 'other' }
+            'latvia': { name: 'Латвия', player: 'не занято', color: countryColors.latvia },
+            'austria': { name: 'Австрия', player: 'Коля', color: countryColors.austria },
+            'belarus': { name: 'Беларусь', player: 'Эля', color: countryColors.belarus },
+            'belgium': { name: 'Бельгия', player: 'не занято', color: countryColors.belgium },
+            'bulgaria': { name: 'Болгария', player: 'Костя', color: countryColors.bulgaria },
+            'croatia': { name: 'Хорватия', player: 'Вика Дру', color: countryColors.croatia },
+            'czechia': { name: 'Чехия', player: 'не занято', color: countryColors.czechia },
+            'denmark': { name: 'Дания', player: 'не занято', color: countryColors.denmark },
+            'estonia': { name: 'Эстония', player: 'не занято', color: countryColors.estonia },
+            'finland': { name: 'Финляндия', player: 'Лёша', color: countryColors.finland },
+            'france': { name: 'Франция', player: 'Полина', color: countryColors.france },
+            'germany': { name: 'Германия', player: 'Никита И.', color: countryColors.germany },
+            'greece': { name: 'Греция', player: 'Милана', color: countryColors.greece },
+            'hungary': { name: 'Венгрия', player: 'не занято', color: countryColors.hungary },
+            'iceland': { name: 'Исландия', player: 'не занято', color: countryColors.iceland },
+            'ireland': { name: 'Ирландия', player: 'не занято', color: countryColors.ireland },
+            'italy': { name: 'Италия', player: 'Эвелина', color: countryColors.italy },
+            'lithuania': { name: 'Литва', player: 'не занято', color: countryColors.lithuania },
+            'luxembourg': { name: 'Люксембург', player: 'Карпович', color: countryColors.luxembourg },
+            'malta': { name: 'Мальта', player: 'Арина', color: countryColors.malta },
+            'moldova': { name: 'Молдавия', player: 'не занято', color: countryColors.moldova },
+            'monaco': { name: 'Монако', player: 'Катрина', color: countryColors.monaco },
+            'montenegro': { name: 'Черногория', player: 'Кира', color: countryColors.montenegro },
+            'netherlands': { name: 'Нидерланды', player: 'не занято', color: countryColors.netherlands },
+            'north_macedonia': { name: 'Северная Македония', player: 'не занято', color: countryColors.north_macedonia },
+            'norway': { name: 'Норвегия', player: 'Вероника', color: countryColors.norway },
+            'poland': { name: 'Польша', player: 'Даник', color: countryColors.poland },
+            'portugal': { name: 'Португалия', player: 'не занято', color: countryColors.portugal },
+            'albania': { name: 'Албания', player: 'не занято', color: countryColors.albania },
+            'andorra': { name: 'Андорра', player: 'не занято', color: countryColors.andorra }
         };
 
-        // Улучшенное расположение стран (большие территории)
+        // Уникальные формы и расположение стран
         const countryPixels = {
-            // Балтийские страны (большие)
-            'latvia': generateRectangle(15, 12, 6, 5),
-            'lithuania': generateRectangle(12, 12, 6, 5),
-            'estonia': generateRectangle(15, 7, 6, 5),
+            // Балтийские страны (уникальные формы)
+            'latvia': createLShape(20, 15, 6, 4),
+            'lithuania': createRectangle(15, 15, 5, 4),
+            'estonia': createTShape(20, 10, 5, 4),
             
-            // Скандинавия (большие)
-            'finland': generateRectangle(12, 3, 8, 8),
-            'norway': generateRectangle(8, 3, 8, 10),
-            'denmark': generateRectangle(10, 10, 4, 3),
-            'iceland': generateRectangle(3, 3, 5, 4),
-            'sweden': generateRectangle(10, 5, 6, 6),
+            // Скандинавия (большие с уникальными формами)
+            'finland': createLShape(10, 5, 8, 7),
+            'norway': createVerticalStrip(5, 3, 4, 12),
+            'denmark': createCrossShape(12, 12, 3, 3),
+            'iceland': createRectangle(2, 3, 4, 3),
+            'sweden': createRectangle(8, 8, 6, 5),
             
-            // Западная Европа (большие)
-            'ireland': generateRectangle(5, 8, 4, 4),
-            'united_kingdom': generateRectangle(7, 8, 5, 5),
-            'france': generateRectangle(8, 12, 7, 6),
-            'belgium': generateRectangle(10, 11, 3, 3),
-            'netherlands': generateRectangle(10, 9, 3, 3),
-            'germany': generateRectangle(12, 10, 6, 5),
-            'austria': generateRectangle(14, 12, 4, 4),
-            'switzerland': generateRectangle(11, 13, 3, 3),
+            // Западная Европа
+            'ireland': createSquare(5, 10, 4),
+            'united_kingdom': createLShape(8, 10, 5, 4),
+            'france': createHexagon(12, 15, 6),
+            'belgium': createTriangle(15, 12, 3),
+            'netherlands': createRectangle(13, 10, 3, 2),
+            'germany': createRectangle(16, 12, 6, 4),
+            'austria': createSquare(20, 14, 3),
+            'switzerland': createDiamond(18, 13, 3),
             
-            // Южная Европа (большие)
-            'portugal': generateRectangle(6, 15, 4, 5),
-            'spain': generateRectangle(8, 15, 6, 5),
-            'italy': generateRectangle(14, 15, 4, 7),
-            'greece': generateRectangle(18, 16, 4, 4),
-            'croatia': generateRectangle(15, 13, 4, 3),
-            'bulgaria': generateRectangle(18, 13, 4, 4),
-            'albania': generateRectangle(17, 15, 2, 2),
-            'montenegro': generateRectangle(16, 15, 2, 2),
-            'north_macedonia': generateRectangle(17, 14, 2, 2),
-            'hungary': generateRectangle(16, 12, 4, 3),
-            'czechia': generateRectangle(13, 11, 4, 3),
+            // Южная Европа
+            'portugal': createVerticalStrip(8, 18, 3, 5),
+            'spain': createRectangle(11, 18, 6, 5),
+            'italy': createBootShape(20, 18, 4, 8),
+            'greece': createCrossShape(25, 20, 3, 3),
+            'croatia': createLShape(22, 15, 3, 3),
+            'bulgaria': createRectangle(24, 17, 4, 3),
+            'albania': createTriangle(23, 19, 2),
+            'montenegro': createSquare(22, 18, 2),
+            'north_macedonia': createDiamond(24, 19, 2),
+            'hungary': createRectangle(21, 16, 4, 3),
+            'czechia': createSquare(18, 14, 3),
             
-            // Восточная Европа (большие)
-            'poland': generateRectangle(14, 9, 5, 4),
-            'belarus': generateRectangle(17, 8, 5, 5),
-            'moldova': generateRectangle(19, 12, 3, 3),
-            'ukraine': generateRectangle(19, 9, 7, 6),
-            'romania': generateRectangle(17, 12, 5, 4),
+            // Восточная Европа
+            'poland': createRectangle(17, 10, 5, 4),
+            'belarus': createRectangle(20, 8, 6, 4),
+            'moldova': createHorizontalStrip(24, 15, 5, 2),
+            'ukraine': createLargeRectangle(22, 6, 8, 6),
+            'romania': createRectangle(23, 13, 5, 4),
             
-            // Микрогосударства (маленькие, но видимые)
-            'andorra': generateRectangle(9, 14, 2, 2),
-            'monaco': generateRectangle(11, 14, 2, 2),
-            'luxembourg': generateRectangle(11, 11, 2, 2),
-            'malta': generateRectangle(14, 18, 2, 2),
-            'liechtenstein': generateRectangle(12, 12, 2, 2),
-            'san_marino': generateRectangle(14, 14, 2, 2)
+            // Микрогосударства
+            'andorra': createSinglePixel(14, 17),
+            'monaco': createSinglePixel(16, 16),
+            'luxembourg': createSinglePixel(16, 13),
+            'malta': createSinglePixel(20, 22),
+            'liechtenstein': createSinglePixel(19, 14),
+            'san_marino': createSinglePixel(21, 17)
         };
 
-        // Вспомогательная функция для создания прямоугольной области
-        function generateRectangle(startX, startY, width, height) {
+        // Функции для создания различных форм
+        function createRectangle(startX, startY, width, height) {
             const pixels = [];
             for (let x = startX; x < startX + width; x++) {
                 for (let y = startY; y < startY + height; y++) {
@@ -456,14 +488,149 @@
             return pixels;
         }
 
+        function createSquare(startX, startY, size) {
+            return createRectangle(startX, startY, size, size);
+        }
+
+        function createLShape(startX, startY, width, height) {
+            const pixels = [];
+            // Вертикальная часть
+            for (let y = startY; y < startY + height; y++) {
+                pixels.push([startX, y]);
+            }
+            // Горизонтальная часть
+            for (let x = startX; x < startX + width; x++) {
+                pixels.push([x, startY + height - 1]);
+            }
+            return pixels;
+        }
+
+        function createTShape(startX, startY, width, height) {
+            const pixels = [];
+            // Вертикальная часть
+            for (let y = startY; y < startY + height; y++) {
+                pixels.push([startX + Math.floor(width/2), y]);
+            }
+            // Горизонтальная часть
+            for (let x = startX; x < startX + width; x++) {
+                pixels.push([x, startY]);
+            }
+            return pixels;
+        }
+
+        function createCrossShape(startX, startY, width, height) {
+            const pixels = [];
+            const centerX = startX + Math.floor(width/2);
+            const centerY = startY + Math.floor(height/2);
+            
+            // Вертикальная линия
+            for (let y = startY; y < startY + height; y++) {
+                pixels.push([centerX, y]);
+            }
+            // Горизонтальная линия
+            for (let x = startX; x < startX + width; x++) {
+                pixels.push([x, centerY]);
+            }
+            return pixels;
+        }
+
+        function createDiamond(startX, startY, size) {
+            const pixels = [];
+            const centerX = startX + Math.floor(size/2);
+            const centerY = startY + Math.floor(size/2);
+            
+            for (let x = startX; x < startX + size; x++) {
+                for (let y = startY; y < startY + size; y++) {
+                    const dx = Math.abs(x - centerX);
+                    const dy = Math.abs(y - centerY);
+                    if (dx + dy <= Math.floor(size/2)) {
+                        pixels.push([x, y]);
+                    }
+                }
+            }
+            return pixels;
+        }
+
+        function createTriangle(startX, startY, size) {
+            const pixels = [];
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x <= y; x++) {
+                    pixels.push([startX + x, startY + y]);
+                }
+            }
+            return pixels;
+        }
+
+        function createVerticalStrip(startX, startY, width, height) {
+            const pixels = [];
+            for (let y = startY; y < startY + height; y++) {
+                for (let x = startX; x < startX + width; x++) {
+                    pixels.push([x, y]);
+                }
+            }
+            return pixels;
+        }
+
+        function createHorizontalStrip(startX, startY, width, height) {
+            const pixels = [];
+            for (let x = startX; x < startX + width; x++) {
+                for (let y = startY; y < startY + height; y++) {
+                    pixels.push([x, y]);
+                }
+            }
+            return pixels;
+        }
+
+        function createBootShape(startX, startY, width, height) {
+            const pixels = [];
+            // Основная часть
+            for (let y = startY; y < startY + height - 2; y++) {
+                for (let x = startX; x < startX + width; x++) {
+                    pixels.push([x, y]);
+                }
+            }
+            // "Носок" ботинка
+            for (let x = startX + 1; x < startX + width - 1; x++) {
+                pixels.push([x, startY + height - 2]);
+                pixels.push([x, startY + height - 1]);
+            }
+            return pixels;
+        }
+
+        function createHexagon(startX, startY, size) {
+            const pixels = [];
+            const centerX = startX + Math.floor(size/2);
+            const centerY = startY + Math.floor(size/2);
+            
+            for (let x = startX; x < startX + size; x++) {
+                for (let y = startY; y < startY + size; y++) {
+                    const dx = Math.abs(x - centerX);
+                    const dy = Math.abs(y - centerY);
+                    if (dx <= Math.floor(size/2) && dy <= Math.floor(size/2) && 
+                        dx + dy <= Math.floor(size * 0.8)) {
+                        pixels.push([x, y]);
+                    }
+                }
+            }
+            return pixels;
+        }
+
+        function createLargeRectangle(startX, startY, width, height) {
+            return createRectangle(startX, startY, width, height);
+        }
+
+        function createSinglePixel(x, y) {
+            return [[x, y]];
+        }
+
         // Создание пиксельной карты
         function createPixelMap() {
             const pixelMap = document.getElementById('pixel-map');
             pixelMap.innerHTML = '';
 
-            // Создаем сетку 40x30 с большими пикселями
-            for (let y = 0; y < 30; y++) {
-                for (let x = 0; x < 40; x++) {
+            // Создаем сетку 50x35 с увеличенными пикселями
+            for (let y = 0; y < 35; y++) {
+                for (let x = 0; x < 50; x++) {
                     const pixel = document.createElement('div');
                     pixel.className = 'pixel';
                     pixel.dataset.x = x;
@@ -473,13 +640,16 @@
                     const country = findCountryForPixel(x, y);
                     if (country && countriesData[country]) {
                         pixel.dataset.country = country;
+                        pixel.style.background = countriesData[country].color;
                         
-                        // Только Латвия выделяется цветом
+                        // Подсветка только для Латвии
                         if (country === 'latvia') {
                             pixel.classList.add('latvia');
                         }
                         
                         pixel.textContent = getCountryCode(country);
+                    } else {
+                        pixel.classList.add('empty');
                     }
                     
                     pixel.addEventListener('mouseenter', handlePixelHover);
@@ -532,7 +702,7 @@
 
         // Проверка валидности координат
         function isValidCoordinate(x, y) {
-            return x >= 0 && x < 40 && y >= 0 && y < 30;
+            return x >= 0 && x < 50 && y >= 0 && y < 35;
         }
 
         // Поиск страны для пикселя
@@ -581,7 +751,8 @@
 
             Object.entries(countriesData).forEach(([id, data]) => {
                 const item = document.createElement('div');
-                item.className = `country-item ${data.status}`;
+                item.className = 'country-item';
+                item.style.borderLeftColor = data.color;
                 item.innerHTML = `
                     <div>
                         <strong>${data.name}</strong>
@@ -608,7 +779,7 @@
                     <div class="detail-item">
                         <span class="detail-label">Статус:</span>
                         <span class="detail-value">${
-                            country.status === 'latvia' ? 'Ваша страна' : 
+                            countryId === 'latvia' ? 'Ваша страна' : 
                             country.player !== 'не занято' ? 'Занята' : 'Свободна'
                         }</span>
                     </div>

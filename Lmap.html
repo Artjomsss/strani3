@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пиксельная карта Европы - База данных</title>
+    <title>Пиксельная карта Европы</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -306,14 +306,6 @@
             transform: translateY(-2px);
         }
 
-        .unit-btn.attack {
-            background: linear-gradient(145deg, #e74c3c, #c0392b);
-        }
-
-        .unit-btn.attack:hover {
-            background: linear-gradient(145deg, #c0392b, #a93226);
-        }
-
         .unit-info {
             background: rgba(52, 152, 219, 0.1);
             padding: 15px;
@@ -356,11 +348,6 @@
         .unit.soldier {
             background: #3498db;
             box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
-        }
-
-        .unit.tank {
-            background: #e74c3c;
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
         }
 
         .unit.moving {
@@ -440,10 +427,6 @@
             color: gold;
         }
 
-        .water {
-            background: linear-gradient(45deg, #3498db, #2980b9) !important;
-        }
-
         .db-status {
             background: rgba(155, 89, 182, 0.15);
             padding: 10px;
@@ -460,7 +443,7 @@
         
         <header>
             <h1>🧱 Пиксельная карта Европы</h1>
-            <div style="opacity: 0.9;">База данных • Реальное время • Авто-сохранение</div>
+            <div style="opacity: 0.9;">Упрощенная система • Только солдаты</div>
         </header>
 
         <div class="content">
@@ -473,10 +456,10 @@
                 <div class="game-system">
                     <h2>🎮 Управление армиями</h2>
                     <div class="unit-controls">
-                        <button class="unit-btn" onclick="createArmy('soldier', 100)">➕ 100 Солдат</button>
-                        <button class="unit-btn" onclick="createArmy('soldier', 500)">➕ 500 Солдат</button>
-                        <button class="unit-btn" onclick="createArmy('tank', 50)">➕ 50 Танков</button>
-                        <button class="unit-btn" onclick="createArmy('tank', 200)">➕ 200 Танков</button>
+                        <button class="unit-btn" onclick="createArmy(100)">➕ 100 Солдат</button>
+                        <button class="unit-btn" onclick="createArmy(500)">➕ 500 Солдат</button>
+                        <button class="unit-btn" onclick="createArmy(1000)">➕ 1000 Солдат</button>
+                        <button class="unit-btn" onclick="createArmy(2000)">➕ 2000 Солдат</button>
                     </div>
                     
                     <div class="army-controls">
@@ -486,7 +469,7 @@
                             <button onclick="createCustomArmy()">Создать армию</button>
                         </div>
                         <div style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">
-                            💡 Перетащите юнита на нужную территорию
+                            💡 Перетащите армию на нужную территорию
                         </div>
                     </div>
                     
@@ -497,7 +480,7 @@
                     </div>
 
                     <div class="db-status" id="db-status">
-                        🔄 Подключение к базе данных...
+                        🔄 База данных отключена (упрощенный режим)
                     </div>
                 </div>
             </div>
@@ -518,12 +501,8 @@
                         <span>Армии солдат</span>
                     </div>
                     <div class="legend">
-                        <div class="color-box" style="background-color: #e74c3c;"></div>
-                        <span>Танковые армии</span>
-                    </div>
-                    <div class="legend">
-                        <div class="color-box" style="background: linear-gradient(45deg, #3498db, #2980b9);"></div>
-                        <span>Водные территории</span>
+                        <div class="color-box" style="background-color: #95a5a6;"></div>
+                        <span>Свободные территории (медленное движение)</span>
                     </div>
                 </div>
 
@@ -544,8 +523,8 @@
                                 <div class="stat-label">Всего солдат</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value" id="total-tanks">0</div>
-                                <div class="stat-label">Всего танков</div>
+                                <div class="stat-value" id="moving-units">0</div>
+                                <div class="stat-label">В движении</div>
                             </div>
                         </div>
                     </div>
@@ -573,28 +552,8 @@
     </div>
 
     <script>
-// Конфигурация Firebase (твои данные)
-const firebaseConfig = {
-    apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
-    authDomain: "strani3.firebaseapp.com",
-    databaseURL: "https://strani3-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "strani3",
-    storageBucket: "strani3.firebasestorage.app",
-    messagingSenderId: "225168183800",
-    appId: "1:225168183800:web:825e782a35bccca89d460d",
-    measurementId: "G-3NKBET5R9J"
-};
-
-// Инициализация Firebase
-let database;
-try {
-    firebase.initializeApp(firebaseConfig);
-    database = firebase.database();
-    document.getElementById('db-status').innerHTML = '✅ База данных подключена';
-} catch (error) {
-    console.log("Firebase не настроен, используется локальное хранилище");
-    document.getElementById('db-status').innerHTML = '⚠️ Локальное хранилище (Firebase не настроен)';
-}
+        // Упрощенная система без Firebase
+        document.getElementById('db-status').innerHTML = '✅ Упрощенный режим (база данных отключена)';
 
         // Уникальные цвета для каждой страны
         const countryColors = {
@@ -629,13 +588,7 @@ try {
             'belarus': '#95a5a6',
             'moldova': '#f1c40f',
             'ukraine': '#e74c3c',
-            'romania': '#9b59b6',
-            'andorra': '#3498db',
-            'monaco': '#1abc9c',
-            'luxembourg': '#e67e22',
-            'malta': '#2ecc71',
-            'liechtenstein': '#d35400',
-            'san_marino': '#8e44ad'
+            'romania': '#9b59b6'
         };
 
         // Данные стран
@@ -658,10 +611,7 @@ try {
             'ireland': { name: 'Ирландия', player: 'не занято', color: countryColors.ireland },
             'italy': { name: 'Италия', player: 'Эвелина', color: countryColors.italy },
             'lithuania': { name: 'Литва', player: 'не занято', color: countryColors.lithuania },
-            'luxembourg': { name: 'Люксембург', player: 'Карпович', color: countryColors.luxembourg },
-            'malta': { name: 'Мальта', player: 'Арина', color: countryColors.malta },
             'moldova': { name: 'Молдавия', player: 'не занято', color: countryColors.moldova },
-            'monaco': { name: 'Монако', player: 'Катрина', color: countryColors.monaco },
             'montenegro': { name: 'Черногория', player: 'Кира', color: countryColors.montenegro },
             'netherlands': { name: 'Нидерланды', player: 'не занято', color: countryColors.netherlands },
             'north_macedonia': { name: 'Северная Македония', player: 'не занято', color: countryColors.north_macedonia },
@@ -669,85 +619,63 @@ try {
             'poland': { name: 'Польша', player: 'Даник', color: countryColors.poland },
             'portugal': { name: 'Португалия', player: 'не занято', color: countryColors.portugal },
             'albania': { name: 'Албания', player: 'не занято', color: countryColors.albania },
-            'andorra': { name: 'Андорра', player: 'не занято', color: countryColors.andorra }
+            'romania': { name: 'Румыния', player: 'не занято', color: countryColors.romania },
+            'sweden': { name: 'Швеция', player: 'не занято', color: countryColors.sweden },
+            'switzerland': { name: 'Швейцария', player: 'не занято', color: countryColors.switzerland },
+            'ukraine': { name: 'Украина', player: 'не занято', color: countryColors.ukraine },
+            'united_kingdom': { name: 'Великобритания', player: 'не занято', color: countryColors.united_kingdom }
         };
 
-// Правильное географическое расположение стран
-const countryPixels = {
-    // Скандинавия
-    'norway': generateRectangle(20, 5, 3, 8),     // Длинная узкая Норвегия
-    'sweden': generateRectangle(23, 5, 4, 7),     // Швеция
-    'finland': generateRectangle(27, 5, 4, 6),    // Финляндия
-    'denmark': generateRectangle(21, 13, 2, 2),   // Дания маленькая
-    'iceland': generateRectangle(15, 5, 3, 3),    // Исландия отдельно
-    
-    // Балтийские страны (вертикально)
-    'estonia': generateRectangle(28, 12, 3, 2),   // Эстония
-    'latvia': generateRectangle(28, 14, 3, 2),    // Латвия
-    'lithuania': generateRectangle(28, 16, 3, 2), // Литва
-    
-    // Великобритания и Ирландия
-    'ireland': generateRectangle(15, 12, 2, 3),   // Ирландия
-    'united_kingdom': generateRectangle(17, 12, 3, 4), // Великобритания
-    
-    // Западная Европа
-    'france': generateRectangle(20, 16, 5, 4),    // Франция (большая)
-    'belgium': generateRectangle(22, 15, 2, 2),   // Бельгия
-    'netherlands': generateRectangle(22, 13, 2, 2), // Нидерланды
-    'germany': generateRectangle(23, 14, 5, 4),   // Германия (центр Европы)
-    
-    // Центральная Европа
-    'switzerland': generateRectangle(22, 18, 2, 2), // Швейцария
-    'austria': generateRectangle(24, 17, 3, 3),   // Австрия
-    'czechia': generateRectangle(24, 15, 3, 2),   // Чехия
-    'poland': generateRectangle(26, 14, 4, 4),    // Польша
-    
-    // Восточная Европа
-    'belarus': generateRectangle(29, 14, 4, 3),   // Беларусь
-    'ukraine': generateRectangle(29, 17, 6, 4),   // Украина (большая)
-    
-    // Южная Европа
-    'portugal': generateRectangle(17, 19, 2, 3),  // Португалия
-    'spain': generateRectangle(19, 19, 4, 4),     // Испания
-    'italy': generateRectangle(24, 21, 3, 5),     // Италия (длинная)
-    
-    // Балканы
-    'hungary': generateRectangle(26, 18, 3, 2),   // Венгрия
-    'romania': generateRectangle(28, 19, 3, 3),   // Румыния
-    'bulgaria': generateRectangle(29, 22, 3, 2),  // Болгария
-    'greece': generateRectangle(28, 24, 4, 3),    // Греция
-    'croatia': generateRectangle(25, 19, 3, 2),   // Хорватия
-    'albania': generateRectangle(26, 22, 2, 2),   // Албания
-    'montenegro': generateRectangle(25, 21, 2, 2), // Черногория
-    'north_macedonia': generateRectangle(27, 22, 2, 2), // Македония
-    
-    // Остальные
-    'moldova': generateRectangle(30, 19, 2, 2),   // Молдова
-    'slovakia': generateRectangle(26, 16, 2, 2),  // Словакия
-    'slovenia': generateRectangle(24, 19, 2, 2),  // Словения
-    
-    // Микрогосударства
-    'luxembourg': generateRectangle(22, 16, 1, 1), // Люксембург
-    'liechtenstein': generateRectangle(23, 18, 1, 1), // Лихтенштейн
-    'andorra': generateRectangle(20, 20, 1, 1),   // Андорра
-    'monaco': generateRectangle(21, 19, 1, 1),    // Монако
-    'san_marino': generateRectangle(24, 20, 1, 1), // Сан-Марино
-    'malta': generateRectangle(25, 26, 1, 1)      // Мальта
-};
-
-// Водные территории
-const waterPixels = [
-    // Северное море
-    ...generateRectangle(18, 10, 8, 6),
-    // Балтийское море  
-    ...generateRectangle(25, 12, 8, 6),
-    // Атлантический океан
-    ...generateRectangle(10, 10, 12, 15),
-    // Средиземное море
-    ...generateRectangle(20, 23, 15, 8),
-    // Адриатическое море
-    ...generateRectangle(24, 20, 4, 6)
-];
+        // Упрощенное расположение стран
+        const countryPixels = {
+            // Скандинавия
+            'norway': generateRectangle(20, 5, 3, 8),
+            'sweden': generateRectangle(23, 5, 4, 7),
+            'finland': generateRectangle(27, 5, 4, 6),
+            'denmark': generateRectangle(21, 13, 2, 2),
+            'iceland': generateRectangle(15, 5, 3, 3),
+            
+            // Балтийские страны
+            'estonia': generateRectangle(28, 12, 3, 2),
+            'latvia': generateRectangle(28, 14, 3, 2),
+            'lithuania': generateRectangle(28, 16, 3, 2),
+            
+            // Великобритания и Ирландия
+            'ireland': generateRectangle(15, 12, 2, 3),
+            'united_kingdom': generateRectangle(17, 12, 3, 4),
+            
+            // Западная Европа
+            'france': generateRectangle(20, 16, 5, 4),
+            'belgium': generateRectangle(22, 15, 2, 2),
+            'netherlands': generateRectangle(22, 13, 2, 2),
+            'germany': generateRectangle(23, 14, 5, 4),
+            
+            // Центральная Европа
+            'switzerland': generateRectangle(22, 18, 2, 2),
+            'austria': generateRectangle(24, 17, 3, 3),
+            'czechia': generateRectangle(24, 15, 3, 2),
+            'poland': generateRectangle(26, 14, 4, 4),
+            
+            // Восточная Европа
+            'belarus': generateRectangle(29, 14, 4, 3),
+            'ukraine': generateRectangle(29, 17, 6, 4),
+            
+            // Южная Европа
+            'portugal': generateRectangle(17, 19, 2, 3),
+            'spain': generateRectangle(19, 19, 4, 4),
+            'italy': generateRectangle(24, 21, 3, 5),
+            
+            // Балканы
+            'hungary': generateRectangle(26, 18, 3, 2),
+            'romania': generateRectangle(28, 19, 3, 3),
+            'bulgaria': generateRectangle(29, 22, 3, 2),
+            'greece': generateRectangle(28, 24, 4, 3),
+            'croatia': generateRectangle(25, 19, 3, 2),
+            'albania': generateRectangle(26, 22, 2, 2),
+            'montenegro': generateRectangle(25, 21, 2, 2),
+            'north_macedonia': generateRectangle(27, 22, 2, 2),
+            'moldova': generateRectangle(30, 19, 2, 2)
+        };
 
         // Игровая система
         const gameState = {
@@ -758,118 +686,26 @@ const waterPixels = [
             ghostUnit: null
         };
 
-        const unitTypes = {
-            soldier: { 
-                speed: 1.0,
-                color: '#3498db',
-                symbol: '👥'
-            },
-            tank: { 
-                speed: 1.5,
-                color: '#e74c3c',
-                symbol: '🚗'
-            }
-        };
-
-        // Функции для работы с базой данных
-        function saveToDatabase(path, data) {
-            if (database) {
-                database.ref(path).set(data)
-                    .then(() => console.log('✅ Данные сохранены:', path))
-                    .catch(error => console.error('❌ Ошибка сохранения:', error));
-            } else {
-                // Локальное сохранение
-                localStorage.setItem('game_' + path, JSON.stringify(data));
-            }
-        }
-
-        function loadFromDatabase(path, callback) {
-            if (database) {
-                database.ref(path).on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    callback(data);
-                });
-            } else {
-                // Локальная загрузка
-                const data = JSON.parse(localStorage.getItem('game_' + path) || 'null');
-                callback(data);
-            }
-        }
-
-        // Создание армии с сохранением в БД
-        function createArmy(type, size) {
+        // Создание армии
+        function createArmy(size) {
             const unit = {
                 id: 'unit_' + Date.now(),
-                type: type,
+                type: 'soldier',
                 owner: gameState.playerId,
                 position: { x: 25, y: 12 },
                 size: size,
-                isMoving: false,
-                moveStartTime: null,
-                moveDuration: 0,
-                targetPosition: null,
-                path: []
+                isMoving: false
             };
 
             gameState.units.push(unit);
             renderUnit(unit);
             updateGameStats();
             setupDragAndDrop(unit);
-            
-            // Сохраняем в БД
-            saveToDatabase('units/' + unit.id, unit);
         }
 
         function createCustomArmy() {
             const size = parseInt(document.getElementById('army-size').value) || 100;
-            createArmy('soldier', size);
-        }
-
-        // Загрузка данных из БД при старте
-        function loadGameData() {
-            loadFromDatabase('units', (units) => {
-                if (units) {
-                    gameState.units = Object.values(units);
-                    gameState.units.forEach(unit => {
-                        // Проверяем перемещения в реальном времени
-                        if (unit.isMoving && unit.moveStartTime && unit.targetPosition) {
-                            continueMovement(unit);
-                        } else {
-                            renderUnit(unit);
-                            setupDragAndDrop(unit);
-                        }
-                    });
-                }
-            });
-
-            loadFromDatabase('territories', (territories) => {
-                if (territories) {
-                    gameState.territories = territories;
-                    updateCapturedTerritories();
-                }
-            });
-        }
-
-        function continueMovement(unit) {
-            const elapsed = Date.now() - unit.moveStartTime;
-            const progress = Math.min(elapsed / unit.moveDuration, 1);
-            
-            if (progress < 1) {
-                // Продолжаем движение
-                unit.isMoving = true;
-                renderUnit(unit);
-                setupDragAndDrop(unit);
-                startMovementAnimation(unit, progress);
-            } else {
-                // Движение завершено
-                unit.isMoving = false;
-                unit.position = unit.targetPosition;
-                unit.targetPosition = null;
-                renderUnit(unit);
-                setupDragAndDrop(unit);
-                checkForCapture(unit);
-                saveToDatabase('units/' + unit.id, unit);
-            }
+            createArmy(size);
         }
 
         // Настройка перетаскивания
@@ -878,7 +714,6 @@ const waterPixels = [
             if (!unitElement) return;
             
             unitElement.addEventListener('mousedown', startDrag);
-            unitElement.addEventListener('touchstart', startDrag);
             
             function startDrag(e) {
                 if (unit.isMoving) return;
@@ -888,9 +723,7 @@ const waterPixels = [
                 createGhostUnit(unit);
                 
                 document.addEventListener('mousemove', drag);
-                document.addEventListener('touchmove', drag);
                 document.addEventListener('mouseup', endDrag);
-                document.addEventListener('touchend', endDrag);
                 
                 unitElement.classList.add('dragging');
             }
@@ -898,26 +731,21 @@ const waterPixels = [
             function drag(e) {
                 if (!gameState.ghostUnit) return;
                 
-                const clientX = e.clientX || e.touches[0].clientX;
-                const clientY = e.clientY || e.touches[0].clientY;
-                
                 const pixelMap = document.getElementById('pixel-map');
                 const rect = pixelMap.getBoundingClientRect();
                 
-                const x = Math.floor((clientX - rect.left) / 25);
-                const y = Math.floor((clientY - rect.top) / 25);
+                const x = Math.floor((e.clientX - rect.left) / 25);
+                const y = Math.floor((e.clientY - rect.top) / 25);
                 
                 if (x >= 0 && x < 50 && y >= 0 && y < 35) {
                     updateGhostPosition(x, y);
-                    showMovementPath(unit.position, {x, y}, unit.type);
+                    showMovementPath(unit.position, {x, y});
                 }
             }
             
             function endDrag() {
                 document.removeEventListener('mousemove', drag);
-                document.removeEventListener('touchmove', drag);
                 document.removeEventListener('mouseup', endDrag);
-                document.removeEventListener('touchend', endDrag);
                 
                 if (gameState.ghostUnit && gameState.selectedUnit) {
                     const targetPos = {
@@ -936,11 +764,11 @@ const waterPixels = [
             const pixelMap = document.getElementById('pixel-map');
             const ghost = document.createElement('div');
             
-            ghost.className = `unit ${unit.type} ghost`;
+            ghost.className = `unit soldier ghost`;
             ghost.style.left = (unit.position.x * 25 + 2) + 'px';
             ghost.style.top = (unit.position.y * 25 + 2) + 'px';
-            ghost.style.background = unitTypes[unit.type].color;
-            ghost.innerHTML = `${unitTypes[unit.type].symbol}<div style="font-size:8px">${unit.size}</div>`;
+            ghost.style.background = '#3498db';
+            ghost.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             
             pixelMap.appendChild(ghost);
             gameState.ghostUnit = ghost;
@@ -953,158 +781,86 @@ const waterPixels = [
             }
         }
 
-        function showMovementPath(start, end, unitType) {
+        function showMovementPath(start, end) {
             document.querySelectorAll('.movement-path, .movement-time').forEach(el => el.remove());
             
-            const path = calculatePath(start, end);
-            const isWater = checkWaterPath(path);
-            const speedMultiplier = isWater ? 0.4 : 1.0;
-            const duration = calculateMoveDuration(path.length, speedMultiplier, unitType);
+            const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+            const isCountry = findCountryForPixel(end.x, end.y) !== null;
+            const speedMultiplier = isCountry ? 1.0 : 0.5; // Медленнее на свободных территориях
+            const duration = calculateMoveDuration(distance, speedMultiplier);
             
-            // Рисуем путь
-            path.forEach((point, index) => {
-                if (index === 0) return;
-                
-                const prev = path[index - 1];
-                const pathElement = document.createElement('div');
-                pathElement.className = 'movement-path';
-                
-                const dx = point.x - prev.x;
-                const dy = point.y - prev.y;
-                const length = Math.sqrt(dx * dx + dy * dy) * 25;
-                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                
-                pathElement.style.width = length + 'px';
-                pathElement.style.height = '3px';
-                pathElement.style.left = (prev.x * 25 + 12.5) + 'px';
-                pathElement.style.top = (prev.y * 25 + 12.5) + 'px';
-                pathElement.style.transform = `rotate(${angle}deg)`;
-                pathElement.style.transformOrigin = '0 0';
-                
-                document.getElementById('pixel-map').appendChild(pathElement);
-                
-                // Показываем оставшееся время на середине пути
-                if (index === Math.floor(path.length / 2)) {
-                    const timeElement = document.createElement('div');
-                    timeElement.className = 'movement-time';
-                    timeElement.style.left = (point.x * 25 + 5) + 'px';
-                    timeElement.style.top = (point.y * 25 - 15) + 'px';
-                    timeElement.textContent = formatDuration(duration);
-                    document.getElementById('pixel-map').appendChild(timeElement);
-                }
-            });
-        }
-
-        function calculatePath(start, end) {
-            const path = [start];
-            let current = {...start};
+            const timeElement = document.createElement('div');
+            timeElement.className = 'movement-time';
+            timeElement.style.left = (end.x * 25 + 5) + 'px';
+            timeElement.style.top = (end.y * 25 - 15) + 'px';
+            timeElement.textContent = formatDuration(duration);
+            timeElement.title = isCountry ? 'Нормальная скорость' : 'Медленная скорость (свободная территория)';
             
-            while (current.x !== end.x || current.y !== end.y) {
-                if (current.x < end.x) current.x++;
-                else if (current.x > end.x) current.x--;
-                
-                if (current.y < end.y) current.y++;
-                else if (current.y > end.y) current.y--;
-                
-                path.push({...current});
-            }
-            
-            return path;
+            document.getElementById('pixel-map').appendChild(timeElement);
         }
 
-        function checkWaterPath(path) {
-            return path.some(point => isWaterPixel(point.x, point.y));
+        function calculateMoveDuration(distance, speedMultiplier) {
+            const baseSecondsPerPixel = 2; // 2 секунды на пиксель для демонстрации
+            return Math.round(distance * baseSecondsPerPixel * speedMultiplier);
         }
 
-        function isWaterPixel(x, y) {
-            return waterPixels.some(([px, py]) => px === x && py === y);
-        }
-
-        function calculateMoveDuration(steps, speedMultiplier, unitType) {
-            const baseMinutesPerStep = 5; // 5 минут на шаг
-            const unitSpeed = unitTypes[unitType].speed;
-            return Math.round(steps * baseMinutesPerStep * speedMultiplier / unitSpeed);
-        }
-
-        function formatDuration(minutes) {
-            if (minutes < 60) {
-                return `${minutes}м`;
+        function formatDuration(seconds) {
+            if (seconds < 60) {
+                return `${seconds}сек`;
             } else {
-                const hours = Math.floor(minutes / 60);
-                const remainingMinutes = minutes % 60;
-                return `${hours}ч ${remainingMinutes}м`;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes}м ${remainingSeconds}сек`;
             }
         }
 
         function moveUnit(unit, targetPos) {
-            const path = calculatePath(unit.position, targetPos);
-            const isWater = checkWaterPath(path);
-            const speedMultiplier = isWater ? 0.4 : 1.0;
-            const duration = calculateMoveDuration(path.length, speedMultiplier, unit.type);
+            const distance = Math.sqrt(Math.pow(targetPos.x - unit.position.x, 2) + Math.pow(targetPos.y - unit.position.y, 2));
+            const isCountry = findCountryForPixel(targetPos.x, targetPos.y) !== null;
+            const speedMultiplier = isCountry ? 1.0 : 0.5;
+            const duration = calculateMoveDuration(distance, speedMultiplier);
             
             unit.isMoving = true;
-            unit.moveStartTime = Date.now();
-            unit.moveDuration = duration * 60000; // в миллисекундах
             unit.targetPosition = targetPos;
-            unit.path = path;
+            unit.moveStartTime = Date.now();
+            unit.moveDuration = duration * 1000; // в миллисекундах
             
-            // Сохраняем в БД
-            saveToDatabase('units/' + unit.id, unit);
-            
-            // Визуализация
             const unitElement = document.getElementById(unit.id);
             unitElement.classList.add('moving');
             
-            startMovementAnimation(unit, 0);
+            startMovementAnimation(unit);
         }
 
-        function startMovementAnimation(unit, startProgress = 0) {
+        function startMovementAnimation(unit) {
             const unitElement = document.getElementById(unit.id);
             if (!unitElement) return;
             
-            const startTime = Date.now() - (unit.moveDuration * startProgress);
-            const path = unit.path;
+            const startTime = Date.now();
+            const startPos = {...unit.position};
+            const targetPos = unit.targetPosition;
             
             function animateMove() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / unit.moveDuration, 1);
                 
                 if (progress < 1) {
-                    const pathIndex = Math.floor(progress * (path.length - 1));
-                    const currentPoint = path[Math.min(pathIndex, path.length - 1)];
+                    const currentX = startPos.x + (targetPos.x - startPos.x) * progress;
+                    const currentY = startPos.y + (targetPos.y - startPos.y) * progress;
                     
-                    unitElement.style.left = (currentPoint.x * 25 + 2) + 'px';
-                    unitElement.style.top = (currentPoint.y * 25 + 2) + 'px';
-                    
-                    // Обновляем оставшееся время
-                    updateRemainingTime(unit, progress);
+                    unitElement.style.left = (currentX * 25 + 2) + 'px';
+                    unitElement.style.top = (currentY * 25 + 2) + 'px';
                     
                     requestAnimationFrame(animateMove);
                 } else {
-                    // Перемещение завершено
                     unit.isMoving = false;
-                    unit.position = unit.targetPosition;
-                    unit.targetPosition = null;
-                    unit.path = [];
+                    unit.position = targetPos;
                     unitElement.classList.remove('moving');
-                    
                     checkForCapture(unit);
-                    saveToDatabase('units/' + unit.id, unit);
                     updateGameStats();
                 }
             }
             
             animateMove();
-        }
-
-        function updateRemainingTime(unit, progress) {
-            const remainingTime = unit.moveDuration * (1 - progress);
-            const remainingMinutes = Math.round(remainingTime / 60000);
-            
-            // Обновляем отображение времени на пути
-            document.querySelectorAll('.movement-time').forEach(el => {
-                el.textContent = formatDuration(remainingMinutes);
-            });
         }
 
         function cleanupDrag() {
@@ -1138,11 +894,10 @@ const waterPixels = [
                 const pixel = findPixelByCoord(unit.position.x, unit.position.y);
                 if (pixel) {
                     pixel.classList.add('captured-territory');
-                    pixel.title = `Захвачено Латвией\nАрмия: ${unit.size} ${getUnitName(unit.type)}`;
+                    pixel.title = `Захвачено Латвией\nАрмия: ${unit.size} солдат`;
                 }
 
                 updateGameStats();
-                saveToDatabase('territories/' + territoryKey, gameState.territories[territoryKey]);
             }
         }
 
@@ -1154,11 +909,11 @@ const waterPixels = [
                 document.getElementById('pixel-map').appendChild(unitElement);
             }
             
-            unitElement.className = `unit ${unit.type} ${unit.isMoving ? 'moving' : ''}`;
+            unitElement.className = `unit soldier ${unit.isMoving ? 'moving' : ''}`;
             unitElement.style.left = (unit.position.x * 25 + 2) + 'px';
             unitElement.style.top = (unit.position.y * 25 + 2) + 'px';
-            unitElement.style.background = unitTypes[unit.type].color;
-            unitElement.innerHTML = `${unitTypes[unit.type].symbol}<div style="font-size:8px">${unit.size}</div>`;
+            unitElement.style.background = '#3498db';
+            unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
 
             unitElement.addEventListener('click', () => selectUnit(unit));
         }
@@ -1166,14 +921,14 @@ const waterPixels = [
         function selectUnit(unit) {
             const unitInfo = document.getElementById('unit-info');
             const remainingTime = unit.isMoving ? 
-                formatDuration(Math.round((unit.moveDuration - (Date.now() - unit.moveStartTime)) / 60000)) : 
+                formatDuration(Math.round((unit.moveDuration - (Date.now() - unit.moveStartTime)) / 1000)) : 
                 'На месте';
                 
             unitInfo.innerHTML = `
-                <strong>${getUnitName(unit.type)} армия</strong>
+                <strong>Армия солдат</strong>
                 <div class="detail-item">
                     <span class="detail-label">Размер:</span>
-                    <span class="detail-value">${unit.size} юнитов</span>
+                    <span class="detail-value">${unit.size} солдат</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Позиция:</span>
@@ -1189,36 +944,18 @@ const waterPixels = [
             `;
         }
 
-        function getUnitName(type) {
-            const names = { soldier: 'Солдатская', tank: 'Танковая' };
-            return names[type] || type;
-        }
-
         function updateGameStats() {
             const playerUnits = gameState.units.filter(u => u.owner === gameState.playerId).length;
             const captured = Object.keys(gameState.territories).length;
             const totalSoldiers = gameState.units
-                .filter(u => u.owner === gameState.playerId && u.type === 'soldier')
+                .filter(u => u.owner === gameState.playerId)
                 .reduce((sum, unit) => sum + unit.size, 0);
-            const totalTanks = gameState.units
-                .filter(u => u.owner === gameState.playerId && u.type === 'tank')
-                .reduce((sum, unit) => sum + unit.size, 0);
+            const movingUnits = gameState.units.filter(u => u.isMoving).length;
             
             document.getElementById('total-units').textContent = playerUnits;
             document.getElementById('captured-territories').textContent = captured;
             document.getElementById('total-soldiers').textContent = totalSoldiers;
-            document.getElementById('total-tanks').textContent = totalTanks;
-        }
-
-        function updateCapturedTerritories() {
-            Object.keys(gameState.territories).forEach(coord => {
-                const [x, y] = coord.split(',').map(Number);
-                const pixel = findPixelByCoord(x, y);
-                if (pixel) {
-                    pixel.classList.add('captured-territory');
-                }
-            });
-            updateGameStats();
+            document.getElementById('moving-units').textContent = movingUnits;
         }
 
         // Остальные функции карты
@@ -1242,12 +979,6 @@ const waterPixels = [
                     pixel.className = 'pixel';
                     pixel.dataset.x = x;
                     pixel.dataset.y = y;
-                    
-                    if (isWaterPixel(x, y)) {
-                        pixel.classList.add('water');
-                        pixel.textContent = '~';
-                        continue;
-                    }
                     
                     const country = findCountryForPixel(x, y);
                     if (country && countriesData[country]) {
@@ -1299,9 +1030,7 @@ const waterPixels = [
                 'greece': 'GR', 'croatia': 'HR', 'albania': 'AL',
                 'montenegro': 'ME', 'north_macedonia': 'MK',
                 'belgium': 'BE', 'netherlands': 'NL', 'portugal': 'PT', 
-                'ireland': 'IE', 'sweden': 'SE', 'switzerland': 'CH',
-                'andorra': 'AD', 'monaco': 'MC', 'liechtenstein': 'LI', 
-                'san_marino': 'SM', 'malta': 'MT', 'moldova': 'MD'
+                'ireland': 'IE', 'sweden': 'SE', 'switzerland': 'CH'
             };
             return codes[countryId] || countryId.substring(0, 2).toUpperCase();
         }
@@ -1414,13 +1143,12 @@ const waterPixels = [
         // Инициализация
         function initialize() {
             createPixelMap();
-            loadGameData();
             
             // Создаем несколько начальных армий
             setTimeout(() => {
                 if (gameState.units.length === 0) {
-                    createArmy('soldier', 500);
-                    createArmy('tank', 50);
+                    createArmy(500);
+                    createArmy(1000);
                 }
             }, 1000);
         }

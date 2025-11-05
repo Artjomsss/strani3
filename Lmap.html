@@ -443,7 +443,7 @@
         
         <header>
             <h1>🧱 Пиксельная карта Европы</h1>
-            <div style="opacity: 0.9;">База данных • Исправленное движение</div>
+            <div style="opacity: 0.9;">Исправленное позиционирование • Точный захват</div>
         </header>
 
         <div class="content">
@@ -487,7 +487,7 @@
 
             <div class="controls">
                 <div class="control-group">
-                    <h2>🎨 Легенда карта</h2>
+                    <h2>🎨 Легенда карты</h2>
                     <div class="legend">
                         <div class="color-box" style="background-color: #e74c3c;"></div>
                         <span>Латвия (ваша страна)</span>
@@ -724,7 +724,7 @@
                 id: 'unit_' + Date.now(),
                 type: 'soldier',
                 owner: gameState.playerId,
-                position: { x: 25, y: 12 },
+                position: { x: 28, y: 14 }, // Начальная позиция в Латвии
                 size: size,
                 isMoving: false
             };
@@ -764,12 +764,13 @@
             });
         }
 
-        // ИСПРАВЛЕННАЯ функция перетаскивания
+        // ИСПРАВЛЕННАЯ функция перетаскивания с точным позиционированием
         function setupDragAndDrop(unit) {
             const unitElement = document.getElementById(unit.id);
             if (!unitElement) return;
             
             unitElement.addEventListener('mousedown', startDrag);
+            unitElement.addEventListener('touchstart', startDrag, { passive: false });
             
             function startDrag(e) {
                 if (unit.isMoving) return;
@@ -779,7 +780,9 @@
                 createGhostUnit(unit);
                 
                 document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
                 document.addEventListener('mouseup', endDrag);
+                document.addEventListener('touchend', endDrag);
                 
                 unitElement.classList.add('dragging');
             }
@@ -787,11 +790,19 @@
             function drag(e) {
                 if (!gameState.ghostUnit) return;
                 
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                if (!clientX || !clientY) return;
+                
                 const pixelMap = document.getElementById('pixel-map');
                 const rect = pixelMap.getBoundingClientRect();
                 
-                const x = Math.floor((e.clientX - rect.left) / 25);
-                const y = Math.floor((e.clientY - rect.top) / 25);
+                // ТОЧНОЕ вычисление координат пикселя
+                const x = Math.floor((clientX - rect.left) / 25);
+                const y = Math.floor((clientY - rect.top) / 25);
+                
+                console.log(`Перетаскивание: ${x},${y} (из ${clientX},${clientY})`);
                 
                 if (x >= 0 && x < 50 && y >= 0 && y < 35) {
                     updateGhostPosition(x, y);
@@ -801,14 +812,24 @@
             
             function endDrag(e) {
                 document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
                 document.removeEventListener('mouseup', endDrag);
+                document.removeEventListener('touchend', endDrag);
                 
                 if (gameState.ghostUnit && gameState.selectedUnit) {
+                    const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+                    const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+                    
+                    if (!clientX || !clientY) return;
+                    
                     const pixelMap = document.getElementById('pixel-map');
                     const rect = pixelMap.getBoundingClientRect();
                     
-                    const x = Math.floor((e.clientX - rect.left) / 25);
-                    const y = Math.floor((e.clientY - rect.top) / 25);
+                    // ТОЧНОЕ вычисление координат пикселя
+                    const x = Math.floor((clientX - rect.left) / 25);
+                    const y = Math.floor((clientY - rect.top) / 25);
+                    
+                    console.log(`Конечная позиция: ${x},${y}`);
                     
                     if (x >= 0 && x < 50 && y >= 0 && y < 35) {
                         // Проверяем, что это новая позиция
@@ -822,13 +843,43 @@
             }
         }
 
+        // ИСПРАВЛЕННАЯ функция рендера юнита - точное позиционирование в центре пикселя
+        function renderUnit(unit) {
+            let unitElement = document.getElementById(unit.id);
+            if (!unitElement) {
+                unitElement = document.createElement('div');
+                unitElement.id = unit.id;
+                document.getElementById('pixel-map').appendChild(unitElement);
+            }
+            
+            unitElement.className = `unit soldier ${unit.isMoving ? 'moving' : ''}`;
+            
+            // ТОЧНОЕ позиционирование в центре пикселя
+            const pixelLeft = unit.position.x * 25; // Левый край пикселя
+            const pixelTop = unit.position.y * 25;  // Верхний край пикселя
+            const centerOffset = (25 - 20) / 2;     // Центрирование (20px - размер юнита)
+            
+            unitElement.style.left = (pixelLeft + centerOffset) + 'px';
+            unitElement.style.top = (pixelTop + centerOffset) + 'px';
+            unitElement.style.background = '#3498db';
+            unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
+
+            unitElement.addEventListener('click', () => selectUnit(unit));
+        }
+
         function createGhostUnit(unit) {
             const pixelMap = document.getElementById('pixel-map');
             const ghost = document.createElement('div');
             
             ghost.className = `unit soldier ghost`;
-            ghost.style.left = (unit.position.x * 25 + 2) + 'px';
-            ghost.style.top = (unit.position.y * 25 + 2) + 'px';
+            
+            // ТОЧНОЕ позиционирование призрака
+            const pixelLeft = unit.position.x * 25;
+            const pixelTop = unit.position.y * 25;
+            const centerOffset = (25 - 20) / 2;
+            
+            ghost.style.left = (pixelLeft + centerOffset) + 'px';
+            ghost.style.top = (pixelTop + centerOffset) + 'px';
             ghost.style.background = '#3498db';
             ghost.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             
@@ -838,8 +889,13 @@
 
         function updateGhostPosition(x, y) {
             if (gameState.ghostUnit) {
-                gameState.ghostUnit.style.left = (x * 25 + 2) + 'px';
-                gameState.ghostUnit.style.top = (y * 25 + 2) + 'px';
+                // ТОЧНОЕ позиционирование призрака
+                const pixelLeft = x * 25;
+                const pixelTop = y * 25;
+                const centerOffset = (25 - 20) / 2;
+                
+                gameState.ghostUnit.style.left = (pixelLeft + centerOffset) + 'px';
+                gameState.ghostUnit.style.top = (pixelTop + centerOffset) + 'px';
             }
         }
 
@@ -853,8 +909,12 @@
             
             const timeElement = document.createElement('div');
             timeElement.className = 'movement-time';
-            timeElement.style.left = (end.x * 25 + 5) + 'px';
-            timeElement.style.top = (end.y * 25 - 15) + 'px';
+            
+            // ТОЧНОЕ позиционирование времени
+            const pixelLeft = end.x * 25;
+            const pixelTop = end.y * 25;
+            timeElement.style.left = (pixelLeft + 5) + 'px';
+            timeElement.style.top = (pixelTop - 15) + 'px';
             timeElement.textContent = formatDuration(duration);
             timeElement.title = isCountry ? 'Нормальная скорость' : 'Медленная скорость (свободная территория)';
             
@@ -893,7 +953,7 @@
             unit.moveStartTime = Date.now();
             unit.moveDuration = duration * 1000;
             
-            console.log(`Армия ${unit.id} начинает движение к ${targetPos.x},${targetPos.y} за ${duration}сек`);
+            console.log(`Армия ${unit.id} начинает движение из ${unit.position.x},${unit.position.y} в ${targetPos.x},${targetPos.y} за ${duration}сек`);
             
             // Сохраняем в БД
             saveToDatabase('units/' + unit.id, unit);
@@ -906,7 +966,7 @@
             startMovementAnimation(unit);
         }
 
-        // ИСПРАВЛЕННАЯ функция анимации
+        // ИСПРАВЛЕННАЯ функция анимации с точным позиционированием
         function startMovementAnimation(unit) {
             const unitElement = document.getElementById(unit.id);
             if (!unitElement) return;
@@ -914,6 +974,7 @@
             const startTime = Date.now();
             const startPos = {...unit.position};
             const targetPos = unit.targetPosition;
+            const centerOffset = (25 - 20) / 2;
             
             function animateMove() {
                 const elapsed = Date.now() - startTime;
@@ -923,8 +984,12 @@
                     const currentX = startPos.x + (targetPos.x - startPos.x) * progress;
                     const currentY = startPos.y + (targetPos.y - startPos.y) * progress;
                     
-                    unitElement.style.left = (currentX * 25 + 2) + 'px';
-                    unitElement.style.top = (currentY * 25 + 2) + 'px';
+                    // ТОЧНОЕ позиционирование во время анимации
+                    const pixelLeft = currentX * 25;
+                    const pixelTop = currentY * 25;
+                    
+                    unitElement.style.left = (pixelLeft + centerOffset) + 'px';
+                    unitElement.style.top = (pixelTop + centerOffset) + 'px';
                     
                     requestAnimationFrame(animateMove);
                 } else {
@@ -935,11 +1000,14 @@
                     
                     if (unitElement) {
                         unitElement.classList.remove('moving');
-                        // Обновляем позицию для точности
-                        unitElement.style.left = (targetPos.x * 25 + 2) + 'px';
-                        unitElement.style.top = (targetPos.y * 25 + 2) + 'px';
+                        // ТОЧНОЕ позиционирование после анимации
+                        const finalPixelLeft = targetPos.x * 25;
+                        const finalPixelTop = targetPos.y * 25;
+                        unitElement.style.left = (finalPixelLeft + centerOffset) + 'px';
+                        unitElement.style.top = (finalPixelTop + centerOffset) + 'px';
                     }
                     
+                    // ИСПРАВЛЕННЫЙ захват территории
                     checkForCapture(unit);
                     updateGameStats();
                     saveToDatabase('units/' + unit.id, unit);
@@ -968,8 +1036,11 @@
             }
         }
 
+        // ИСПРАВЛЕННАЯ функция захвата территории
         function checkForCapture(unit) {
             const country = findCountryForPixel(unit.position.x, unit.position.y);
+            console.log(`Проверка захвата: армия на ${unit.position.x},${unit.position.y}, страна: ${country}`);
+            
             if (country && country !== 'latvia') {
                 const territoryKey = `${unit.position.x},${unit.position.y}`;
                 gameState.territories[territoryKey] = {
@@ -983,6 +1054,7 @@
                 if (pixel) {
                     pixel.classList.add('captured-territory');
                     pixel.title = `Захвачено Латвией\nАрмия: ${unit.size} солдат`;
+                    console.log(`✅ Захвачена территория ${territoryKey} у ${country}`);
                 }
 
                 updateGameStats();
@@ -999,23 +1071,6 @@
                 }
             });
             updateGameStats();
-        }
-
-        function renderUnit(unit) {
-            let unitElement = document.getElementById(unit.id);
-            if (!unitElement) {
-                unitElement = document.createElement('div');
-                unitElement.id = unit.id;
-                document.getElementById('pixel-map').appendChild(unitElement);
-            }
-            
-            unitElement.className = `unit soldier ${unit.isMoving ? 'moving' : ''}`;
-            unitElement.style.left = (unit.position.x * 25 + 2) + 'px';
-            unitElement.style.top = (unit.position.y * 25 + 2) + 'px';
-            unitElement.style.background = '#3498db';
-            unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
-
-            unitElement.addEventListener('click', () => selectUnit(unit));
         }
 
         function selectUnit(unit) {
@@ -1242,6 +1297,7 @@
 
         // Функция отладки
         function debugUnits() {
+            console.log('=== ОТЛАДКА ===');
             console.log('Все армии:', gameState.units);
             gameState.units.forEach(unit => {
                 console.log(`Армия ${unit.id}:`, {
@@ -1250,6 +1306,7 @@
                     targetPosition: unit.targetPosition
                 });
             });
+            console.log('Захваченные территории:', Object.keys(gameState.territories));
         }
 
         // Инициализация

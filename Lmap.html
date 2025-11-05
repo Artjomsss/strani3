@@ -7,7 +7,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        /* Все стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -488,7 +487,7 @@
 
             <div class="controls">
                 <div class="control-group">
-                    <h2>🎨 Легенда карты</h2>
+                    <h2>🎨 Легенда карта</h2>
                     <div class="legend">
                         <div class="color-box" style="background-color: #e74c3c;"></div>
                         <span>Латвия (ваша страна)</span>
@@ -583,9 +582,8 @@
             'estonia': '#9b59b6',
             'finland': '#3498db',
             'norway': '#e67e22',
-            'denmark': '#f1c40f', // Дания над Германией
+            'denmark': '#f1c40f',
             'iceland': '#95a5a6',
-            // Швеция и Великобритания убраны
             'france': '#2980b9',
             'belgium': '#8e44ad',
             'netherlands': '#16a085',
@@ -610,7 +608,7 @@
             'romania': '#9b59b6'
         };
 
-        // Данные стран (Швеция и Великобритания убраны)
+        // Данные стран
         const countriesData = {
             'latvia': { name: 'Латвия', player: 'не занято', color: countryColors.latvia },
             'austria': { name: 'Австрия', player: 'Коля', color: countryColors.austria },
@@ -642,12 +640,12 @@
             'ukraine': { name: 'Украина', player: 'не занято', color: countryColors.ukraine }
         };
 
-        // Исправленное расположение стран (Швеция и Великобритания убраны, Дания над Германией)
+        // Исправленное расположение стран
         const countryPixels = {
-            // Скандинавия (Швеция убрана)
+            // Скандинавия
             'norway': generateRectangle(20, 5, 3, 8),
             'finland': generateRectangle(27, 5, 4, 6),
-            'denmark': generateRectangle(22, 10, 3, 2), // Дания над Германией
+            'denmark': generateRectangle(22, 10, 3, 2),
             'iceland': generateRectangle(15, 5, 3, 3),
             
             // Балтийские страны
@@ -655,11 +653,11 @@
             'latvia': generateRectangle(28, 14, 3, 2),
             'lithuania': generateRectangle(28, 16, 3, 2),
             
-            // Западная Европа (Великобритания убрана)
+            // Западная Европа
             'france': generateRectangle(20, 16, 5, 4),
             'belgium': generateRectangle(22, 15, 2, 2),
             'netherlands': generateRectangle(22, 13, 2, 2),
-            'germany': generateRectangle(23, 14, 5, 4), // Германия под Данией
+            'germany': generateRectangle(23, 14, 5, 4),
             
             // Центральная Европа
             'switzerland': generateRectangle(22, 18, 2, 2),
@@ -766,7 +764,7 @@
             });
         }
 
-        // Настройка перетаскивания (исправленная)
+        // ИСПРАВЛЕННАЯ функция перетаскивания
         function setupDragAndDrop(unit) {
             const unitElement = document.getElementById(unit.id);
             if (!unitElement) return;
@@ -813,7 +811,10 @@
                     const y = Math.floor((e.clientY - rect.top) / 25);
                     
                     if (x >= 0 && x < 50 && y >= 0 && y < 35) {
-                        moveUnit(gameState.selectedUnit, {x, y});
+                        // Проверяем, что это новая позиция
+                        if (x !== unit.position.x || y !== unit.position.y) {
+                            moveUnit(gameState.selectedUnit, {x, y});
+                        }
                     }
                 }
                 
@@ -875,7 +876,13 @@
             }
         }
 
+        // ИСПРАВЛЕННАЯ функция moveUnit
         function moveUnit(unit, targetPos) {
+            // Проверяем, что армия не пытается переместиться на свою текущую позицию
+            if (unit.position.x === targetPos.x && unit.position.y === targetPos.y) {
+                return;
+            }
+            
             const distance = Math.sqrt(Math.pow(targetPos.x - unit.position.x, 2) + Math.pow(targetPos.y - unit.position.y, 2));
             const isCountry = findCountryForPixel(targetPos.x, targetPos.y) !== null;
             const speedMultiplier = isCountry ? 1.0 : 0.5;
@@ -886,15 +893,20 @@
             unit.moveStartTime = Date.now();
             unit.moveDuration = duration * 1000;
             
+            console.log(`Армия ${unit.id} начинает движение к ${targetPos.x},${targetPos.y} за ${duration}сек`);
+            
             // Сохраняем в БД
             saveToDatabase('units/' + unit.id, unit);
             
             const unitElement = document.getElementById(unit.id);
-            unitElement.classList.add('moving');
+            if (unitElement) {
+                unitElement.classList.add('moving');
+            }
             
             startMovementAnimation(unit);
         }
 
+        // ИСПРАВЛЕННАЯ функция анимации
         function startMovementAnimation(unit) {
             const unitElement = document.getElementById(unit.id);
             if (!unitElement) return;
@@ -916,12 +928,23 @@
                     
                     requestAnimationFrame(animateMove);
                 } else {
+                    // Движение завершено
                     unit.isMoving = false;
                     unit.position = targetPos;
-                    unitElement.classList.remove('moving');
+                    unit.targetPosition = null;
+                    
+                    if (unitElement) {
+                        unitElement.classList.remove('moving');
+                        // Обновляем позицию для точности
+                        unitElement.style.left = (targetPos.x * 25 + 2) + 'px';
+                        unitElement.style.top = (targetPos.y * 25 + 2) + 'px';
+                    }
+                    
                     checkForCapture(unit);
                     updateGameStats();
                     saveToDatabase('units/' + unit.id, unit);
+                    
+                    console.log(`Армия ${unit.id} прибыла в ${targetPos.x},${targetPos.y}`);
                 }
             }
             
@@ -1217,6 +1240,18 @@
             `;
         }
 
+        // Функция отладки
+        function debugUnits() {
+            console.log('Все армии:', gameState.units);
+            gameState.units.forEach(unit => {
+                console.log(`Армия ${unit.id}:`, {
+                    position: unit.position,
+                    isMoving: unit.isMoving,
+                    targetPosition: unit.targetPosition
+                });
+            });
+        }
+
         // Инициализация
         function initialize() {
             createPixelMap();
@@ -1229,6 +1264,9 @@
                     createArmy(1000);
                 }
             }, 1000);
+
+            // Отладка
+            setTimeout(debugUnits, 2000);
         }
 
         document.addEventListener('DOMContentLoaded', initialize);

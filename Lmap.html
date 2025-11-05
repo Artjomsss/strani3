@@ -799,7 +799,7 @@
                 const rect = pixelMap.getBoundingClientRect();
                 
                 // ТОЧНОЕ вычисление координат пикселя
-                const x = Math.floor((clientX - rect.left) / 25);
+                const x = Math.floor((clientX - rect.left) / 28);
                 const y = Math.floor((clientY - rect.top) / 25);
                 
                 console.log(`Перетаскивание: ${x},${y} (из ${clientX},${clientY})`);

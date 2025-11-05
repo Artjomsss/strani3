@@ -914,37 +914,55 @@ function setupDragAndDrop(unit) {
             }
             
             function endDrag(e) {
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('touchmove', drag);
-                document.removeEventListener('mouseup', endDrag);
-                document.removeEventListener('touchend', endDrag);
-                
-                if (gameState.ghostUnit && gameState.selectedUnit) {
-                    const clientX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
-                    const clientY = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
-                    
-                    if (!clientX || !clientY) return;
-                    
-                    const pixelMap = document.getElementById('pixel-map');
-                    const rect = pixelMap.getBoundingClientRect();
-                    
-                    // ТОЧНОЕ вычисление координат пикселя
-                    const x = Math.floor((clientX - rect.left) / 22);
-                    const y = Math.floor((clientY - rect.top) / 25);
-                    
-                    console.log(`Конечная позиция: ${x},${y}`);
-                    
-                    if (x >= 0 && x < 50 && y >= 0 && y < 35) {
-                        // Проверяем, что это новая позиция
-                        if (x !== unit.position.x || y !== unit.position.y) {
-                            moveUnit(gameState.selectedUnit, {x, y});
-                        }
-                    }
-                }
-                
-                cleanupDrag();
+    console.log('--- Конец перетаскивания ---');
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('mouseup', endDrag);
+    
+    if (gameState.ghostUnit && gameState.selectedUnit) {
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+        
+        const pixelMap = document.getElementById('pixel-map');
+        const rect = pixelMap.getBoundingClientRect();
+        
+        // ПРЯМОЙ РАСЧЕТ БЕЗ ПЕРЕМЕННЫХ
+        const x = Math.floor((clientX - rect.left) / 25);
+        const y = Math.floor((clientY - rect.top) / 25);
+        
+        console.log('Финальные координаты РАСЧЕТ:', {
+            clientX, clientY,
+            rectLeft: rect.left,
+            rectTop: rect.top,
+            relativeX: clientX - rect.left,
+            relativeY: clientY - rect.top,
+            x, y
+        });
+        
+        // ДИАГНОСТИКА: что передается в moveUnit
+        console.log('Передаем в moveUnit:', {x, y});
+        console.log('Текущая позиция армии:', gameState.selectedUnit.position);
+        
+        if (x >= 0 && x < 50 && y >= 0 && y < 35) {
+            if (x !== gameState.selectedUnit.position.x || y !== gameState.selectedUnit.position.y) {
+                moveUnit(gameState.selectedUnit, {x, y});
             }
         }
+    }
+    
+    cleanupDrag();
+    console.log('========================');
+}
+
+            function moveUnit(unit, targetPos) {
+    console.log('moveUnit получил:', {targetPos});
+    console.log('Текущая позиция unit:', unit.position);
+    
+    // ОСТАЛЬНОЙ КОД БЕЗ ИЗМЕНЕНИЙ
+    if (unit.position.x === targetPos.x && unit.position.y === targetPos.y) {
+        return;
+    }
+    // ...
+}
 
         // ИСПРАВЛЕННАЯ функция рендера юнита - точное позиционирование в центре пикселя
         function renderUnit(unit) {

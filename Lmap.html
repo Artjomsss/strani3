@@ -7,6 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
+        /* Все стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -443,7 +444,7 @@
         
         <header>
             <h1>🧱 Пиксельная карта Европы</h1>
-            <div style="opacity: 0.9;">Упрощенная система • Только солдаты</div>
+            <div style="opacity: 0.9;">База данных • Исправленное движение</div>
         </header>
 
         <div class="content">
@@ -480,7 +481,7 @@
                     </div>
 
                     <div class="db-status" id="db-status">
-                        🔄 База данных отключена (упрощенный режим)
+                        🔄 Подключение к базе данных...
                     </div>
                 </div>
             </div>
@@ -552,8 +553,28 @@
     </div>
 
     <script>
-        // Упрощенная система без Firebase
-        document.getElementById('db-status').innerHTML = '✅ Упрощенный режим (база данных отключена)';
+        // Конфигурация Firebase (твои данные)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+            authDomain: "strani3.firebaseapp.com",
+            databaseURL: "https://strani3-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "strani3",
+            storageBucket: "strani3.firebasestorage.app",
+            messagingSenderId: "225168183800",
+            appId: "1:225168183800:web:825e782a35bccca89d460d",
+            measurementId: "G-3NKBET5R9J"
+        };
+
+        // Инициализация Firebase
+        let database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            document.getElementById('db-status').innerHTML = '✅ База данных подключена';
+        } catch (error) {
+            console.log("Firebase не настроен, используется локальное хранилище");
+            document.getElementById('db-status').innerHTML = '⚠️ Локальное хранилище (Firebase не настроен)';
+        }
 
         // Уникальные цвета для каждой страны
         const countryColors = {
@@ -562,11 +583,9 @@
             'estonia': '#9b59b6',
             'finland': '#3498db',
             'norway': '#e67e22',
-            'denmark': '#f1c40f',
+            'denmark': '#f1c40f', // Дания над Германией
             'iceland': '#95a5a6',
-            'sweden': '#2ecc71',
-            'ireland': '#d35400',
-            'united_kingdom': '#c0392b',
+            // Швеция и Великобритания убраны
             'france': '#2980b9',
             'belgium': '#8e44ad',
             'netherlands': '#16a085',
@@ -591,7 +610,7 @@
             'romania': '#9b59b6'
         };
 
-        // Данные стран
+        // Данные стран (Швеция и Великобритания убраны)
         const countriesData = {
             'latvia': { name: 'Латвия', player: 'не занято', color: countryColors.latvia },
             'austria': { name: 'Австрия', player: 'Коля', color: countryColors.austria },
@@ -608,7 +627,6 @@
             'greece': { name: 'Греция', player: 'Милана', color: countryColors.greece },
             'hungary': { name: 'Венгрия', player: 'не занято', color: countryColors.hungary },
             'iceland': { name: 'Исландия', player: 'не занято', color: countryColors.iceland },
-            'ireland': { name: 'Ирландия', player: 'не занято', color: countryColors.ireland },
             'italy': { name: 'Италия', player: 'Эвелина', color: countryColors.italy },
             'lithuania': { name: 'Литва', player: 'не занято', color: countryColors.lithuania },
             'moldova': { name: 'Молдавия', player: 'не занято', color: countryColors.moldova },
@@ -620,19 +638,16 @@
             'portugal': { name: 'Португалия', player: 'не занято', color: countryColors.portugal },
             'albania': { name: 'Албания', player: 'не занято', color: countryColors.albania },
             'romania': { name: 'Румыния', player: 'не занято', color: countryColors.romania },
-            'sweden': { name: 'Швеция', player: 'не занято', color: countryColors.sweden },
             'switzerland': { name: 'Швейцария', player: 'не занято', color: countryColors.switzerland },
-            'ukraine': { name: 'Украина', player: 'не занято', color: countryColors.ukraine },
-            'united_kingdom': { name: 'Великобритания', player: 'не занято', color: countryColors.united_kingdom }
+            'ukraine': { name: 'Украина', player: 'не занято', color: countryColors.ukraine }
         };
 
-        // Упрощенное расположение стран
+        // Исправленное расположение стран (Швеция и Великобритания убраны, Дания над Германией)
         const countryPixels = {
-            // Скандинавия
+            // Скандинавия (Швеция убрана)
             'norway': generateRectangle(20, 5, 3, 8),
-            'sweden': generateRectangle(23, 5, 4, 7),
             'finland': generateRectangle(27, 5, 4, 6),
-            'denmark': generateRectangle(21, 13, 2, 2),
+            'denmark': generateRectangle(22, 10, 3, 2), // Дания над Германией
             'iceland': generateRectangle(15, 5, 3, 3),
             
             // Балтийские страны
@@ -640,15 +655,11 @@
             'latvia': generateRectangle(28, 14, 3, 2),
             'lithuania': generateRectangle(28, 16, 3, 2),
             
-            // Великобритания и Ирландия
-            'ireland': generateRectangle(15, 12, 2, 3),
-            'united_kingdom': generateRectangle(17, 12, 3, 4),
-            
-            // Западная Европа
+            // Западная Европа (Великобритания убрана)
             'france': generateRectangle(20, 16, 5, 4),
             'belgium': generateRectangle(22, 15, 2, 2),
             'netherlands': generateRectangle(22, 13, 2, 2),
-            'germany': generateRectangle(23, 14, 5, 4),
+            'germany': generateRectangle(23, 14, 5, 4), // Германия под Данией
             
             // Центральная Европа
             'switzerland': generateRectangle(22, 18, 2, 2),
@@ -686,7 +697,30 @@
             ghostUnit: null
         };
 
-        // Создание армии
+        // Функции для работы с базой данных
+        function saveToDatabase(path, data) {
+            if (database) {
+                database.ref(path).set(data)
+                    .then(() => console.log('✅ Данные сохранены:', path))
+                    .catch(error => console.error('❌ Ошибка сохранения:', error));
+            } else {
+                localStorage.setItem('game_' + path, JSON.stringify(data));
+            }
+        }
+
+        function loadFromDatabase(path, callback) {
+            if (database) {
+                database.ref(path).on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    callback(data);
+                });
+            } else {
+                const data = JSON.parse(localStorage.getItem('game_' + path) || 'null');
+                callback(data);
+            }
+        }
+
+        // Создание армии с сохранением в БД
         function createArmy(size) {
             const unit = {
                 id: 'unit_' + Date.now(),
@@ -701,6 +735,9 @@
             renderUnit(unit);
             updateGameStats();
             setupDragAndDrop(unit);
+            
+            // Сохраняем в БД
+            saveToDatabase('units/' + unit.id, unit);
         }
 
         function createCustomArmy() {
@@ -708,7 +745,28 @@
             createArmy(size);
         }
 
-        // Настройка перетаскивания
+        // Загрузка данных из БД при старте
+        function loadGameData() {
+            loadFromDatabase('units', (units) => {
+                if (units) {
+                    gameState.units = Object.values(units);
+                    gameState.units.forEach(unit => {
+                        renderUnit(unit);
+                        setupDragAndDrop(unit);
+                    });
+                    updateGameStats();
+                }
+            });
+
+            loadFromDatabase('territories', (territories) => {
+                if (territories) {
+                    gameState.territories = territories;
+                    updateCapturedTerritories();
+                }
+            });
+        }
+
+        // Настройка перетаскивания (исправленная)
         function setupDragAndDrop(unit) {
             const unitElement = document.getElementById(unit.id);
             if (!unitElement) return;
@@ -743,17 +801,20 @@
                 }
             }
             
-            function endDrag() {
+            function endDrag(e) {
                 document.removeEventListener('mousemove', drag);
                 document.removeEventListener('mouseup', endDrag);
                 
                 if (gameState.ghostUnit && gameState.selectedUnit) {
-                    const targetPos = {
-                        x: parseInt(gameState.ghostUnit.style.left) / 25,
-                        y: parseInt(gameState.ghostUnit.style.top) / 25
-                    };
+                    const pixelMap = document.getElementById('pixel-map');
+                    const rect = pixelMap.getBoundingClientRect();
                     
-                    moveUnit(gameState.selectedUnit, targetPos);
+                    const x = Math.floor((e.clientX - rect.left) / 25);
+                    const y = Math.floor((e.clientY - rect.top) / 25);
+                    
+                    if (x >= 0 && x < 50 && y >= 0 && y < 35) {
+                        moveUnit(gameState.selectedUnit, {x, y});
+                    }
                 }
                 
                 cleanupDrag();
@@ -786,7 +847,7 @@
             
             const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
             const isCountry = findCountryForPixel(end.x, end.y) !== null;
-            const speedMultiplier = isCountry ? 1.0 : 0.5; // Медленнее на свободных территориях
+            const speedMultiplier = isCountry ? 1.0 : 0.5;
             const duration = calculateMoveDuration(distance, speedMultiplier);
             
             const timeElement = document.createElement('div');
@@ -800,7 +861,7 @@
         }
 
         function calculateMoveDuration(distance, speedMultiplier) {
-            const baseSecondsPerPixel = 2; // 2 секунды на пиксель для демонстрации
+            const baseSecondsPerPixel = 2;
             return Math.round(distance * baseSecondsPerPixel * speedMultiplier);
         }
 
@@ -823,7 +884,10 @@
             unit.isMoving = true;
             unit.targetPosition = targetPos;
             unit.moveStartTime = Date.now();
-            unit.moveDuration = duration * 1000; // в миллисекундах
+            unit.moveDuration = duration * 1000;
+            
+            // Сохраняем в БД
+            saveToDatabase('units/' + unit.id, unit);
             
             const unitElement = document.getElementById(unit.id);
             unitElement.classList.add('moving');
@@ -857,6 +921,7 @@
                     unitElement.classList.remove('moving');
                     checkForCapture(unit);
                     updateGameStats();
+                    saveToDatabase('units/' + unit.id, unit);
                 }
             }
             
@@ -898,7 +963,19 @@
                 }
 
                 updateGameStats();
+                saveToDatabase('territories/' + territoryKey, gameState.territories[territoryKey]);
             }
+        }
+
+        function updateCapturedTerritories() {
+            Object.keys(gameState.territories).forEach(coord => {
+                const [x, y] = coord.split(',').map(Number);
+                const pixel = findPixelByCoord(x, y);
+                if (pixel) {
+                    pixel.classList.add('captured-territory');
+                }
+            });
+            updateGameStats();
         }
 
         function renderUnit(unit) {
@@ -1030,7 +1107,7 @@
                 'greece': 'GR', 'croatia': 'HR', 'albania': 'AL',
                 'montenegro': 'ME', 'north_macedonia': 'MK',
                 'belgium': 'BE', 'netherlands': 'NL', 'portugal': 'PT', 
-                'ireland': 'IE', 'sweden': 'SE', 'switzerland': 'CH'
+                'switzerland': 'CH'
             };
             return codes[countryId] || countryId.substring(0, 2).toUpperCase();
         }
@@ -1143,6 +1220,7 @@
         // Инициализация
         function initialize() {
             createPixelMap();
+            loadGameData();
             
             // Создаем несколько начальных армий
             setTimeout(() => {

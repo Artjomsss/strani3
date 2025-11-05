@@ -765,6 +765,109 @@
         }
 
         // ИСПРАВЛЕННАЯ функция перетаскивания с точным позиционированием
+        // ДОБАВЬ ЭТОТ КОД В НАЧАЛО ФУНКЦИИ setupDragAndDrop
+function setupDragAndDrop(unit) {
+    console.log('=== ДИАГНОСТИКА ПЕРЕТАСКИВАНИЯ ===');
+    console.log('Начальная позиция армии:', unit.position);
+    
+    const unitElement = document.getElementById(unit.id);
+    if (!unitElement) return;
+    
+    unitElement.addEventListener('mousedown', startDrag);
+    
+    function startDrag(e) {
+        console.log('--- Начало перетаскивания ---');
+        if (unit.isMoving) return;
+        e.preventDefault();
+        gameState.selectedUnit = unit;
+        
+        // ДИАГНОСТИКА: Позиция элемента
+        const computedStyle = window.getComputedStyle(unitElement);
+        console.log('Стили юнита:', {
+            left: computedStyle.left,
+            top: computedStyle.top,
+            transform: computedStyle.transform
+        });
+        
+        const pixelMap = document.getElementById('pixel-map');
+        const rect = pixelMap.getBoundingClientRect();
+        console.log('Границы карты:', {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height
+        });
+        
+        createGhostUnit(unit);
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', endDrag);
+        
+        unitElement.classList.add('dragging');
+    }
+    
+    function drag(e) {
+        if (!gameState.ghostUnit) return;
+        
+        const clientX = e.clientX;
+        const clientY = e.clientY;
+        
+        const pixelMap = document.getElementById('pixel-map');
+        const rect = pixelMap.getBoundingClientRect();
+        
+        // ДИАГНОСТИКА: Расчет координат
+        const relativeX = clientX - rect.left;
+        const relativeY = clientY - rect.top;
+        const x = Math.floor(relativeX / 25);
+        const y = Math.floor(relativeY / 25);
+        
+        console.log('Координаты мыши:', {
+            clientX, clientY,
+            relativeX, relativeY,
+            calculatedX: x,
+            calculatedY: y
+        });
+        
+        if (x >= 0 && x < 50 && y >= 0 && y < 35) {
+            updateGhostPosition(x, y);
+            showMovementPath(unit.position, {x, y});
+        }
+    }
+    
+    function endDrag(e) {
+        console.log('--- Конец перетаскивания ---');
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mouseup', endDrag);
+        
+        if (gameState.ghostUnit && gameState.selectedUnit) {
+            const clientX = e.clientX;
+            const clientY = e.clientY;
+            
+            const pixelMap = document.getElementById('pixel-map');
+            const rect = pixelMap.getBoundingClientRect();
+            
+            const relativeX = clientX - rect.left;
+            const relativeY = clientY - rect.top;
+            const x = Math.floor(relativeX / 25);
+            const y = Math.floor(relativeY / 25);
+            
+            console.log('Финальные координаты:', {
+                clientX, clientY,
+                relativeX, relativeY, 
+                x, y
+            });
+            
+            if (x >= 0 && x < 50 && y >= 0 && y < 35) {
+                if (x !== unit.position.x || y !== unit.position.y) {
+                    moveUnit(gameState.selectedUnit, {x, y});
+                }
+            }
+        }
+        
+        cleanupDrag();
+        console.log('========================');
+    }
+}
         function setupDragAndDrop(unit) {
             const unitElement = document.getElementById(unit.id);
             if (!unitElement) return;
@@ -1309,22 +1412,37 @@
             console.log('Захваченные территории:', Object.keys(gameState.territories));
         }
 
-        // Инициализация
-        function initialize() {
-            createPixelMap();
-            loadGameData();
-            
-            // Создаем несколько начальных армий
-            setTimeout(() => {
-                if (gameState.units.length === 0) {
-                    createArmy(500);
-                    createArmy(1000);
+       // Инициализация
+function initialize() {
+    createPixelMap();
+    loadGameData();
+    
+    // Диагностика расположения Латвии
+    setTimeout(() => {
+        console.log('=== ДИАГНОСТИКА КАРТЫ ===');
+        console.log('Латвия должна быть на координатах:', countryPixels.latvia[0]);
+        
+        // Проверим где реально находится Латвия
+        for (let x = 25; x < 35; x++) {
+            for (let y = 10; y < 20; y++) {
+                const country = findCountryForPixel(x, y);
+                if (country === 'latvia') {
+                    console.log('Латвия найдена на:', x, y);
                 }
-            }, 1000);
-
-            // Отладка
-            setTimeout(debugUnits, 2000);
+            }
         }
+        
+        if (gameState.units.length === 0) {
+            createArmy(500);
+            createArmy(1000);
+        }
+    }, 1000);
+
+    // Отладка
+    setTimeout(debugUnits, 2000);
+}
+
+document.addEventListener('DOMContentLoaded', initialize);
 
         document.addEventListener('DOMContentLoaded', initialize);
     </script>

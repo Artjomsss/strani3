@@ -672,59 +672,82 @@ try {
             'andorra': { name: 'Андорра', player: 'не занято', color: countryColors.andorra }
         };
 
-        // Водные территории
-        const waterPixels = [
-            // Северное море
-            ...generateRectangle(15, 8, 10, 5),
-            // Балтийское море
-            ...generateRectangle(22, 10, 8, 6),
-            // Атлантический океан
-            ...generateRectangle(5, 15, 12, 10),
-            // Средиземное море
-            ...generateRectangle(18, 28, 15, 5)
-        ];
+// Правильное географическое расположение стран
+const countryPixels = {
+    // Скандинавия
+    'norway': generateRectangle(20, 5, 3, 8),     // Длинная узкая Норвегия
+    'sweden': generateRectangle(23, 5, 4, 7),     // Швеция
+    'finland': generateRectangle(27, 5, 4, 6),    // Финляндия
+    'denmark': generateRectangle(21, 13, 2, 2),   // Дания маленькая
+    'iceland': generateRectangle(15, 5, 3, 3),    // Исландия отдельно
+    
+    // Балтийские страны (вертикально)
+    'estonia': generateRectangle(28, 12, 3, 2),   // Эстония
+    'latvia': generateRectangle(28, 14, 3, 2),    // Латвия
+    'lithuania': generateRectangle(28, 16, 3, 2), // Литва
+    
+    // Великобритания и Ирландия
+    'ireland': generateRectangle(15, 12, 2, 3),   // Ирландия
+    'united_kingdom': generateRectangle(17, 12, 3, 4), // Великобритания
+    
+    // Западная Европа
+    'france': generateRectangle(20, 16, 5, 4),    // Франция (большая)
+    'belgium': generateRectangle(22, 15, 2, 2),   // Бельгия
+    'netherlands': generateRectangle(22, 13, 2, 2), // Нидерланды
+    'germany': generateRectangle(23, 14, 5, 4),   // Германия (центр Европы)
+    
+    // Центральная Европа
+    'switzerland': generateRectangle(22, 18, 2, 2), // Швейцария
+    'austria': generateRectangle(24, 17, 3, 3),   // Австрия
+    'czechia': generateRectangle(24, 15, 3, 2),   // Чехия
+    'poland': generateRectangle(26, 14, 4, 4),    // Польша
+    
+    // Восточная Европа
+    'belarus': generateRectangle(29, 14, 4, 3),   // Беларусь
+    'ukraine': generateRectangle(29, 17, 6, 4),   // Украина (большая)
+    
+    // Южная Европа
+    'portugal': generateRectangle(17, 19, 2, 3),  // Португалия
+    'spain': generateRectangle(19, 19, 4, 4),     // Испания
+    'italy': generateRectangle(24, 21, 3, 5),     // Италия (длинная)
+    
+    // Балканы
+    'hungary': generateRectangle(26, 18, 3, 2),   // Венгрия
+    'romania': generateRectangle(28, 19, 3, 3),   // Румыния
+    'bulgaria': generateRectangle(29, 22, 3, 2),  // Болгария
+    'greece': generateRectangle(28, 24, 4, 3),    // Греция
+    'croatia': generateRectangle(25, 19, 3, 2),   // Хорватия
+    'albania': generateRectangle(26, 22, 2, 2),   // Албания
+    'montenegro': generateRectangle(25, 21, 2, 2), // Черногория
+    'north_macedonia': generateRectangle(27, 22, 2, 2), // Македония
+    
+    // Остальные
+    'moldova': generateRectangle(30, 19, 2, 2),   // Молдова
+    'slovakia': generateRectangle(26, 16, 2, 2),  // Словакия
+    'slovenia': generateRectangle(24, 19, 2, 2),  // Словения
+    
+    // Микрогосударства
+    'luxembourg': generateRectangle(22, 16, 1, 1), // Люксембург
+    'liechtenstein': generateRectangle(23, 18, 1, 1), // Лихтенштейн
+    'andorra': generateRectangle(20, 20, 1, 1),   // Андорра
+    'monaco': generateRectangle(21, 19, 1, 1),    // Монако
+    'san_marino': generateRectangle(24, 20, 1, 1), // Сан-Марино
+    'malta': generateRectangle(25, 26, 1, 1)      // Мальта
+};
 
-        // Расположение стран
-        const countryPixels = {
-            'estonia': generateRectangle(25, 8, 4, 3),
-            'latvia': generateRectangle(25, 11, 4, 3),
-            'lithuania': generateRectangle(25, 14, 4, 3),
-            'finland': generateRectangle(22, 5, 4, 5),
-            'norway': generateRectangle(17, 5, 4, 6),
-            'denmark': generateRectangle(18, 13, 3, 2),
-            'iceland': generateRectangle(10, 5, 2, 3),
-            'sweden': generateRectangle(20, 8, 5, 5),
-            'ireland': generateRectangle(12, 10, 3, 3),
-            'united_kingdom': generateRectangle(15, 10, 4, 4),
-            'france': generateRectangle(14, 20, 5, 4),
-            'belgium': generateRectangle(16, 18, 2, 2),
-            'netherlands': generateRectangle(16, 16, 2, 2),
-            'germany': generateRectangle(18, 18, 5, 4),
-            'austria': generateRectangle(21, 20, 3, 3),
-            'switzerland': generateRectangle(19, 20, 2, 2),
-            'czechia': generateRectangle(21, 18, 3, 2),
-            'poland': generateRectangle(23, 16, 4, 4),
-            'belarus': generateRectangle(27, 16, 4, 4),
-            'moldova': generateRectangle(28, 22, 3, 2),
-            'ukraine': generateRectangle(26, 20, 6, 5),
-            'romania': generateRectangle(24, 22, 4, 3),
-            'hungary': generateRectangle(22, 22, 3, 3),
-            'portugal': generateRectangle(10, 18, 3, 3),
-            'spain': generateRectangle(13, 18, 5, 4),
-            'italy': generateRectangle(20, 24, 3, 5),
-            'greece': generateRectangle(24, 25, 4, 3),
-            'croatia': generateRectangle(21, 24, 3, 3),
-            'bulgaria': generateRectangle(28, 25, 4, 3),
-            'albania': generateRectangle(22, 27, 2, 2),
-            'montenegro': generateRectangle(21, 26, 2, 2),
-            'north_macedonia': generateRectangle(23, 26, 2, 2),
-            'andorra': generateRectangle(15, 23, 2, 2),
-            'monaco': generateRectangle(18, 21, 2, 2),
-            'luxembourg': generateRectangle(19, 18, 2, 2),
-            'malta': generateRectangle(21, 32, 2, 2),
-            'liechtenstein': generateRectangle(20, 21, 2, 2),
-            'san_marino': generateRectangle(21, 25, 2, 2)
-        };
+// Водные территории
+const waterPixels = [
+    // Северное море
+    ...generateRectangle(18, 10, 8, 6),
+    // Балтийское море  
+    ...generateRectangle(25, 12, 8, 6),
+    // Атлантический океан
+    ...generateRectangle(10, 10, 12, 15),
+    // Средиземное море
+    ...generateRectangle(20, 23, 15, 8),
+    // Адриатическое море
+    ...generateRectangle(24, 20, 4, 6)
+];
 
         // Игровая система
         const gameState = {

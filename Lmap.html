@@ -7,16 +7,724 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        /* ... (все стили остаются без изменений) ... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0c0c1a, #1a1a2e);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.25), rgba(39, 174, 96, 0.2));
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #3498db, #2ecc71, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .map-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .pixel-map {
+            display: grid;
+            grid-template-columns: repeat(50, 25px);
+            grid-template-rows: repeat(35, 25px);
+            gap: 1px;
+            background: #2a2a40;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #3a3a5a;
+            position: relative;
+            margin: 0 auto;
+            max-width: fit-content;
+        }
+
+        .pixel {
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            border: 1px solid rgba(0,0,0,0.3);
+            user-select: none;
+        }
+
+        .pixel:hover {
+            transform: scale(1.2);
+            z-index: 10;
+            box-shadow: 0 0 0 2px #f39c12, 0 0 15px rgba(243, 156, 18, 0.5);
+        }
+
+        .pixel.empty {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .pixel.latvia {
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .country-border {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .border-top { top: -1px; left: 0; width: 100%; height: 1px; }
+        .border-right { top: 0; right: -1px; width: 1px; height: 100%; }
+        .border-bottom { bottom: -1px; left: 0; width: 100%; height: 1px; }
+        .border-left { top: 0; left: -1px; width: 1px; height: 100%; }
+
+        .controls {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        h3 {
+            color: #2ecc71;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: 20px 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .status-info {
+            background: rgba(52, 152, 219, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .region-details {
+            background: rgba(39, 174, 96, 0.15);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #bdc3c7;
+        }
+
+        .detail-value {
+            color: #ecf0f1;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.08);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+        .country-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #3498db;
+        }
+
+        .coordinates {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(145deg, #2980b9, #21618c);
+            transform: translateY(-2px);
+        }
+
+        .country-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .country-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .player-name {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* Стили для системы перетаскивания */
+        .game-system {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 20px;
+        }
+
+        .unit-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .unit-btn {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .unit-btn:hover {
+            background: linear-gradient(145deg, #2980b9, #21618c);
+            transform: translateY(-2px);
+        }
+
+        .unit-info {
+            background: rgba(52, 152, 219, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .unit {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            z-index: 20;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .unit.dragging {
+            opacity: 0.7;
+            transform: scale(1.3);
+            z-index: 100;
+            cursor: grabbing;
+        }
+
+        .unit.ghost {
+            opacity: 0.4;
+            z-index: 90;
+            pointer-events: none;
+        }
+
+        .unit.soldier {
+            background: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
+        }
+
+        .unit.moving {
+            animation: pulseMove 2s infinite;
+        }
+
+        @keyframes pulseMove {
+            0% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 20px currentColor; }
+            100% { box-shadow: 0 0 5px currentColor; }
+        }
+
+        .movement-path {
+            position: absolute;
+            background: rgba(52, 152, 219, 0.3);
+            border-radius: 2px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .movement-time {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            z-index: 25;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .army-controls {
+            background: rgba(39, 174, 96, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .size-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .size-control input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            padding: 8px;
+            color: white;
+        }
+
+        .size-control button {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .captured-territory {
+            background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+            position: relative;
+        }
+
+        .captured-territory::after {
+            content: '★';
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            font-size: 8px;
+            color: gold;
+        }
+
+        .db-status {
+            background: rgba(155, 89, 182, 0.15);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #9b59b6;
+            font-size: 0.9em;
+        }
+
+        /* Стили для радиального меню */
+        .radial-menu {
+            position: absolute;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .radial-menu.active {
+            pointer-events: all;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .radial-menu-item {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transform: scale(0.8);
+        }
+
+        .radial-menu.active .radial-menu-item {
+            transform: scale(1);
+        }
+
+        .radial-menu-item:hover {
+            transform: scale(1.2) !important;
+            background: linear-gradient(145deg, #2980b9, #21618c);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .radial-menu-center {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .menu-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1001;
+        }
+
+        .radial-menu-item:hover .menu-tooltip {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- ... (HTML структура без изменений) ... -->
+        <a href="latvia.html" class="back-btn">⬅️ Назад к Латвии</a>
+        
+        <header>
+            <h1>🧱 Пиксельная карта Европы</h1>
+            <div style="opacity: 0.9;">Исправленное позиционирование • Точный захват • Радиальное меню</div>
+        </header>
+
+        <div class="content">
+            <div class="map-container">
+                <div class="pixel-map" id="pixel-map">
+                    <!-- Пиксели будут созданы через JavaScript -->
+                </div>
+                
+                <!-- Радиальное меню -->
+                <div id="radial-menu" class="radial-menu">
+                    <div class="radial-menu-center">⚙️</div>
+                    <!-- Элементы меню будут добавлены через JavaScript -->
+                </div>
+                
+                <!-- Система перетаскивания и управления -->
+                <div class="game-system">
+                    <h2>🎮 Управление армиями</h2>
+                    <div class="unit-controls">
+                        <button class="unit-btn" onclick="createArmy(100)">➕ 100 Солдат</button>
+                        <button class="unit-btn" onclick="createArmy(500)">➕ 500 Солдат</button>
+                        <button class="unit-btn" onclick="createArmy(1000)">➕ 1000 Солдат</button>
+                        <button class="unit-btn" onclick="createArmy(2000)">➕ 2000 Солдат</button>
+                    </div>
+                    
+                    <div class="army-controls">
+                        <h3>⚙️ Настройка армии</h3>
+                        <div class="size-control">
+                            <input type="number" id="army-size" value="100" min="10" max="10000">
+                            <button onclick="createCustomArmy()">Создать армию</button>
+                        </div>
+                        <div style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">
+                            💡 Нажмите на армию для открытия меню управления
+                        </div>
+                    </div>
+                    
+                    <div id="unit-info" class="unit-info">
+                        <div style="text-align: center; opacity: 0.7;">
+                            Выберите армию для управления
+                        </div>
+                    </div>
+
+                    <div class="db-status" id="db-status">
+                        🔄 Подключение к базе данных...
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h2>🎨 Легенда карты</h2>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #e74c3c;"></div>
+                        <span>Латвия (ваша страна)</span>
+                    </div>
+                    <div class="legend">
+                        <div class="color-box" style="background: linear-gradient(45deg, #e74c3c, #c0392b);"></div>
+                        <span>Захваченные территории</span>
+                    </div>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #3498db;"></div>
+                        <span>Армии солдат</span>
+                    </div>
+                    <div class="legend">
+                        <div class="color-box" style="background-color: #95a5a6;"></div>
+                        <span>Свободные территории (медленное движение)</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h2>📊 Статистика игры</h2>
+                    <div class="status-info">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value" id="total-units">0</div>
+                                <div class="stat-label">Ваши армии</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="captured-territories">0</div>
+                                <div class="stat-label">Захвачено</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="total-soldiers">0</div>
+                                <div class="stat-label">Всего солдат</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="moving-units">0</div>
+                                <div class="stat-label">В движении</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h2>🌍 Список стран</h2>
+                    <div class="country-list" id="country-list">
+                        <!-- Список стран будет создан через JavaScript -->
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h2>📍 Детали региона</h2>
+                    <div class="region-details" id="region-details">
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 3em; margin-bottom: 10px;">🧱</div>
+                            <h3>Выберите страну</h3>
+                            <p>Наведите курсор на любую страну на карте</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // ... (конфигурация Firebase и цвета стран без изменений) ...
+        // Конфигурация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRUoIzXpwwAGYM0qciAYdQm-wtMKqLsVs",
+            authDomain: "strani3.firebaseapp.com",
+            databaseURL: "https://strani3-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "strani3",
+            storageBucket: "strani3.firebasestorage.app",
+            messagingSenderId: "225168183800",
+            appId: "1:225168183800:web:825e782a35bccca89d460d",
+            measurementId: "G-3NKBET5R9J"
+        };
+
+        // Инициализация Firebase
+        let database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            document.getElementById('db-status').innerHTML = '✅ База данных подключена';
+        } catch (error) {
+            console.log("Firebase не настроен, используется локальное хранилище");
+            document.getElementById('db-status').innerHTML = '⚠️ Локальное хранилище (Firebase не настроен)';
+        }
+
+        // Уникальные цвета для каждой страны
+        const countryColors = {
+            'latvia': '#e74c3c',
+            'lithuania': '#1abc9c',
+            'estonia': '#9b59b6',
+            'finland': '#3498db',
+            'norway': '#e67e22',
+            'denmark': '#f1c40f',
+            'iceland': '#95a5a6',
+            'france': '#2980b9',
+            'belgium': '#8e44ad',
+            'netherlands': '#16a085',
+            'germany': '#f39c12',
+            'austria': '#27ae60',
+            'switzerland': '#e74c3c',
+            'portugal': '#9b59b6',
+            'spain': '#e67e22',
+            'italy': '#3498db',
+            'greece': '#1abc9c',
+            'croatia': '#d35400',
+            'bulgaria': '#2ecc71',
+            'albania': '#f39c12',
+            'montenegro': '#8e44ad',
+            'north_macedonia': '#16a085',
+            'hungary': '#c0392b',
+            'czechia': '#2980b9',
+            'poland': '#27ae60',
+            'belarus': '#95a5a6',
+            'moldova': '#f1c40f',
+            'ukraine': '#e74c3c',
+            'romania': '#9b59b6'
+        };
+
+        // Данные стран
+        const countriesData = {
+            'latvia': { name: 'Латвия', player: 'не занято', color: countryColors.latvia },
+            'austria': { name: 'Австрия', player: 'Коля', color: countryColors.austria },
+            'belarus': { name: 'Беларусь', player: 'Эля', color: countryColors.belarus },
+            'belgium': { name: 'Бельгия', player: 'не занято', color: countryColors.belgium },
+            'bulgaria': { name: 'Болгария', player: 'Костя', color: countryColors.bulgaria },
+            'croatia': { name: 'Хорватия', player: 'Вика Дру', color: countryColors.croatia },
+            'czechia': { name: 'Чехия', player: 'не занято', color: countryColors.czechia },
+            'denmark': { name: 'Дания', player: 'не занято', color: countryColors.denmark },
+            'estonia': { name: 'Эстония', player: 'не занято', color: countryColors.estonia },
+            'finland': { name: 'Финляндия', player: 'Лёша', color: countryColors.finland },
+            'france': { name: 'Франция', player: 'Полина', color: countryColors.france },
+            'germany': { name: 'Германия', player: 'Никита И.', color: countryColors.germany },
+            'greece': { name: 'Греция', player: 'Милана', color: countryColors.greece },
+            'hungary': { name: 'Венгрия', player: 'не занято', color: countryColors.hungary },
+            'iceland': { name: 'Исландия', player: 'не занято', color: countryColors.iceland },
+            'italy': { name: 'Италия', player: 'Эвелина', color: countryColors.italy },
+            'lithuania': { name: 'Литва', player: 'не занято', color: countryColors.lithuania },
+            'moldova': { name: 'Молдавия', player: 'не занято', color: countryColors.moldova },
+            'montenegro': { name: 'Черногория', player: 'Кира', color: countryColors.montenegro },
+            'netherlands': { name: 'Нидерланды', player: 'не занято', color: countryColors.netherlands },
+            'north_macedonia': { name: 'Северная Македония', player: 'не занято', color: countryColors.north_macedonia },
+            'norway': { name: 'Норвегия', player: 'Вероника', color: countryColors.norway },
+            'poland': { name: 'Польша', player: 'Даник', color: countryColors.poland },
+            'portugal': { name: 'Португалия', player: 'не занято', color: countryColors.portugal },
+            'albania': { name: 'Албания', player: 'не занято', color: countryColors.albania },
+            'romania': { name: 'Румыния', player: 'не занято', color: countryColors.romania },
+            'switzerland': { name: 'Швейцария', player: 'не занято', color: countryColors.switzerland },
+            'ukraine': { name: 'Украина', player: 'не занято', color: countryColors.ukraine }
+        };
 
         // Исправленное расположение стран - Финляндия и Прибалтика подняты на 5 клеток вверх
         const countryPixels = {
@@ -31,7 +739,37 @@
             'latvia': generateRectangle(28, 9, 3, 2),      // было (28, 14, 3, 2) - ИСПРАВЛЕНО!
             'lithuania': generateRectangle(28, 11, 3, 2),  // было (28, 16, 3, 2)
             
-            // ... (остальные страны без изменений) ...
+            // Западная Европа (осталась на месте)
+            'france': generateRectangle(20, 16, 5, 4),
+            'belgium': generateRectangle(22, 15, 2, 2),
+            'netherlands': generateRectangle(22, 13, 2, 2),
+            'germany': generateRectangle(23, 14, 5, 4),
+            
+            // Центральная Европа (осталась на месте)
+            'switzerland': generateRectangle(22, 18, 2, 2),
+            'austria': generateRectangle(24, 17, 3, 3),
+            'czechia': generateRectangle(24, 15, 3, 2),
+            'poland': generateRectangle(26, 14, 4, 4),
+            
+            // Восточная Европа (осталась на месте)
+            'belarus': generateRectangle(29, 14, 4, 3),
+            'ukraine': generateRectangle(29, 17, 6, 4),
+            
+            // Южная Европа (осталась на месте)
+            'portugal': generateRectangle(17, 19, 2, 3),
+            'spain': generateRectangle(19, 19, 4, 4),
+            'italy': generateRectangle(24, 21, 3, 5),
+            
+            // Балканы (осталась на месте)
+            'hungary': generateRectangle(26, 18, 3, 2),
+            'romania': generateRectangle(28, 19, 3, 3),
+            'bulgaria': generateRectangle(29, 22, 3, 2),
+            'greece': generateRectangle(28, 24, 4, 3),
+            'croatia': generateRectangle(25, 19, 3, 2),
+            'albania': generateRectangle(26, 22, 2, 2),
+            'montenegro': generateRectangle(25, 21, 2, 2),
+            'north_macedonia': generateRectangle(27, 22, 2, 2),
+            'moldova': generateRectangle(30, 19, 2, 2)
         };
 
         // Игровая система
@@ -46,6 +784,298 @@
                 unit: null
             }
         };
+
+        // Функции для работы с радиальным меню
+        function createRadialMenu(unit, x, y) {
+            const radialMenu = document.getElementById('radial-menu');
+            radialMenu.innerHTML = '<div class="radial-menu-center">⚙️</div>';
+            
+            // Позиционируем меню
+            const pixelMap = document.getElementById('pixel-map');
+            const rect = pixelMap.getBoundingClientRect();
+            
+            const pixelLeft = x * 25;
+            const pixelTop = y * 25;
+            const centerOffset = (25 - 20) / 2;
+            
+            radialMenu.style.left = (pixelLeft + centerOffset - 30) + 'px';
+            radialMenu.style.top = (pixelTop + centerOffset - 30) + 'px';
+            
+            // Создаем элементы меню
+            const menuItems = [
+                { icon: '🚀', action: 'move', tooltip: 'Переместить' },
+                { icon: '🗑️', action: 'delete', tooltip: 'Удалить' },
+                { icon: '📊', action: 'info', tooltip: 'Информация' },
+                { icon: '⚔️', action: 'attack', tooltip: 'Атаковать' },
+                { icon: '🔄', action: 'split', tooltip: 'Разделить' },
+                { icon: '📈', action: 'upgrade', tooltip: 'Улучшить' }
+            ];
+            
+            const radius = 80; // Радиус меню
+            const angleStep = (2 * Math.PI) / menuItems.length;
+            
+            menuItems.forEach((item, index) => {
+                const angle = index * angleStep;
+                const itemX = Math.cos(angle) * radius;
+                const itemY = Math.sin(angle) * radius;
+                
+                const menuItem = document.createElement('div');
+                menuItem.className = 'radial-menu-item';
+                menuItem.innerHTML = item.icon;
+                menuItem.style.left = (30 + itemX) + 'px';
+                menuItem.style.top = (30 + itemY) + 'px';
+                
+                // Добавляем подсказку
+                const tooltip = document.createElement('div');
+                tooltip.className = 'menu-tooltip';
+                tooltip.textContent = item.tooltip;
+                tooltip.style.top = '-30px';
+                tooltip.style.left = '50%';
+                tooltip.style.transform = 'translateX(-50%)';
+                menuItem.appendChild(tooltip);
+                
+                // Обработчик клика
+                menuItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleMenuAction(item.action, unit);
+                });
+                
+                radialMenu.appendChild(menuItem);
+            });
+            
+            // Активируем меню
+            radialMenu.classList.add('active');
+            gameState.radialMenu.active = true;
+            gameState.radialMenu.unit = unit;
+            
+            // Закрытие меню при клике вне его
+            setTimeout(() => {
+                document.addEventListener('click', closeRadialMenu);
+            }, 10);
+        }
+
+        function closeRadialMenu() {
+            const radialMenu = document.getElementById('radial-menu');
+            radialMenu.classList.remove('active');
+            gameState.radialMenu.active = false;
+            gameState.radialMenu.unit = null;
+            document.removeEventListener('click', closeRadialMenu);
+        }
+
+        function handleMenuAction(action, unit) {
+            console.log(`Выбрано действие: ${action} для армии ${unit.id}`);
+            
+            switch (action) {
+                case 'move':
+                    startDragMode(unit);
+                    break;
+                case 'delete':
+                    if (confirm(`Удалить армию из ${unit.size} солдат?`)) {
+                        deleteUnit(unit);
+                    }
+                    break;
+                case 'info':
+                    showUnitInfo(unit);
+                    break;
+                case 'attack':
+                    alert(`Армия из ${unit.size} солдат готова к атаке!`);
+                    break;
+                case 'split':
+                    splitUnit(unit);
+                    break;
+                case 'upgrade':
+                    upgradeUnit(unit);
+                    break;
+            }
+            
+            closeRadialMenu();
+        }
+
+        function startDragMode(unit) {
+            if (unit.isMoving) {
+                alert('Армия уже в движении!');
+                return;
+            }
+            
+            gameState.selectedUnit = unit;
+            createGhostUnit(unit);
+            
+            const unitElement = document.getElementById(unit.id);
+            if (unitElement) {
+                unitElement.classList.add('dragging');
+            }
+            
+            // Включаем режим перетаскивания
+            document.addEventListener('mousemove', dragUnit);
+            document.addEventListener('mouseup', endDragUnit);
+            
+            alert('Перетащите армию в нужное место на карте');
+        }
+
+        function dragUnit(e) {
+            if (!gameState.ghostUnit || !gameState.selectedUnit) return;
+            
+            const pixelMap = document.getElementById('pixel-map');
+            const rect = pixelMap.getBoundingClientRect();
+            
+            const x = Math.floor((e.clientX - rect.left) / 25);
+            const y = Math.floor((e.clientY - rect.top) / 25);
+            
+            if (x >= 0 && x < 50 && y >= 0 && y < 35) {
+                updateGhostPosition(x, y);
+                showMovementPath(gameState.selectedUnit.position, {x, y});
+            }
+        }
+
+        function endDragUnit(e) {
+            if (gameState.ghostUnit && gameState.selectedUnit) {
+                const pixelMap = document.getElementById('pixel-map');
+                const rect = pixelMap.getBoundingClientRect();
+                
+                const x = Math.floor((e.clientX - rect.left) / 25);
+                const y = Math.floor((e.clientY - rect.top) / 25);
+                
+                if (x >= 0 && x < 50 && y >= 0 && y < 35) {
+                    if (x !== gameState.selectedUnit.position.x || y !== gameState.selectedUnit.position.y) {
+                        moveUnit(gameState.selectedUnit, {x, y});
+                    }
+                }
+            }
+            
+            cleanupDrag();
+            document.removeEventListener('mousemove', dragUnit);
+            document.removeEventListener('mouseup', endDragUnit);
+        }
+
+        function deleteUnit(unit) {
+            // Удаляем из массива
+            gameState.units = gameState.units.filter(u => u.id !== unit.id);
+            
+            // Удаляем из DOM
+            const unitElement = document.getElementById(unit.id);
+            if (unitElement) {
+                unitElement.remove();
+            }
+            
+            // Удаляем из базы данных
+            if (database) {
+                database.ref('units/' + unit.id).remove();
+            } else {
+                localStorage.removeItem('game_units/' + unit.id);
+            }
+            
+            updateGameStats();
+            document.getElementById('unit-info').innerHTML = '<div style="text-align: center; opacity: 0.7;">Армия удалена</div>';
+        }
+
+        function showUnitInfo(unit) {
+            const unitInfo = document.getElementById('unit-info');
+            const remainingTime = unit.isMoving ? 
+                formatDuration(Math.round((unit.moveDuration - (Date.now() - unit.moveStartTime)) / 1000)) : 
+                'На месте';
+                
+            unitInfo.innerHTML = `
+                <strong>Армия солдат</strong>
+                <div class="detail-item">
+                    <span class="detail-label">ID:</span>
+                    <span class="detail-value">${unit.id.substring(0, 8)}...</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Размер:</span>
+                    <span class="detail-value">${unit.size} солдат</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Позиция:</span>
+                    <span class="detail-value">${unit.position.x},${unit.position.y}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Статус:</span>
+                    <span class="detail-value">${unit.isMoving ? `В движении (${remainingTime})` : 'На месте'}</span>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                    💡 Используйте радиальное меню для управления
+                </div>
+            `;
+        }
+
+        function splitUnit(unit) {
+            if (unit.size < 200) {
+                alert('Армия слишком мала для разделения (минимум 200 солдат)');
+                return;
+            }
+            
+            const halfSize = Math.floor(unit.size / 2);
+            unit.size = halfSize;
+            
+            // Создаем новую армию
+            const newUnit = {
+                id: 'unit_' + Date.now(),
+                type: 'soldier',
+                owner: gameState.playerId,
+                position: { ...unit.position },
+                size: halfSize,
+                isMoving: false
+            };
+            
+            gameState.units.push(newUnit);
+            renderUnit(newUnit);
+            setupUnitClick(newUnit);
+            
+            // Обновляем оригинальную армию
+            const unitElement = document.getElementById(unit.id);
+            if (unitElement) {
+                unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
+            }
+            
+            // Сохраняем в БД
+            saveToDatabase('units/' + unit.id, unit);
+            saveToDatabase('units/' + newUnit.id, newUnit);
+            
+            updateGameStats();
+            alert(`Армия разделена на две по ${halfSize} солдат`);
+        }
+
+        function upgradeUnit(unit) {
+            const upgradeCost = Math.floor(unit.size * 1.5);
+            const newSize = Math.floor(unit.size * 1.2);
+            
+            if (confirm(`Улучшить армию до ${newSize} солдат? Стоимость: ${upgradeCost} ресурсов`)) {
+                unit.size = newSize;
+                
+                const unitElement = document.getElementById(unit.id);
+                if (unitElement) {
+                    unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
+                    unitElement.style.background = '#9b59b6'; // Изменяем цвет при улучшении
+                }
+                
+                saveToDatabase('units/' + unit.id, unit);
+                updateGameStats();
+                alert(`Армия улучшена до ${newSize} солдат!`);
+            }
+        }
+
+        // Функции для работы с базой данных
+        function saveToDatabase(path, data) {
+            if (database) {
+                database.ref(path).set(data)
+                    .then(() => console.log('✅ Данные сохранены:', path))
+                    .catch(error => console.error('❌ Ошибка сохранения:', error));
+            } else {
+                localStorage.setItem('game_' + path, JSON.stringify(data));
+            }
+        }
+
+        function loadFromDatabase(path, callback) {
+            if (database) {
+                database.ref(path).on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    callback(data);
+                });
+            } else {
+                const data = JSON.parse(localStorage.getItem('game_' + path) || 'null');
+                callback(data);
+            }
+        }
 
         // Создание армии с сохранением в БД - ИСПРАВЛЕНА ПОЗИЦИЯ!
         function createArmy(size) {
@@ -69,28 +1099,222 @@
             console.log(`✅ Создана армия в Латвии на позиции ${unit.position.x},${unit.position.y}`);
         }
 
-        // ... (остальные функции без изменений) ...
+        function createCustomArmy() {
+            const size = parseInt(document.getElementById('army-size').value) || 100;
+            createArmy(size);
+        }
+
+        // Настройка клика по юниту
+        function setupUnitClick(unit) {
+            const unitElement = document.getElementById(unit.id);
+            if (unitElement) {
+                unitElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!gameState.radialMenu.active) {
+                        const x = unit.position.x;
+                        const y = unit.position.y;
+                        createRadialMenu(unit, x, y);
+                    }
+                });
+            }
+        }
 
         // Функция для проверки где находится юнит
         function debugUnitPosition(unit) {
             const country = findCountryForPixel(unit.position.x, unit.position.y);
             console.log(`🔍 Армия ${unit.id} на ${unit.position.x},${unit.position.y} - страна: ${country || 'МОРЕ/НЕТ'}`);
-            
-            // Подсветим пиксель для отладки
-            const pixel = document.querySelector(`.pixel[data-x="${unit.position.x}"][data-y="${unit.position.y}"]`);
-            if (pixel) {
-                pixel.style.boxShadow = '0 0 10px gold';
-                setTimeout(() => {
-                    if (pixel.classList.contains('latvia')) {
-                        pixel.style.boxShadow = '0 0 10px rgba(255,255,255,0.5)';
+        }
+
+        // Функции для работы с картой
+        function generateRectangle(startX, startY, width, height) {
+            const pixels = [];
+            for (let x = startX; x < startX + width; x++) {
+                for (let y = startY; y < startY + height; y++) {
+                    pixels.push([x, y]);
+                }
+            }
+            return pixels;
+        }
+
+        function createPixelMap() {
+            const pixelMap = document.getElementById('pixel-map');
+            pixelMap.innerHTML = '';
+
+            for (let y = 0; y < 35; y++) {
+                for (let x = 0; x < 50; x++) {
+                    const pixel = document.createElement('div');
+                    pixel.className = 'pixel';
+                    pixel.dataset.x = x;
+                    pixel.dataset.y = y;
+                    
+                    const country = findCountryForPixel(x, y);
+                    if (country && countriesData[country]) {
+                        pixel.dataset.country = country;
+                        pixel.style.background = countriesData[country].color;
+                        
+                        if (country === 'latvia') {
+                            pixel.classList.add('latvia');
+                        }
+                        
+                        pixel.textContent = getCountryCode(country);
                     } else {
-                        pixel.style.boxShadow = '';
+                        pixel.classList.add('empty');
                     }
-                }, 2000);
+                    
+                    pixel.addEventListener('mouseenter', handlePixelHover);
+                    pixel.addEventListener('mouseleave', handlePixelLeave);
+                    
+                    pixelMap.appendChild(pixel);
+                }
+            }
+            
+            addCountryBorders();
+            updateStatistics();
+            createCountryList();
+            updateGameStats();
+        }
+
+        function findCountryForPixel(x, y) {
+            for (const [country, pixels] of Object.entries(countryPixels)) {
+                if (pixels.some(([px, py]) => px === x && py === y)) {
+                    return country;
+                }
+            }
+            return null;
+        }
+
+        function getCountryCode(countryId) {
+            const codes = {
+                'latvia': 'LV', 'lithuania': 'LT', 'estonia': 'EE',
+                'finland': 'FI', 'norway': 'NO', 'denmark': 'DK', 'iceland': 'IS',
+                'france': 'FR', 'germany': 'DE', 'italy': 'IT', 'spain': 'ES',
+                'poland': 'PL', 'belarus': 'BY', 'ukraine': 'UA', 'czechia': 'CZ',
+                'austria': 'AT', 'hungary': 'HU', 'romania': 'RO', 'bulgaria': 'BG',
+                'greece': 'GR', 'croatia': 'HR', 'albania': 'AL',
+                'montenegro': 'ME', 'north_macedonia': 'MK',
+                'belgium': 'BE', 'netherlands': 'NL', 'portugal': 'PT', 
+                'switzerland': 'CH'
+            };
+            return codes[countryId] || countryId.substring(0, 2).toUpperCase();
+        }
+
+        function addCountryBorders() {
+            const pixels = document.querySelectorAll('.pixel:not(.empty)');
+            
+            pixels.forEach(pixel => {
+                const x = parseInt(pixel.dataset.x);
+                const y = parseInt(pixel.dataset.y);
+                const country = pixel.dataset.country;
+
+                const neighbors = [
+                    {dx: 0, dy: -1, border: 'top'},
+                    {dx: 1, dy: 0, border: 'right'},
+                    {dx: 0, dy: 1, border: 'bottom'},
+                    {dx: -1, dy: 0, border: 'left'}
+                ];
+
+                neighbors.forEach(neighbor => {
+                    const nx = x + neighbor.dx;
+                    const ny = y + neighbor.dy;
+                    
+                    if (isValidCoordinate(nx, ny)) {
+                        const neighborCountry = findCountryForPixel(nx, ny);
+                        if (neighborCountry !== country) {
+                            const border = document.createElement('div');
+                            border.className = `country-border border-${neighbor.border}`;
+                            pixel.appendChild(border);
+                        }
+                    } else {
+                        const border = document.createElement('div');
+                        border.className = `country-border border-${neighbor.border}`;
+                        pixel.appendChild(border);
+                    }
+                });
+            });
+        }
+
+        function isValidCoordinate(x, y) {
+            return x >= 0 && x < 50 && y >= 0 && y < 35;
+        }
+
+        function updateStatistics() {
+            const total = Object.keys(countriesData).length;
+            const occupied = Object.values(countriesData).filter(c => c.player !== 'не занято').length;
+            const available = Object.values(countriesData).filter(c => c.player === 'не занято').length - 1;
+            
+            // Обновляем статистику если есть элементы
+            const totalElement = document.getElementById('total-countries');
+            const occupiedElement = document.getElementById('occupied-countries');
+            const availableElement = document.getElementById('available-countries');
+            
+            if (totalElement) totalElement.textContent = total;
+            if (occupiedElement) occupiedElement.textContent = occupied;
+            if (availableElement) availableElement.textContent = available;
+        }
+
+        function createCountryList() {
+            const countryList = document.getElementById('country-list');
+            if (!countryList) return;
+            
+            countryList.innerHTML = '';
+
+            Object.entries(countriesData).forEach(([id, data]) => {
+                const item = document.createElement('div');
+                item.className = 'country-item';
+                item.style.borderLeftColor = data.color;
+                item.innerHTML = `
+                    <div>
+                        <strong>${data.name}</strong>
+                        <div class="player-name">${data.player}</div>
+                    </div>
+                    <div style="font-size: 0.8em; opacity: 0.7;">${getCountryCode(id)}</div>
+                `;
+                countryList.appendChild(item);
+            });
+        }
+
+        function handlePixelHover(event) {
+            const pixel = event.target;
+            const countryId = pixel.dataset.country;
+            
+            if (countryId && countriesData[countryId]) {
+                const country = countriesData[countryId];
+                const detailsElement = document.getElementById('region-details');
+                
+                if (detailsElement) {
+                    detailsElement.innerHTML = `
+                        <div class="country-name">${country.name}</div>
+                        <div class="coordinates">Игрок: ${country.player}</div>
+                        <div class="detail-item">
+                            <span class="detail-label">Статус:</span>
+                            <span class="detail-value">${
+                                countryId === 'latvia' ? 'Ваша страна' : 
+                                country.player !== 'не занято' ? 'Занята' : 'Свободна'
+                            }</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Код:</span>
+                            <span class="detail-value">${getCountryCode(countryId)}</span>
+                        </div>
+                    `;
+                }
             }
         }
 
-        // Обновим renderUnit для отладки
+        function handlePixelLeave(event) {
+            const detailsElement = document.getElementById('region-details');
+            if (detailsElement) {
+                detailsElement.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 3em; margin-bottom: 10px;">🧱</div>
+                        <h3>Выберите страну</h3>
+                        <p>Наведите курсор на любую страну на карте</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Функции для работы с юнитами
         function renderUnit(unit) {
             let unitElement = document.getElementById(unit.id);
             if (!unitElement) {
@@ -115,8 +1339,264 @@
             debugUnitPosition(unit);
         }
 
-        // ... (остальной код без изменений) ...
+        function createGhostUnit(unit) {
+            const pixelMap = document.getElementById('pixel-map');
+            const ghost = document.createElement('div');
+            
+            ghost.className = `unit soldier ghost`;
+            
+            // Точное позиционирование
+            const pixelLeft = unit.position.x * 25;
+            const pixelTop = unit.position.y * 25;
+            const centerOffset = (25 - 20) / 2;
+            
+            ghost.style.left = (pixelLeft + centerOffset) + 'px';
+            ghost.style.top = (pixelTop + centerOffset) + 'px';
+            ghost.style.background = '#3498db';
+            ghost.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
+            
+            pixelMap.appendChild(ghost);
+            gameState.ghostUnit = ghost;
+        }
 
+        function updateGhostPosition(x, y) {
+            if (gameState.ghostUnit) {
+                const pixelLeft = x * 25;
+                const pixelTop = y * 25;
+                const centerOffset = (25 - 20) / 2;
+                
+                gameState.ghostUnit.style.left = (pixelLeft + centerOffset) + 'px';
+                gameState.ghostUnit.style.top = (pixelTop + centerOffset) + 'px';
+            }
+        }
+
+        function showMovementPath(start, end) {
+            document.querySelectorAll('.movement-path, .movement-time').forEach(el => el.remove());
+            
+            const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+            const isCountry = findCountryForPixel(end.x, end.y) !== null;
+            const speedMultiplier = isCountry ? 1.0 : 0.5;
+            const duration = calculateMoveDuration(distance, speedMultiplier);
+            
+            const timeElement = document.createElement('div');
+            timeElement.className = 'movement-time';
+            
+            const pixelLeft = end.x * 25;
+            const pixelTop = end.y * 25;
+            timeElement.style.left = (pixelLeft + 5) + 'px';
+            timeElement.style.top = (pixelTop - 15) + 'px';
+            timeElement.textContent = formatDuration(duration);
+            
+            document.getElementById('pixel-map').appendChild(timeElement);
+        }
+
+        function calculateMoveDuration(distance, speedMultiplier) {
+            const baseSecondsPerPixel = 2;
+            return Math.round(distance * baseSecondsPerPixel * speedMultiplier);
+        }
+
+        function formatDuration(seconds) {
+            if (seconds < 60) {
+                return `${seconds}сек`;
+            } else {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes}м ${remainingSeconds}сек`;
+            }
+        }
+
+        function moveUnit(unit, targetPos) {
+            console.log('moveUnit ВХОД:', {targetPos});
+            console.log('Текущая позиция unit:', unit.position);
+            
+            // Проверяем, что армия не пытается переместиться на свою текущую позицию
+            if (unit.position.x === targetPos.x && unit.position.y === targetPos.y) {
+                console.log('ОШИБКА: Целевая позиция равна текущей');
+                return;
+            }
+            
+            const distance = Math.sqrt(Math.pow(targetPos.x - unit.position.x, 2) + Math.pow(targetPos.y - unit.position.y, 2));
+            const isCountry = findCountryForPixel(targetPos.x, targetPos.y) !== null;
+            const speedMultiplier = isCountry ? 1.0 : 0.5;
+            const duration = calculateMoveDuration(distance, speedMultiplier);
+            
+            unit.isMoving = true;
+            unit.targetPosition = targetPos;
+            unit.moveStartTime = Date.now();
+            unit.moveDuration = duration * 1000;
+            
+            console.log(`Армия ${unit.id} начинает движение из ${unit.position.x},${unit.position.y} в ${targetPos.x},${targetPos.y} за ${duration}сек`);
+            
+            // Сохраняем в БД
+            saveToDatabase('units/' + unit.id, unit);
+            
+            const unitElement = document.getElementById(unit.id);
+            if (unitElement) {
+                unitElement.classList.add('moving');
+            }
+            
+            startMovementAnimation(unit);
+        }
+
+        function startMovementAnimation(unit) {
+            const unitElement = document.getElementById(unit.id);
+            if (!unitElement) return;
+            
+            const startTime = Date.now();
+            const startPos = {...unit.position};
+            const targetPos = unit.targetPosition;
+            const centerOffset = (25 - 20) / 2;
+            
+            function animateMove() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / unit.moveDuration, 1);
+                
+                if (progress < 1) {
+                    const currentX = startPos.x + (targetPos.x - startPos.x) * progress;
+                    const currentY = startPos.y + (targetPos.y - startPos.y) * progress;
+                    
+                    const pixelLeft = currentX * 25;
+                    const pixelTop = currentY * 25;
+                    
+                    unitElement.style.left = (pixelLeft + centerOffset) + 'px';
+                    unitElement.style.top = (pixelTop + centerOffset) + 'px';
+                    
+                    requestAnimationFrame(animateMove);
+                } else {
+                    // Движение завершено
+                    unit.isMoving = false;
+                    unit.position = targetPos;
+                    unit.targetPosition = null;
+                    
+                    if (unitElement) {
+                        unitElement.classList.remove('moving');
+                        const finalPixelLeft = targetPos.x * 25;
+                        const finalPixelTop = targetPos.y * 25;
+                        unitElement.style.left = (finalPixelLeft + centerOffset) + 'px';
+                        unitElement.style.top = (finalPixelTop + centerOffset) + 'px';
+                    }
+                    
+                    checkForCapture(unit);
+                    updateGameStats();
+                    saveToDatabase('units/' + unit.id, unit);
+                    
+                    console.log(`✅ Армия ${unit.id} прибыла в ${targetPos.x},${targetPos.y}`);
+                }
+            }
+            
+            animateMove();
+        }
+
+        function checkForCapture(unit) {
+            const country = findCountryForPixel(unit.position.x, unit.position.y);
+            console.log(`Проверка захвата: армия на ${unit.position.x},${unit.position.y}, страна: ${country}`);
+            
+            if (country && country !== 'latvia') {
+                const territoryKey = `${unit.position.x},${unit.position.y}`;
+                gameState.territories[territoryKey] = {
+                    originalCountry: country,
+                    capturedBy: unit.owner,
+                    unitId: unit.id,
+                    timestamp: Date.now()
+                };
+
+                const pixel = document.querySelector(`.pixel[data-x="${unit.position.x}"][data-y="${unit.position.y}"]`);
+                if (pixel) {
+                    pixel.classList.add('captured-territory');
+                    pixel.title = `Захвачено Латвией\nАрмия: ${unit.size} солдат`;
+                    console.log(`✅ Захвачена территория ${territoryKey} у ${country}`);
+                }
+
+                updateGameStats();
+                saveToDatabase('territories/' + territoryKey, gameState.territories[territoryKey]);
+            }
+        }
+
+        function cleanupDrag() {
+            if (gameState.ghostUnit) {
+                gameState.ghostUnit.remove();
+                gameState.ghostUnit = null;
+            }
+            
+            document.querySelectorAll('.movement-path, .movement-time').forEach(el => el.remove());
+            
+            if (gameState.selectedUnit) {
+                const unitElement = document.getElementById(gameState.selectedUnit.id);
+                if (unitElement) {
+                    unitElement.classList.remove('dragging');
+                }
+                gameState.selectedUnit = null;
+            }
+        }
+
+        function updateGameStats() {
+            const playerUnits = gameState.units.filter(u => u.owner === gameState.playerId).length;
+            const captured = Object.keys(gameState.territories).length;
+            const totalSoldiers = gameState.units
+                .filter(u => u.owner === gameState.playerId)
+                .reduce((sum, unit) => sum + unit.size, 0);
+            const movingUnits = gameState.units.filter(u => u.isMoving).length;
+            
+            document.getElementById('total-units').textContent = playerUnits;
+            document.getElementById('captured-territories').textContent = captured;
+            document.getElementById('total-soldiers').textContent = totalSoldiers;
+            document.getElementById('moving-units').textContent = movingUnits;
+        }
+
+        // Загрузка данных из БД при старте
+        function loadGameData() {
+            loadFromDatabase('units', (units) => {
+                if (units) {
+                    gameState.units = Object.values(units);
+                    gameState.units.forEach(unit => {
+                        renderUnit(unit);
+                        setupUnitClick(unit);
+                    });
+                    updateGameStats();
+                }
+            });
+
+            loadFromDatabase('territories', (territories) => {
+                if (territories) {
+                    gameState.territories = territories;
+                    updateCapturedTerritories();
+                }
+            });
+        }
+
+        function updateCapturedTerritories() {
+            Object.keys(gameState.territories).forEach(coord => {
+                const [x, y] = coord.split(',').map(Number);
+                const pixel = document.querySelector(`.pixel[data-x="${x}"][data-y="${y}"]`);
+                if (pixel) {
+                    pixel.classList.add('captured-territory');
+                }
+            });
+            updateGameStats();
+        }
+
+        // Инициализация
+        function initialize() {
+            createPixelMap();
+            loadGameData();
+            
+            // Создаем несколько начальных армий
+            setTimeout(() => {
+                if (gameState.units.length === 0) {
+                    createArmy(500);
+                    createArmy(1000);
+                }
+            }, 1000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initialize);
+
+        // Добавляем обработчик для закрытия меню при клике на карту
+        document.getElementById('pixel-map').addEventListener('click', (e) => {
+            if (gameState.radialMenu.active && !e.target.closest('.radial-menu')) {
+                closeRadialMenu();
+            }
+        });
     </script>
 </body>
 </html>

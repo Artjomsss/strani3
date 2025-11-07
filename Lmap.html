@@ -726,41 +726,41 @@
             'ukraine': { name: 'Украина', player: 'не занято', color: countryColors.ukraine }
         };
 
-        // Исправленное расположение стран
+        // ИСПРАВЛЕННОЕ расположение стран - Финляндия и Прибалтика подняты на 5 клеток вверх
         const countryPixels = {
-            // Скандинавия
-            'norway': generateRectangle(20, 5, 3, 8),
-            'finland': generateRectangle(27, 5, 4, 6),
-            'denmark': generateRectangle(22, 10, 3, 2),
-            'iceland': generateRectangle(15, 5, 3, 3),
+            // Скандинавия (поднята вверх)
+            'norway': generateRectangle(20, 0, 3, 8),      // было (20, 5, 3, 8)
+            'finland': generateRectangle(27, 0, 4, 6),     // было (27, 5, 4, 6)
+            'denmark': generateRectangle(22, 5, 3, 2),     // было (22, 10, 3, 2)
+            'iceland': generateRectangle(15, 0, 3, 3),     // было (15, 5, 3, 3)
             
-            // Балтийские страны
-            'estonia': generateRectangle(28, 12, 3, 2),
-            'latvia': generateRectangle(28, 14, 3, 2),
-            'lithuania': generateRectangle(28, 16, 3, 2),
+            // Балтийские страны (подняты вверх)
+            'estonia': generateRectangle(28, 7, 3, 2),     // было (28, 12, 3, 2)
+            'latvia': generateRectangle(28, 9, 3, 2),      // было (28, 14, 3, 2)
+            'lithuania': generateRectangle(28, 11, 3, 2),  // было (28, 16, 3, 2)
             
-            // Западная Европа
+            // Западная Европа (осталась на месте)
             'france': generateRectangle(20, 16, 5, 4),
             'belgium': generateRectangle(22, 15, 2, 2),
             'netherlands': generateRectangle(22, 13, 2, 2),
             'germany': generateRectangle(23, 14, 5, 4),
             
-            // Центральная Европа
+            // Центральная Европа (осталась на месте)
             'switzerland': generateRectangle(22, 18, 2, 2),
             'austria': generateRectangle(24, 17, 3, 3),
             'czechia': generateRectangle(24, 15, 3, 2),
             'poland': generateRectangle(26, 14, 4, 4),
             
-            // Восточная Европа
+            // Восточная Европа (осталась на месте)
             'belarus': generateRectangle(29, 14, 4, 3),
             'ukraine': generateRectangle(29, 17, 6, 4),
             
-            // Южная Европа
+            // Южная Европа (осталась на месте)
             'portugal': generateRectangle(17, 19, 2, 3),
             'spain': generateRectangle(19, 19, 4, 4),
             'italy': generateRectangle(24, 21, 3, 5),
             
-            // Балканы
+            // Балканы (осталась на месте)
             'hungary': generateRectangle(26, 18, 3, 2),
             'romania': generateRectangle(28, 19, 3, 3),
             'bulgaria': generateRectangle(29, 22, 3, 2),
@@ -1083,7 +1083,7 @@
                 id: 'unit_' + Date.now(),
                 type: 'soldier',
                 owner: gameState.playerId,
-                position: { x: 28, y: 14 }, // Начальная позиция в Латвии
+                position: { x: 28, y: 9 }, // Новая позиция в Латвии (поднята на 5 клеток)
                 size: size,
                 isMoving: false
             };

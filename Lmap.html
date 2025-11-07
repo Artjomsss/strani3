@@ -729,15 +729,15 @@
         // Исправленное расположение стран - Финляндия и Прибалтика подняты на 5 клеток вверх
         const countryPixels = {
             // Скандинавия (поднята вверх)
-            'norway': generateRectangle(20, 0, 3, 8),      // было (20, 5, 3, 8)
-            'finland': generateRectangle(27, 0, 4, 6),     // было (27, 5, 4, 6)
-            'denmark': generateRectangle(22, 5, 3, 2),     // было (22, 10, 3, 2)
-            'iceland': generateRectangle(15, 0, 3, 3),     // было (15, 5, 3, 3)
+            'norway': generateRectangle(20, 0, 3, 8),
+            'finland': generateRectangle(27, 0, 4, 6),
+            'denmark': generateRectangle(22, 5, 3, 2),
+            'iceland': generateRectangle(15, 0, 3, 3),
             
             // Балтийские страны (подняты вверх)
-            'estonia': generateRectangle(28, 7, 3, 2),     // было (28, 12, 3, 2)
-            'latvia': generateRectangle(28, 9, 3, 2),      // было (28, 14, 3, 2) - ИСПРАВЛЕНО!
-            'lithuania': generateRectangle(28, 11, 3, 2),  // было (28, 16, 3, 2)
+            'estonia': generateRectangle(28, 7, 3, 2),
+            'latvia': generateRectangle(28, 9, 3, 2),
+            'lithuania': generateRectangle(28, 11, 3, 2),
             
             // Западная Европа (осталась на месте)
             'france': generateRectangle(20, 16, 5, 4),
@@ -811,7 +811,7 @@
                 { icon: '📈', action: 'upgrade', tooltip: 'Улучшить' }
             ];
             
-            const radius = 80; // Радиус меню
+            const radius = 80;
             const angleStep = (2 * Math.PI) / menuItems.length;
             
             menuItems.forEach((item, index) => {
@@ -918,8 +918,11 @@
             const pixelMap = document.getElementById('pixel-map');
             const rect = pixelMap.getBoundingClientRect();
             
-            const x = Math.floor((e.clientX - rect.left) / 25);
-            const y = Math.floor((e.clientY - rect.top) / 25);
+            // ИСПРАВЛЕННЫЙ РАСЧЕТ КООРДИНАТ - учитываем паддинг карты
+            const x = Math.floor((e.clientX - rect.left - 20) / 25);
+            const y = Math.floor((e.clientY - rect.top - 20) / 25);
+            
+            console.log('Drag coordinates:', {x, y, clientX: e.clientX, clientY: e.clientY, rect});
             
             if (x >= 0 && x < 50 && y >= 0 && y < 35) {
                 updateGhostPosition(x, y);
@@ -932,8 +935,11 @@
                 const pixelMap = document.getElementById('pixel-map');
                 const rect = pixelMap.getBoundingClientRect();
                 
-                const x = Math.floor((e.clientX - rect.left) / 25);
-                const y = Math.floor((e.clientY - rect.top) / 25);
+                // ИСПРАВЛЕННЫЙ РАСЧЕТ КООРДИНАТ - учитываем паддинг карты
+                const x = Math.floor((e.clientX - rect.left - 20) / 25);
+                const y = Math.floor((e.clientY - rect.top - 20) / 25);
+                
+                console.log('Final coordinates:', {x, y});
                 
                 if (x >= 0 && x < 50 && y >= 0 && y < 35) {
                     if (x !== gameState.selectedUnit.position.x || y !== gameState.selectedUnit.position.y) {
@@ -948,16 +954,13 @@
         }
 
         function deleteUnit(unit) {
-            // Удаляем из массива
             gameState.units = gameState.units.filter(u => u.id !== unit.id);
             
-            // Удаляем из DOM
             const unitElement = document.getElementById(unit.id);
             if (unitElement) {
                 unitElement.remove();
             }
             
-            // Удаляем из базы данных
             if (database) {
                 database.ref('units/' + unit.id).remove();
             } else {
@@ -1007,7 +1010,6 @@
             const halfSize = Math.floor(unit.size / 2);
             unit.size = halfSize;
             
-            // Создаем новую армию
             const newUnit = {
                 id: 'unit_' + Date.now(),
                 type: 'soldier',
@@ -1021,13 +1023,11 @@
             renderUnit(newUnit);
             setupUnitClick(newUnit);
             
-            // Обновляем оригинальную армию
             const unitElement = document.getElementById(unit.id);
             if (unitElement) {
                 unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             }
             
-            // Сохраняем в БД
             saveToDatabase('units/' + unit.id, unit);
             saveToDatabase('units/' + newUnit.id, newUnit);
             
@@ -1045,7 +1045,7 @@
                 const unitElement = document.getElementById(unit.id);
                 if (unitElement) {
                     unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
-                    unitElement.style.background = '#9b59b6'; // Изменяем цвет при улучшении
+                    unitElement.style.background = '#9b59b6';
                 }
                 
                 saveToDatabase('units/' + unit.id, unit);
@@ -1077,13 +1077,13 @@
             }
         }
 
-        // Создание армии с сохранением в БД - ИСПРАВЛЕНА ПОЗИЦИЯ!
+        // Создание армии с сохранением в БД
         function createArmy(size) {
             const unit = {
                 id: 'unit_' + Date.now(),
                 type: 'soldier',
                 owner: gameState.playerId,
-                position: { x: 28, y: 9 }, // ИСПРАВЛЕНО! Было (28, 14) - теперь (28, 9)
+                position: { x: 28, y: 9 },
                 size: size,
                 isMoving: false
             };
@@ -1093,7 +1093,6 @@
             setupUnitClick(unit);
             updateGameStats();
             
-            // Сохраняем в БД
             saveToDatabase('units/' + unit.id, unit);
             
             console.log(`✅ Создана армия в Латвии на позиции ${unit.position.x},${unit.position.y}`);
@@ -1242,7 +1241,6 @@
             const occupied = Object.values(countriesData).filter(c => c.player !== 'не занято').length;
             const available = Object.values(countriesData).filter(c => c.player === 'не занято').length - 1;
             
-            // Обновляем статистику если есть элементы
             const totalElement = document.getElementById('total-countries');
             const occupiedElement = document.getElementById('occupied-countries');
             const availableElement = document.getElementById('available-countries');
@@ -1335,7 +1333,6 @@
             unitElement.style.background = '#3498db';
             unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             
-            // Отладочная информация
             debugUnitPosition(unit);
         }
 
@@ -1345,7 +1342,6 @@
             
             ghost.className = `unit soldier ghost`;
             
-            // Точное позиционирование
             const pixelLeft = unit.position.x * 25;
             const pixelTop = unit.position.y * 25;
             const centerOffset = (25 - 20) / 2;
@@ -1409,7 +1405,6 @@
             console.log('moveUnit ВХОД:', {targetPos});
             console.log('Текущая позиция unit:', unit.position);
             
-            // Проверяем, что армия не пытается переместиться на свою текущую позицию
             if (unit.position.x === targetPos.x && unit.position.y === targetPos.y) {
                 console.log('ОШИБКА: Целевая позиция равна текущей');
                 return;
@@ -1427,7 +1422,6 @@
             
             console.log(`Армия ${unit.id} начинает движение из ${unit.position.x},${unit.position.y} в ${targetPos.x},${targetPos.y} за ${duration}сек`);
             
-            // Сохраняем в БД
             saveToDatabase('units/' + unit.id, unit);
             
             const unitElement = document.getElementById(unit.id);
@@ -1463,7 +1457,6 @@
                     
                     requestAnimationFrame(animateMove);
                 } else {
-                    // Движение завершено
                     unit.isMoving = false;
                     unit.position = targetPos;
                     unit.targetPosition = null;
@@ -1580,7 +1573,6 @@
             createPixelMap();
             loadGameData();
             
-            // Создаем несколько начальных армий
             setTimeout(() => {
                 if (gameState.units.length === 0) {
                     createArmy(500);
@@ -1591,7 +1583,6 @@
 
         document.addEventListener('DOMContentLoaded', initialize);
 
-        // Добавляем обработчик для закрытия меню при клике на карту
         document.getElementById('pixel-map').addEventListener('click', (e) => {
             if (gameState.radialMenu.active && !e.target.closest('.radial-menu')) {
                 closeRadialMenu();

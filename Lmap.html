@@ -918,9 +918,9 @@
             const pixelMap = document.getElementById('pixel-map');
             const rect = pixelMap.getBoundingClientRect();
             
-            // ИСПРАВЛЕННЫЙ РАСЧЕТ КООРДИНАТ - учитываем паддинг карты
-            const x = Math.floor((e.clientX - rect.left - 20) / 25);
-            const y = Math.floor((e.clientY - rect.top - 20) / 25);
+            // ПРЯМОЙ РАСЧЕТ КООРДИНАТ БЕЗ УЧЕТА ПАДДИНГА
+            const x = Math.floor((e.clientX - rect.left) / 25);
+            const y = Math.floor((e.clientY - rect.top) / 25);
             
             console.log('Drag coordinates:', {x, y, clientX: e.clientX, clientY: e.clientY, rect});
             
@@ -935,9 +935,9 @@
                 const pixelMap = document.getElementById('pixel-map');
                 const rect = pixelMap.getBoundingClientRect();
                 
-                // ИСПРАВЛЕННЫЙ РАСЧЕТ КООРДИНАТ - учитываем паддинг карты
-                const x = Math.floor((e.clientX - rect.left - 20) / 25);
-                const y = Math.floor((e.clientY - rect.top - 20) / 25);
+                // ПРЯМОЙ РАСЧЕТ КООРДИНАТ БЕЗ УЧЕТА ПАДДИНГА
+                const x = Math.floor((e.clientX - rect.left) / 25);
+                const y = Math.floor((e.clientY - rect.top) / 25);
                 
                 console.log('Final coordinates:', {x, y});
                 

@@ -780,105 +780,30 @@
             }
         };
 
-        // Функция для точного определения координат
+        // ПРОСТАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ КООРДИНАТ ПИКСЕЛЯ
+        function getPixelCoordinates(x, y) {
+            const pixelMap = document.getElementById('pixel-map');
+            const rect = pixelMap.getBoundingClientRect();
+            
+            // Простой расчет - каждый пиксель 25x25, отступы 20px
+            const pixelLeft = x * 25 + 20;
+            const pixelTop = y * 25 + 20;
+            
+            return { left: pixelLeft, top: pixelTop };
+        }
+
+        // Функция для точного определения координат клика
         function getExactCoordinates(e) {
             const pixelMap = document.getElementById('pixel-map');
             const rect = pixelMap.getBoundingClientRect();
             
-            // Получаем все стили контейнера
-            const containerStyles = window.getComputedStyle(pixelMap);
-            const paddingLeft = parseFloat(containerStyles.paddingLeft);
-            const paddingTop = parseFloat(containerStyles.paddingTop);
-            const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-            const borderTop = parseFloat(containerStyles.borderTopWidth);
-            
-            // Рассчитываем точные координаты с учетом ВСЕХ отступов
-            const totalOffsetX = paddingLeft + borderLeft;
-            const totalOffsetY = paddingTop + borderTop;
-            
-            const relativeX = e.clientX - rect.left - totalOffsetX;
-            const relativeY = e.clientY - rect.top - totalOffsetY;
+            const relativeX = e.clientX - rect.left - 20; // 20px padding
+            const relativeY = e.clientY - rect.top - 20;  // 20px padding
             
             const x = Math.floor(relativeX / 25);
             const y = Math.floor(relativeY / 25);
             
-            console.log('🔍 ТОЧНЫЕ КООРДИНАТЫ:', {
-                clientX: e.clientX,
-                clientY: e.clientY,
-                rectLeft: rect.left,
-                rectTop: rect.top,
-                paddingLeft,
-                paddingTop,
-                borderLeft,
-                borderTop,
-                totalOffsetX,
-                totalOffsetY,
-                relativeX,
-                relativeY,
-                finalX: x,
-                finalY: y
-            });
-            
             return { x, y };
-        }
-
-        // Упрощенная функция для получения позиции пикселя
-        function getPixelPosition(x, y) {
-            const pixelMap = document.getElementById('pixel-map');
-            const rect = pixelMap.getBoundingClientRect();
-            
-            // Получаем стили контейнера
-            const containerStyles = window.getComputedStyle(pixelMap);
-            const paddingLeft = parseFloat(containerStyles.paddingLeft);
-            const paddingTop = parseFloat(containerStyles.paddingTop);
-            const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-            const borderTop = parseFloat(containerStyles.borderTopWidth);
-            
-            // Рассчитываем позицию
-            const totalOffsetX = paddingLeft + borderLeft;
-            const totalOffsetY = paddingTop + borderTop;
-            
-            const pixelLeft = x * 25 + totalOffsetX;
-            const pixelTop = y * 25 + totalOffsetY;
-            
-            return { 
-                left: pixelLeft + rect.left - pixelMap.scrollLeft + window.pageXOffset,
-                top: pixelTop + rect.top - pixelMap.scrollTop + window.pageYOffset
-            };
-        }
-
-        // Функция для позиционирования юнита относительно карты
-        function positionUnitOnMap(unitElement, x, y) {
-            const pixelMap = document.getElementById('pixel-map');
-            const rect = pixelMap.getBoundingClientRect();
-            
-            // Получаем стили контейнера
-            const containerStyles = window.getComputedStyle(pixelMap);
-            const paddingLeft = parseFloat(containerStyles.paddingLeft);
-            const paddingTop = parseFloat(containerStyles.paddingTop);
-            const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-            const borderTop = parseFloat(containerStyles.borderTopWidth);
-            
-            // Рассчитываем позицию
-            const totalOffsetX = paddingLeft + borderLeft;
-            const totalOffsetY = paddingTop + borderTop;
-            
-            const pixelLeft = x * 25 + totalOffsetX;
-            const pixelTop = y * 25 + totalOffsetY;
-            
-            // Центрируем юнит в пикселе (юнит 20px, пиксель 25px)
-            const centerOffset = (25 - 20) / 2;
-            
-            unitElement.style.left = (pixelLeft + centerOffset) + 'px';
-            unitElement.style.top = (pixelTop + centerOffset) + 'px';
-            
-            console.log(`📍 Позиционирование юнита:`, {
-                x, y,
-                pixelLeft,
-                pixelTop,
-                finalLeft: pixelLeft + centerOffset,
-                finalTop: pixelTop + centerOffset
-            });
         }
 
         // Функции для работы с радиальным меню
@@ -886,24 +811,12 @@
             const radialMenu = document.getElementById('radial-menu');
             radialMenu.innerHTML = '<div class="radial-menu-center">⚙️</div>';
             
-            // Позиционируем меню с учетом точных координат
-            const pixelMap = document.getElementById('pixel-map');
-            const rect = pixelMap.getBoundingClientRect();
-            const containerStyles = window.getComputedStyle(pixelMap);
-            const paddingLeft = parseFloat(containerStyles.paddingLeft);
-            const paddingTop = parseFloat(containerStyles.paddingTop);
-            const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-            const borderTop = parseFloat(containerStyles.borderTopWidth);
+            // Позиционируем меню
+            const pixelPos = getPixelCoordinates(x, y);
+            const centerOffset = 2.5; // (25 - 20) / 2
             
-            const totalOffsetX = paddingLeft + borderLeft;
-            const totalOffsetY = paddingTop + borderTop;
-            
-            const pixelLeft = x * 25 + totalOffsetX;
-            const pixelTop = y * 25 + totalOffsetY;
-            const centerOffset = (25 - 20) / 2;
-            
-            radialMenu.style.left = (pixelLeft + centerOffset - 30) + 'px';
-            radialMenu.style.top = (pixelTop + centerOffset - 30) + 'px';
+            radialMenu.style.left = (pixelPos.left + centerOffset - 30) + 'px';
+            radialMenu.style.top = (pixelPos.top + centerOffset - 30) + 'px';
             
             // Создаем элементы меню
             const menuItems = [
@@ -1404,7 +1317,7 @@
             }
         }
 
-        // Функции для работы с юнитами
+        // Функции для работы с юнитами - УПРОЩЕННАЯ ВЕРСИЯ
         function renderUnit(unit) {
             let unitElement = document.getElementById(unit.id);
             if (!unitElement) {
@@ -1415,13 +1328,16 @@
             
             unitElement.className = `unit soldier ${unit.isMoving ? 'moving' : ''}`;
             
-            // Используем новую функцию позиционирования
-            positionUnitOnMap(unitElement, unit.position.x, unit.position.y);
+            // ПРОСТОЕ ПОЗИЦИОНИРОВАНИЕ
+            const pixelPos = getPixelCoordinates(unit.position.x, unit.position.y);
+            const centerOffset = 2.5; // (25 - 20) / 2
             
+            unitElement.style.left = (pixelPos.left + centerOffset) + 'px';
+            unitElement.style.top = (pixelPos.top + centerOffset) + 'px';
             unitElement.style.background = '#3498db';
             unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             
-            debugUnitPosition(unit);
+            console.log(`📍 Юнит ${unit.id} на позиции ${unit.position.x},${unit.position.y}`);
         }
 
         function createGhostUnit(unit) {
@@ -1430,9 +1346,11 @@
             
             ghost.className = `unit soldier ghost`;
             
-            // Используем новую функцию позиционирования
-            positionUnitOnMap(ghost, unit.position.x, unit.position.y);
+            const pixelPos = getPixelCoordinates(unit.position.x, unit.position.y);
+            const centerOffset = 2.5;
             
+            ghost.style.left = (pixelPos.left + centerOffset) + 'px';
+            ghost.style.top = (pixelPos.top + centerOffset) + 'px';
             ghost.style.background = '#3498db';
             ghost.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             
@@ -1442,7 +1360,11 @@
 
         function updateGhostPosition(x, y) {
             if (gameState.ghostUnit) {
-                positionUnitOnMap(gameState.ghostUnit, x, y);
+                const pixelPos = getPixelCoordinates(x, y);
+                const centerOffset = 2.5;
+                
+                gameState.ghostUnit.style.left = (pixelPos.left + centerOffset) + 'px';
+                gameState.ghostUnit.style.top = (pixelPos.top + centerOffset) + 'px';
             }
         }
 
@@ -1457,9 +1379,9 @@
             const timeElement = document.createElement('div');
             timeElement.className = 'movement-time';
             
-            positionUnitOnMap(timeElement, end.x, end.y);
-            timeElement.style.left = (parseFloat(timeElement.style.left) + 5) + 'px';
-            timeElement.style.top = (parseFloat(timeElement.style.top) - 15) + 'px';
+            const pixelPos = getPixelCoordinates(end.x, end.y);
+            timeElement.style.left = (pixelPos.left + 5) + 'px';
+            timeElement.style.top = (pixelPos.top - 15) + 'px';
             timeElement.textContent = formatDuration(duration);
             
             document.getElementById('pixel-map').appendChild(timeElement);
@@ -1482,7 +1404,6 @@
 
         function moveUnit(unit, targetPos) {
             console.log('moveUnit ВХОД:', {targetPos});
-            console.log('Текущая позиция unit:', unit.position);
             
             if (unit.position.x === targetPos.x && unit.position.y === targetPos.y) {
                 console.log('ОШИБКА: Целевая позиция равна текущей');
@@ -1527,7 +1448,11 @@
                     const currentX = startPos.x + (targetPos.x - startPos.x) * progress;
                     const currentY = startPos.y + (targetPos.y - startPos.y) * progress;
                     
-                    positionUnitOnMap(unitElement, currentX, currentY);
+                    const pixelPos = getPixelCoordinates(currentX, currentY);
+                    const centerOffset = 2.5;
+                    
+                    unitElement.style.left = (pixelPos.left + centerOffset) + 'px';
+                    unitElement.style.top = (pixelPos.top + centerOffset) + 'px';
                     
                     requestAnimationFrame(animateMove);
                 } else {
@@ -1537,7 +1462,10 @@
                     
                     if (unitElement) {
                         unitElement.classList.remove('moving');
-                        positionUnitOnMap(unitElement, targetPos.x, targetPos.y);
+                        const finalPixelPos = getPixelCoordinates(targetPos.x, targetPos.y);
+                        const centerOffset = 2.5;
+                        unitElement.style.left = (finalPixelPos.left + centerOffset) + 'px';
+                        unitElement.style.top = (finalPixelPos.top + centerOffset) + 'px';
                     }
                     
                     checkForCapture(unit);
@@ -1657,14 +1585,6 @@
         document.getElementById('pixel-map').addEventListener('click', (e) => {
             if (gameState.radialMenu.active && !e.target.closest('.radial-menu')) {
                 closeRadialMenu();
-            }
-            
-            // ДОБАВИМ ОТЛАДКУ КЛИКОВ ПО КАРТЕ
-            if (e.target.classList.contains('pixel')) {
-                const x = parseInt(e.target.dataset.x);
-                const y = parseInt(e.target.dataset.y);
-                const country = e.target.dataset.country;
-                console.log('🎯 КЛИК ПО ПИКСЕЛЮ:', {x, y, country});
             }
         });
     </script>

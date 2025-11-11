@@ -822,14 +822,9 @@
             return { x, y };
         }
 
-        // Функции для работы с радиальным меню
-        function createRadialMenu(unit, x, y) {
-            const radialMenu = document.getElementById('radial-menu');
-            radialMenu.innerHTML = '<div class="radial-menu-center">⚙️</div>';
-            
-            // Позиционируем меню с учетом точных координат
+        // Функция для получения точной позиции пикселя на карте
+        function getPixelPosition(x, y) {
             const pixelMap = document.getElementById('pixel-map');
-            const rect = pixelMap.getBoundingClientRect();
             const containerStyles = window.getComputedStyle(pixelMap);
             const paddingLeft = parseFloat(containerStyles.paddingLeft);
             const paddingTop = parseFloat(containerStyles.paddingTop);
@@ -841,10 +836,21 @@
             
             const pixelLeft = x * 25 + totalOffsetX;
             const pixelTop = y * 25 + totalOffsetY;
+            
+            return { left: pixelLeft, top: pixelTop };
+        }
+
+        // Функции для работы с радиальным меню
+        function createRadialMenu(unit, x, y) {
+            const radialMenu = document.getElementById('radial-menu');
+            radialMenu.innerHTML = '<div class="radial-menu-center">⚙️</div>';
+            
+            // Позиционируем меню с учетом точных координат
+            const pixelPos = getPixelPosition(x, y);
             const centerOffset = (25 - 20) / 2;
             
-            radialMenu.style.left = (pixelLeft + centerOffset - 30) + 'px';
-            radialMenu.style.top = (pixelTop + centerOffset - 30) + 'px';
+            radialMenu.style.left = (pixelPos.left + centerOffset - 30) + 'px';
+            radialMenu.style.top = (pixelPos.top + centerOffset - 30) + 'px';
             
             // Создаем элементы меню
             const menuItems = [
@@ -1129,26 +1135,6 @@
             saveToDatabase('units/' + unit.id, unit);
             
             console.log(`✅ Создана армия в Латвии на позиции ${unit.position.x},${unit.position.y}`);
-            
-            // ОТЛАДКА: покажем где реально находится юнит
-            setTimeout(() => {
-                const unitElement = document.getElementById(unit.id);
-                if (unitElement) {
-                    const rect = unitElement.getBoundingClientRect();
-                    const pixelMap = document.getElementById('pixel-map');
-                    const mapRect = pixelMap.getBoundingClientRect();
-                    
-                    console.log('🔍 РЕАЛЬНОЕ ПОЛОЖЕНИЕ ЮНИТА:', {
-                        unitPosition: unit.position,
-                        elementLeft: rect.left,
-                        elementTop: rect.top,
-                        mapLeft: mapRect.left,
-                        mapTop: mapRect.top,
-                        offsetX: rect.left - mapRect.left,
-                        offsetY: rect.top - mapRect.top
-                    });
-                }
-            }, 100);
         }
 
         function createCustomArmy() {
@@ -1376,23 +1362,12 @@
             
             unitElement.className = `unit soldier ${unit.isMoving ? 'moving' : ''}`;
             
-            // Точное позиционирование в центре пикселя с учетом всех отступов
-            const pixelMap = document.getElementById('pixel-map');
-            const containerStyles = window.getComputedStyle(pixelMap);
-            const paddingLeft = parseFloat(containerStyles.paddingLeft);
-            const paddingTop = parseFloat(containerStyles.paddingTop);
-            const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-            const borderTop = parseFloat(containerStyles.borderTopWidth);
-            
-            const totalOffsetX = paddingLeft + borderLeft;
-            const totalOffsetY = paddingTop + borderTop;
-            
-            const pixelLeft = unit.position.x * 25 + totalOffsetX;
-            const pixelTop = unit.position.y * 25 + totalOffsetY;
+            // Точное позиционирование с использованием новой функции
+            const pixelPos = getPixelPosition(unit.position.x, unit.position.y);
             const centerOffset = (25 - 20) / 2;
             
-            unitElement.style.left = (pixelLeft + centerOffset) + 'px';
-            unitElement.style.top = (pixelTop + centerOffset) + 'px';
+            unitElement.style.left = (pixelPos.left + centerOffset) + 'px';
+            unitElement.style.top = (pixelPos.top + centerOffset) + 'px';
             unitElement.style.background = '#3498db';
             unitElement.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             
@@ -1405,21 +1380,11 @@
             
             ghost.className = `unit soldier ghost`;
             
-            const containerStyles = window.getComputedStyle(pixelMap);
-            const paddingLeft = parseFloat(containerStyles.paddingLeft);
-            const paddingTop = parseFloat(containerStyles.paddingTop);
-            const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-            const borderTop = parseFloat(containerStyles.borderTopWidth);
-            
-            const totalOffsetX = paddingLeft + borderLeft;
-            const totalOffsetY = paddingTop + borderTop;
-            
-            const pixelLeft = unit.position.x * 25 + totalOffsetX;
-            const pixelTop = unit.position.y * 25 + totalOffsetY;
+            const pixelPos = getPixelPosition(unit.position.x, unit.position.y);
             const centerOffset = (25 - 20) / 2;
             
-            ghost.style.left = (pixelLeft + centerOffset) + 'px';
-            ghost.style.top = (pixelTop + centerOffset) + 'px';
+            ghost.style.left = (pixelPos.left + centerOffset) + 'px';
+            ghost.style.top = (pixelPos.top + centerOffset) + 'px';
             ghost.style.background = '#3498db';
             ghost.innerHTML = `👥<div style="font-size:8px">${unit.size}</div>`;
             
@@ -1429,22 +1394,11 @@
 
         function updateGhostPosition(x, y) {
             if (gameState.ghostUnit) {
-                const pixelMap = document.getElementById('pixel-map');
-                const containerStyles = window.getComputedStyle(pixelMap);
-                const paddingLeft = parseFloat(containerStyles.paddingLeft);
-                const paddingTop = parseFloat(containerStyles.paddingTop);
-                const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-                const borderTop = parseFloat(containerStyles.borderTopWidth);
-                
-                const totalOffsetX = paddingLeft + borderLeft;
-                const totalOffsetY = paddingTop + borderTop;
-                
-                const pixelLeft = x * 25 + totalOffsetX;
-                const pixelTop = y * 25 + totalOffsetY;
+                const pixelPos = getPixelPosition(x, y);
                 const centerOffset = (25 - 20) / 2;
                 
-                gameState.ghostUnit.style.left = (pixelLeft + centerOffset) + 'px';
-                gameState.ghostUnit.style.top = (pixelTop + centerOffset) + 'px';
+                gameState.ghostUnit.style.left = (pixelPos.left + centerOffset) + 'px';
+                gameState.ghostUnit.style.top = (pixelPos.top + centerOffset) + 'px';
             }
         }
 
@@ -1459,10 +1413,9 @@
             const timeElement = document.createElement('div');
             timeElement.className = 'movement-time';
             
-            const pixelLeft = end.x * 25;
-            const pixelTop = end.y * 25;
-            timeElement.style.left = (pixelLeft + 5) + 'px';
-            timeElement.style.top = (pixelTop - 15) + 'px';
+            const pixelPos = getPixelPosition(end.x, end.y);
+            timeElement.style.left = (pixelPos.left + 5) + 'px';
+            timeElement.style.top = (pixelPos.top - 15) + 'px';
             timeElement.textContent = formatDuration(duration);
             
             document.getElementById('pixel-map').appendChild(timeElement);
@@ -1522,17 +1475,6 @@
             const startPos = {...unit.position};
             const targetPos = unit.targetPosition;
             
-            const pixelMap = document.getElementById('pixel-map');
-            const containerStyles = window.getComputedStyle(pixelMap);
-            const paddingLeft = parseFloat(containerStyles.paddingLeft);
-            const paddingTop = parseFloat(containerStyles.paddingTop);
-            const borderLeft = parseFloat(containerStyles.borderLeftWidth);
-            const borderTop = parseFloat(containerStyles.borderTopWidth);
-            
-            const totalOffsetX = paddingLeft + borderLeft;
-            const totalOffsetY = paddingTop + borderTop;
-            const centerOffset = (25 - 20) / 2;
-            
             function animateMove() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / unit.moveDuration, 1);
@@ -1541,11 +1483,11 @@
                     const currentX = startPos.x + (targetPos.x - startPos.x) * progress;
                     const currentY = startPos.y + (targetPos.y - startPos.y) * progress;
                     
-                    const pixelLeft = currentX * 25 + totalOffsetX;
-                    const pixelTop = currentY * 25 + totalOffsetY;
+                    const pixelPos = getPixelPosition(currentX, currentY);
+                    const centerOffset = (25 - 20) / 2;
                     
-                    unitElement.style.left = (pixelLeft + centerOffset) + 'px';
-                    unitElement.style.top = (pixelTop + centerOffset) + 'px';
+                    unitElement.style.left = (pixelPos.left + centerOffset) + 'px';
+                    unitElement.style.top = (pixelPos.top + centerOffset) + 'px';
                     
                     requestAnimationFrame(animateMove);
                 } else {
@@ -1555,10 +1497,10 @@
                     
                     if (unitElement) {
                         unitElement.classList.remove('moving');
-                        const finalPixelLeft = targetPos.x * 25 + totalOffsetX;
-                        const finalPixelTop = targetPos.y * 25 + totalOffsetY;
-                        unitElement.style.left = (finalPixelLeft + centerOffset) + 'px';
-                        unitElement.style.top = (finalPixelTop + centerOffset) + 'px';
+                        const finalPixelPos = getPixelPosition(targetPos.x, targetPos.y);
+                        const centerOffset = (25 - 20) / 2;
+                        unitElement.style.left = (finalPixelPos.left + centerOffset) + 'px';
+                        unitElement.style.top = (finalPixelPos.top + centerOffset) + 'px';
                     }
                     
                     checkForCapture(unit);
